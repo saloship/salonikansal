@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Saloni Kansal — Tech Risk &amp; Audit, moving into Product</title>
+<meta name="description" content="Saloni Kansal — tech risk &amp; IT audit consultant moving into product and design. A method I actually use, the work behind it, and the mountains in between."/>
+<link rel="canonical" href="https://saloship.github.io/"/>
+<meta name="author" content="Saloni Kansal"/>
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://saloship.github.io/"/>
+<meta property="og:title" content="Saloni Kansal — Tech Risk &amp; Audit, moving into Product"/>
+<meta property="og:description" content="Tech risk &amp; IT audit, heading into product and design. I find where systems break — then design the replacement."/>
+<meta property="og:image" content="https://saloship.github.io/assets/og-cover.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Saloni Kansal — Tech risk &amp; audit, heading into product"/>
+<meta property="og:site_name" content="Saloni Kansal"/>
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Saloni Kansal — Tech Risk &amp; Audit, moving into Product"/>
+<meta name="twitter:description" content="Tech risk &amp; IT audit, heading into product and design. I find where systems break — then design the replacement."/>
+<meta name="twitter:image" content="https://saloship.github.io/assets/og-cover.png"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Saloni Kansal",
+  "url": "https://saloship.github.io/",
+  "jobTitle": "Tech Risk & IT Audit Consultant",
+  "worksFor": { "@type": "Organization", "name": "EY" },
+  "description": "Tech risk and IT audit consultant moving into product and design.",
+  "sameAs": [
+    "https://www.linkedin.com/in/saloni-kansal/",
+    "https://github.com/saloship",
+    "https://dribbble.com/saloship",
+    "https://www.instagram.com/saloni_falls/"
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#151414;          /* near-black — text & dark sections */
+  --ink-2:#3a3a39;
+  --ink-3:#6f6f6c;
+  --paper:#fafaf6;        /* soft white page */
+  --paper-2:#f1f1ea;
+  --paper-3:#e8e8e1;
+  --card:#ffffff;         /* clean white cards */
+  --sun:#f5c518;          /* yellow accent */
+  --sun-2:#e0a90a;
+  --sun-soft:#ffe98a;
+  --sun-ink:#8a6d00;      /* readable gold ink on white */
+  --sage:#e7e6df;         /* remapped -> light neutral */
+  --sage-2:#c9c8bf;
+  --sky:#fbf1c6;          /* remapped -> pale yellow */
+  --sky-2:#efe0a0;
+  --clay:#e7e6df;         /* -> light neutral */
+  --clay-2:#c9c8bf;
+  --line:#e9e8e2;
+  --line-2:#dad9d1;
+  --green:#151414;        /* remapped accent -> black */
+  --green-ink:#151414;
+  --green-wash:#f5f4ee;
+  --green-line:#e4e2d9;
+  --forest:#151414;       /* loader bg -> black */
+  --brown:#151414;
+  --max:1080px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--paper);line-height:1.65;overflow-x:hidden;-webkit-font-smoothing:antialiased;position:relative}
+/* faint paper grain over everything */
+body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.6;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
+h1,h2,h3,h4,.disp{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.06;letter-spacing:-.015em}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 28px;position:relative;z-index:2}
+.i{font-style:italic}
+button{font-family:inherit;cursor:pointer}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---- MARKER + PAPER UTILITIES ---- */
+/* hand-drawn marker underline under a word */
+.mk{position:relative;white-space:nowrap;font-style:normal}
+.mk::after{content:"";position:absolute;left:-3px;right:-3px;bottom:-.12em;height:.42em;z-index:-1;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14' preserveAspectRatio='none'%3E%3Cpath d='M3 8 C 24 3 44 11 62 7 S 100 4 117 9' fill='none' stroke='%23f5c518' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;background-size:100% 100%}
+/* marker circle around a word */
+.mkc{position:relative;white-space:nowrap;font-style:normal;padding:0 .12em}
+.mkc::after{content:"";position:absolute;left:-.18em;right:-.18em;top:-.18em;bottom:-.18em;z-index:-1;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 54' preserveAspectRatio='none'%3E%3Cpath d='M60 4 C 20 4 6 16 8 28 C 10 44 44 50 66 49 C 100 47 116 36 112 23 C 108 10 78 4 46 6' fill='none' stroke='%23e5ac04' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;background-size:100% 100%}
+/* Caveat marker annotation */
+.scribble{font-family:'Caveat',cursive;font-weight:600;color:var(--sun-ink);line-height:1;font-style:normal}
+
+/* paper-note card: soft edges, offset shadow, folded dog-ear corner */
+.paper{background:var(--card);border:1px solid var(--line);border-radius:5px;position:relative;
+  box-shadow:0 1px 0 var(--line),10px 14px 30px -22px rgba(21,20,15,.6)}
+.paper::after{content:"";position:absolute;top:0;right:0;width:0;height:0;
+  border-top:20px solid var(--paper-2);border-left:20px solid transparent;border-top-right-radius:5px;
+  filter:drop-shadow(-1px 1px 1px rgba(21,20,15,.08))}
+/* a strip of translucent tape */
+.tape{position:absolute;width:88px;height:26px;background:rgba(245,197,24,.32);border:1px solid rgba(229,172,4,.25);
+  box-shadow:0 1px 3px rgba(21,20,15,.08);z-index:4}
+
+.eyebrow{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--sun-ink);font-weight:600;display:inline-flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:12px;height:12px;flex:none;transform:rotate(45deg);border-radius:2px;
+  background:linear-gradient(135deg,var(--sun) 50%,var(--sun-2) 50%)}
+
+/* NAV */
+header.nav{position:fixed;inset:0 0 auto 0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:18px 28px;transition:.3s}
+header.nav.scrolled{background:rgba(247,244,236,.86);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line)}
+.logo{font-family:'Fraunces';font-weight:600;font-size:20px;display:flex;align-items:center;gap:10px}
+.logo .d{width:15px;height:15px;transform:rotate(45deg);border-radius:2px;
+  background:conic-gradient(var(--sun) 0 90deg,var(--sun-2) 0 180deg,var(--sun) 0 270deg,var(--sun-2) 0 360deg);
+  box-shadow:1px 1px 2px rgba(21,20,15,.18)}
+nav.links{display:flex;gap:26px;font-size:14.5px}
+nav.links a{color:var(--ink-2);position:relative;padding:3px 0}
+nav.links a::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--sun);transition:.25s;border-radius:2px}
+nav.links a:hover{color:var(--ink)}nav.links a:hover::after{width:100%}
+.nav-cta{border:1.5px solid var(--ink);border-radius:100px;padding:8px 18px;font-size:13.5px;font-weight:600;transition:.2s}
+.nav-cta:hover{background:var(--ink);color:var(--paper)}
+.burger{display:none;width:44px;height:44px;border:1px solid var(--line-2);border-radius:11px;background:var(--card);font-size:17px}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--sun);width:0;z-index:70}
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--forest);transition:opacity .7s ease,visibility .7s ease}
+#loader.hide{opacity:0;visibility:hidden}
+#loader .ld{display:flex;flex-direction:column;align-items:center;gap:20px}
+#loader .emblem{position:relative;width:74px;height:74px}
+#loader .emblem .sun{position:absolute;inset:18px;border-radius:50%;background:var(--sun);box-shadow:0 0 34px rgba(245,197,24,.5);animation:ldpulse 1.6s ease-in-out infinite}
+#loader .emblem .ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.14);border-top-color:var(--sun);animation:ldspin 1s linear infinite}
+#loader .nm{font-family:'Fraunces';font-weight:600;font-size:20px;color:#f3eede;letter-spacing:.02em}
+#loader .track{width:150px;height:3px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+#loader .track i{display:block;height:100%;width:38%;border-radius:3px;background:linear-gradient(90deg,#c9a24a,var(--sun));animation:ldbar 1.25s ease-in-out infinite}
+@keyframes ldspin{to{transform:rotate(360deg)}}
+@keyframes ldpulse{0%,100%{transform:scale(1)}50%{transform:scale(.85)}}
+@keyframes ldbar{0%{transform:translateX(-130%)}100%{transform:translateX(330%)}}
+@media(prefers-reduced-motion:reduce){#loader .emblem .ring,#loader .emblem .sun,#loader .track i{animation:none}}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;min-height:100dvh;display:flex;align-items:center;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;width:100%;padding:120px 0 70px}
+.place{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;letter-spacing:.06em;color:var(--ink-3);margin-bottom:22px}
+.place .dot{width:7px;height:7px;border-radius:50%;background:var(--sun-2);box-shadow:0 0 0 3px rgba(226,169,11,.22)}
+.hero h1{font-size:clamp(46px,7.6vw,84px);font-weight:600}
+.hero .thesis{font-family:'Fraunces';font-style:italic;font-weight:500;font-size:clamp(20px,2.7vw,30px);margin-top:16px;color:var(--ink)}
+.hero p.intro{font-size:clamp(16px,1.55vw,18px);color:var(--ink-2);margin-top:24px;max-width:46ch}
+.hero-cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap;align-items:center}
+.btn{border-radius:100px;padding:13px 24px;font-weight:600;font-size:15px;transition:.22s;display:inline-flex;align-items:center;gap:8px;border:1.5px solid transparent;min-height:46px}
+.btn-solid{background:var(--ink);color:var(--paper)}
+.btn-solid:hover{background:#1c130a;transform:translateY(-2px)}
+.btn-ghost{border-color:var(--ink);color:var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--paper)}
+/* hero art */
+.hero-art{position:relative;display:flex;justify-content:center;align-items:flex-end;min-height:60vh}
+.sun-disc{position:absolute;top:2%;left:50%;transform:translateX(-50%);width:80%;aspect-ratio:1;border-radius:50%;z-index:0;
+  background:var(--sun);will-change:transform}
+.fold{position:absolute;z-index:2;transform:rotate(45deg);border-radius:2px;box-shadow:2px 3px 7px rgba(47,33,22,.14);animation:bob 6.5s ease-in-out infinite}
+.fold.a{width:34px;height:34px;top:5%;right:6%;background:linear-gradient(135deg,var(--sun-soft) 50%,var(--sun) 50%)}
+.fold.b{width:22px;height:22px;top:36%;left:2%;background:linear-gradient(135deg,#ecebe4 50%,#d6d5cc 50%);animation-delay:.5s}
+.fold.c{width:26px;height:26px;bottom:16%;right:3%;background:linear-gradient(135deg,var(--sun) 50%,var(--sun-2) 50%);animation-delay:.9s}
+@keyframes bob{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translateY(-14px)}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(var(--rot,0deg))}50%{transform:translateY(-10px) rotate(var(--rot,0deg))}}
+@keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.045)}}
+@keyframes discPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.03)}}
+@media(prefers-reduced-motion:reduce){.fold,.sun-disc,.ridge .note,.statement .circle,.crane{animation:none!important}}
+.hero-art::after{content:"";position:absolute;bottom:5%;left:50%;transform:translateX(-50%);width:40%;height:22px;border-radius:50%;background:rgba(47,33,22,.16);filter:blur(9px);z-index:0}
+.hero-art img{position:relative;z-index:1;max-height:76vh;width:auto;animation:floaty 7s ease-in-out infinite}
+.scrollhint{position:absolute;bottom:20px;left:28px;z-index:3;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:10px}
+.scrollhint .bar{width:34px;height:1px;background:var(--ink-3)}
+.hero-hills{position:absolute;left:0;right:0;bottom:0;width:100%;z-index:0;display:block;pointer-events:none}
+
+/* SECTION scaffolding */
+.block{padding:clamp(84px,11vw,150px) 0;position:relative}
+.kicker{margin-bottom:20px}
+.h-sec{font-size:clamp(30px,4.6vw,52px);margin-top:14px}
+.lead{font-size:clamp(16.5px,1.7vw,19px);color:var(--ink-2);max-width:60ch;margin-top:18px}
+/* signature: a yellow underline that draws in as each heading appears */
+.h-sec::after,.fw-name::after,.beyond h2::after{content:"";display:block;width:0;height:4px;border-radius:4px;background:var(--sun);margin-top:16px;transition:width .9s cubic-bezier(.2,.7,.2,1) .12s}
+.h-sec.drawn::after,.fw-name.drawn::after,.beyond h2.drawn::after{width:66px}
+.connect .h-sec::after{margin-left:auto;margin-right:auto}
+
+/* THREE VERSIONS — paper notes */
+.versions{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.ver{background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden;transition:.3s;position:relative;
+  box-shadow:0 1px 0 var(--line),12px 16px 34px -24px rgba(21,20,15,.6)}
+.ver:hover{box-shadow:14px 20px 40px -30px rgba(21,20,20,.26)}
+.ver .frame{aspect-ratio:3/5;overflow:hidden;background:linear-gradient(180deg,#f2ece0,#e6dece);border-bottom:1px solid var(--line)}
+.ver .frame img{width:100%;height:100%;object-fit:cover;object-position:center 8%}
+.ver .tape{top:-13px;left:50%;transform:translateX(-50%) rotate(-2.5deg)}
+.ver .k{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-ink);margin:18px 22px 0}
+.ver h3{font-size:20px;margin:2px 22px 8px}
+.ver p{font-size:14px;color:var(--ink-2);margin:0 22px 22px}
+.versions-note{margin-top:44px;font-family:'Fraunces';font-size:clamp(18px,2.2vw,24px);color:var(--ink);max-width:34ch}
+
+/* MEET (strategy/execution/adaptation) — folded panels */
+.meet-eq{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-family:'Fraunces';font-size:clamp(20px,3vw,30px);margin-top:8px}
+.meet-eq .p{color:var(--sun-ink)}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+.tri > div{padding:26px 24px;border-radius:6px;position:relative;overflow:hidden}
+.tri > div::after{content:"";position:absolute;top:0;right:0;border-top:22px solid rgba(0,0,0,.14);border-left:22px solid transparent}
+.tri .a{background:var(--ink);color:var(--paper)}
+.tri .b{background:var(--sky)}
+.tri .c{background:var(--sun)}
+.tri h4{font-size:18px;margin-bottom:8px}
+.tri .a h4{color:#fff}
+.tri p{font-size:14px}.tri .a p{color:#d8d3c6}.tri .b p{color:#1f3b45}.tri .c p{color:#4a3300}
+
+/* JOURNEY */
+.journey{background:var(--paper-2)}
+.tl{margin-top:50px;padding-left:34px;position:relative}
+.tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:repeating-linear-gradient(var(--line-2) 0 7px,transparent 7px 14px)}
+.tl .it{position:relative;padding-bottom:44px}
+.tl .it:last-child{padding-bottom:0}
+.tl .it::before{content:"";position:absolute;left:-34px;top:3px;width:15px;height:15px;transform:rotate(45deg);border-radius:2px;
+  background:linear-gradient(135deg,var(--sun) 50%,var(--sun-2) 50%);box-shadow:1px 1px 2px rgba(21,20,15,.2)}
+.tl .w{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sun-ink)}
+.tl h3{font-size:24px;margin:2px 0 2px}
+.tl .r{color:var(--ink-3);font-size:14.5px;margin-bottom:10px}
+.tl p{color:var(--ink-2);font-size:15px;max-width:64ch}
+.kl{margin-top:14px;font-size:14px;color:var(--ink-2);border-left:3px solid var(--sun);padding-left:14px;max-width:60ch}
+.kl b{color:var(--ink);font-weight:600}
+.tl .chips{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:4px 11px;border:1px solid var(--line-2);border-radius:100px;color:var(--ink-2);background:var(--card)}
+
+/* METHOD — folded step tiles */
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--paper);border-radius:100px;padding:6px 15px;font-size:12px;font-weight:600;letter-spacing:.04em}
+.badge b{color:var(--sun)}
+.fw-name{font-size:clamp(30px,5vw,54px);margin:16px 0 0}
+.fw-name .i{color:var(--sun-ink)}
+.fw-steps{margin-top:44px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.fw-step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 16px;transition:.25s;
+  box-shadow:0 1px 0 var(--line),8px 12px 24px -20px rgba(21,20,15,.6)}
+.fw-step::after{content:"";position:absolute;top:0;right:0;border-top:16px solid var(--paper-2);border-left:16px solid transparent;border-top-right-radius:6px}
+.fw-step:hover{border-color:var(--sun);box-shadow:0 1px 0 var(--line),10px 14px 26px -20px rgba(21,20,20,.28)}
+.fw-step .s{font-family:'Fraunces';font-weight:600;font-size:20px;color:var(--sun-ink)}
+.fw-step h4{font-size:16px;margin:6px 0 6px;line-height:1.15}
+.fw-step p{font-size:12.5px;color:var(--ink-3)}
+.fw-step .arr{position:absolute;right:-10px;top:40px;color:var(--sun-2);font-size:16px;z-index:2}
+.fw-note{margin-top:28px;font-size:15px;color:var(--ink-2);max-width:66ch}
+.fw-note b{color:var(--ink)}
+
+/* WORK — paper cards with stamp status */
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin-top:38px}
+.filter{display:inline-flex;align-items:center;min-height:44px;border:1.5px solid var(--line-2);background:var(--card);border-radius:100px;padding:9px 18px;font-size:14px;font-weight:600;color:var(--ink-2);transition:.18s}
+.filter:hover{border-color:var(--ink)}
+.filter.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.grid{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.wcard{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:24px;cursor:pointer;transition:.25s;display:flex;flex-direction:column;min-height:206px;text-align:left;position:relative;
+  box-shadow:0 1px 0 var(--line),12px 16px 32px -24px rgba(21,20,15,.6)}
+.wcard::after{content:"";position:absolute;top:0;right:0;border-top:18px solid var(--paper-2);border-left:18px solid transparent;border-top-right-radius:6px}
+.wcard:hover{transform:translateY(-6px);box-shadow:20px 26px 48px -28px rgba(21,20,15,.5);border-color:var(--line-2)}
+.wcard .status{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:3px;align-self:flex-start;margin-bottom:14px}
+.st-pro{background:var(--ink);color:var(--sun)}
+.st-con{background:var(--sky);color:#1f3b45}
+.st-built{background:var(--sage-2);color:#fff}
+.st-ven{background:var(--clay);color:#5a2c15}
+.wcard h3{font-size:21px;margin-bottom:9px;line-height:1.14;padding-right:10px}
+.wcard .desc{font-size:14px;color:var(--ink-2);flex:1}
+.wcard .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px}
+.wcard .tag{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:100px;padding:3px 9px}
+.wcard .more{margin-top:13px;font-size:12.5px;color:var(--sun-ink);font-weight:600}
+.also{margin-top:28px;font-size:14.5px;color:var(--ink-3);max-width:60ch}
+.also b{color:var(--ink-2)}
+.also a{color:var(--sun-ink);font-weight:600;border-bottom:2px solid var(--sun);white-space:nowrap}
+/* WORK — clean keyword cards */
+.pgrid{margin-top:44px;display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.pcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:26px 26px 24px;transition:.25s;overflow:hidden}
+.pcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--green),var(--sun));transition:width .3s cubic-bezier(.2,.7,.2,1)}
+.pcard:hover::before{width:9px}
+.pcard:hover{border-color:var(--line-2)}
+.pcard .pk{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:700}
+.pcard h3{font-size:22px;margin:8px 0 15px;line-height:1.1}
+.pcard .ptags{display:flex;gap:8px;flex-wrap:wrap}
+.pcard .ptags span{font-size:12px;font-weight:600;color:var(--green-ink);background:var(--green-wash);border:1px solid var(--green-line);border-radius:100px;padding:5px 12px}
+.pfull{margin-top:24px;font-size:14.5px;color:var(--ink-3);max-width:62ch}
+.pfull a{color:var(--green);font-weight:600;border-bottom:2px solid var(--sun);white-space:nowrap}
+
+/* STATEMENT band — folded paper sun */
+.statement{background:var(--ink);position:relative;overflow:hidden;text-align:center;padding:clamp(90px,14vw,170px) 0}
+.statement .circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,92vw);aspect-ratio:1;border-radius:50%;z-index:0;
+  background:var(--sun);animation:breathe 8s ease-in-out infinite}
+.statement .t{position:relative;z-index:1;font-family:'Fraunces';font-weight:600;color:var(--ink);font-size:clamp(24px,4.6vw,50px);line-height:1.14;max-width:min(600px,78vw);margin:0 auto}
+.statement .t b{color:var(--ink);font-weight:600;font-style:italic}
+
+/* BEYOND (mountains) */
+.beyond{background:var(--paper);position:relative;padding-top:clamp(80px,10vw,130px);padding-bottom:0;overflow:hidden}
+.beyond .lead-in{max-width:52ch}
+.beyond .kicker{margin-bottom:0}
+.beyond h2{font-size:clamp(30px,5vw,52px);margin:12px 0 16px}
+.beyond h2 .i{color:var(--sun-ink)}
+.beyond p{font-size:16px;color:var(--ink-2)}
+.ridge{position:relative;margin-top:40px;min-height:min(56vw,560px);width:100vw;left:50%;transform:translateX(-50%)}
+.ridge .sun{position:absolute;right:10%;top:2%;width:min(20vw,150px);aspect-ratio:1;border-radius:50%;z-index:1;
+  background:var(--sun)}
+.ridge .crane{position:absolute;left:16%;top:6%;width:64px;z-index:3;animation:floaty 7s ease-in-out infinite;--rot:-6deg}
+.ridge .mtn{position:absolute;left:0;bottom:0;width:100%;height:auto;display:block;z-index:2}
+.ridge .note{position:absolute;z-index:4;max-width:230px;font-size:15px;line-height:1.42;color:var(--ink);animation:floaty 6.5s ease-in-out infinite}
+.ridge .note.sticky{background:var(--sky);padding:15px 17px;border-radius:2px;box-shadow:4px 6px 14px -6px rgba(21,20,15,.4);font-size:14px;--rot:-1.5deg}
+.ridge .note.sticky::before{content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%) rotate(-4deg);width:74px;height:22px;background:rgba(245,197,24,.34);border:1px solid rgba(229,172,4,.25)}
+.ridge .note.paper2{background:var(--card);padding:15px 17px;border-radius:2px;box-shadow:4px 6px 14px -6px rgba(21,20,15,.4);border:1px solid var(--line);--rot:1.5deg}
+.ridge .note.paper2::before{content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%) rotate(3deg);width:74px;height:22px;background:rgba(21,20,20,.08);border:1px solid rgba(21,20,20,.1)}
+.ridge .note.claynote{background:#f2f2ec;padding:15px 17px;border-radius:2px;box-shadow:4px 6px 14px -6px rgba(21,20,20,.28);--rot:-1deg}
+.ridge .note.claynote::before{content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%) rotate(-2deg);width:74px;height:22px;background:rgba(21,20,20,.08);border:1px solid rgba(21,20,20,.1)}
+.ridge .n1{left:9%;top:4%}
+.ridge .n2{left:41%;top:22%;animation-delay:.9s}
+.ridge .n3{left:64%;top:42%;animation-delay:1.7s}
+
+/* TRIPS — taped polaroids */
+.trips .h-sec .i{color:var(--sun-ink)}
+.trips-in{margin-top:clamp(42px,6vw,74px)}
+.trips-h{font-size:clamp(22px,3.2vw,32px);margin-bottom:4px}
+.trips-h .i{color:var(--sun-ink)}
+.cvline{margin-top:18px;color:#cfcabc;font-size:14.5px}
+.cvline a{color:var(--sun);font-weight:600;border-bottom:1px solid var(--sun)}
+.tgrid{margin-top:52px;display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.tcard{position:relative;background:var(--card);padding:11px 11px 0;border-radius:3px;border:1px solid var(--line);
+  box-shadow:0 1px 0 var(--line),12px 16px 30px -22px rgba(21,20,15,.6);transition:.3s}
+.tcard:nth-child(1){transform:rotate(-2deg)}
+.tcard:nth-child(2){transform:rotate(1.4deg)}
+.tcard:nth-child(3){transform:rotate(-1deg)}
+.tcard:nth-child(4){transform:rotate(2deg)}
+.tcard:hover{z-index:5}
+.tcard .ph{aspect-ratio:1/1;overflow:hidden;border-radius:2px;background:var(--paper-3)}
+.tcard .ph img{width:100%;height:100%;object-fit:cover;transition:.5s}
+.tcard:hover .ph img{transform:scale(1.05)}
+.tcard .tape{top:-12px;left:50%;transform:translateX(-50%) rotate(-3deg)}
+.tcard .cap{padding:11px 4px 13px;text-align:center}
+.tcard .cap .m{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sun-ink);font-weight:700}
+.tcard .cap .p{font-family:'Fraunces';font-weight:600;font-style:italic;font-size:16px;color:var(--ink);margin-top:2px;line-height:1.15}
+.tnote{margin-top:34px;font-size:15px;color:var(--ink-2);max-width:58ch}
+.tnote a{color:var(--sun-ink);font-weight:600;border-bottom:2px solid var(--sun)}
+
+/* CONNECT */
+.connect{background:var(--ink);color:var(--paper);text-align:center;position:relative;overflow:hidden}
+.connect .h-sec{color:#fff;font-size:clamp(34px,6vw,66px)}
+.connect .h-sec .i{color:var(--sun)}
+.connect .sub{color:#cfcabc;font-size:17px;max-width:44ch;margin:16px auto 0}
+.connect .plane{width:66px;margin:0 auto 4px;animation:floaty 6s ease-in-out infinite;--rot:-8deg}
+.socs{display:flex;gap:11px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+.soc{border:1px solid #3d392f;border-radius:100px;padding:12px 22px;font-size:14.5px;color:#e8e4d7;transition:.2s;min-height:44px;display:inline-flex;align-items:center}
+.soc:hover{background:var(--sun);color:var(--ink);border-color:var(--sun);transform:translateY(-3px)}
+.mail{margin-top:30px;display:inline-block;background:var(--sun);color:var(--ink);border-radius:100px;padding:16px 34px;font-weight:700;font-size:16px;transition:.2s}
+.mail:hover{background:#fff;transform:translateY(-3px)}
+footer{background:var(--ink);color:#847f70;text-align:center;padding:30px;font-size:13px;border-top:1px solid #2a271f}
+footer .h{color:var(--sun)}
+
+/* DRAWER */
+.scrim{position:fixed;inset:0;background:rgba(21,20,15,.5);opacity:0;pointer-events:none;transition:.28s;z-index:90}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(540px,94vw);background:var(--paper);z-index:95;transform:translateX(100%);
+  transition:transform .36s cubic-bezier(.2,.8,.2,1);overflow-y:auto;box-shadow:-24px 0 60px -24px rgba(21,20,15,.4)}
+.drawer.on{transform:none}
+.dh{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;z-index:2}
+.dh .status{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:3px;display:inline-block;margin-bottom:9px}
+.dh h3{font-size:25px;line-height:1.1}
+.dh .x{width:38px;height:38px;border:1px solid var(--line-2);border-radius:10px;background:var(--card);font-size:19px;color:var(--ink-2);flex:none}
+.dh .x:hover{background:var(--ink);color:var(--paper)}
+.db{padding:24px 26px 60px}
+.db .lead{font-size:16px;color:var(--ink-2);margin:0 0 20px}
+.db h4{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin:20px 0 7px}
+.db p{font-size:14.5px;color:var(--ink-2)}
+.db .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.db .soon{background:var(--paper-2);border:1px dashed var(--line-2);border-radius:6px;padding:14px;color:var(--ink-3);font-size:13.5px;margin-top:18px}
+
+/* MOBILE MENU + bar */
+.msheet{position:fixed;inset:0;background:var(--paper);z-index:96;transform:translateY(-100%);transition:.32s cubic-bezier(.2,.8,.2,1);padding:74px 28px 28px;overflow-y:auto}
+.msheet.on{transform:none}
+.msheet .mx{position:absolute;right:24px;top:22px;width:44px;height:44px;border:1px solid var(--line-2);border-radius:11px;background:var(--card);font-size:18px}
+.msheet .mt{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.msheet a{display:block;padding:16px 2px;border-bottom:1px solid var(--line);font-family:'Fraunces';font-size:25px}
+.mobar{display:none}
+
+@media(max-width:960px){.fw-steps{grid-template-columns:repeat(2,1fr)}.fw-step .arr{display:none}.tri{grid-template-columns:1fr}}
+@media(max-width:820px){
+  nav.links,.nav-cta{display:none}
+  .burger{display:grid;place-items:center}
+  .hero-grid{grid-template-columns:1fr;text-align:center;gap:10px;padding-top:104px}
+  .hero-art{order:-1;min-height:auto}
+  .hero-art img{max-height:40vh}
+  .place{margin-left:auto;margin-right:auto}
+  .hero p.intro{margin-left:auto;margin-right:auto}
+  .hero-cta{justify-content:center}
+  .pgrid{grid-template-columns:1fr}
+  .scrollhint{display:none}
+  .versions{grid-template-columns:1fr;gap:18px}
+  .ver{display:grid;grid-template-columns:118px 1fr;align-items:stretch;transform:none!important;min-height:154px;overflow:hidden}
+  .ver .frame{aspect-ratio:auto;height:100%;border-bottom:0;border-right:1px solid var(--line)}
+  .ver .tape{display:none}
+  .ver .vtext{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:14px 0}
+  .ver .k{margin:0 18px;font-size:10.5px}
+  .ver h3{margin:3px 18px 4px;font-size:16px;line-height:1.14}
+  .ver p{margin:0 18px;font-size:13px}
+  .grid{grid-template-columns:1fr}
+  .ridge{min-height:0}
+  .ridge .sun,.ridge .crane{display:none}
+  .ridge .note{position:static;max-width:none;margin:0 0 14px;animation:none;transform:none!important}
+  .ridge .note.sticky,.ridge .note.paper2,.ridge .note.claynote{display:block}
+  .ridge .mtn{position:static;margin-top:18px}
+  .tgrid{grid-template-columns:repeat(2,1fr)}
+  .tcard{transform:none!important}
+  .mobar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:55;gap:9px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(247,244,236,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+  .mobar a{flex:1;text-align:center;border-radius:100px;padding:14px;font-weight:700;font-size:14px;min-height:46px;display:flex;align-items:center;justify-content:center}
+  .mobar .g{border:1.5px solid var(--ink)}
+  .mobar .s{background:var(--ink);color:var(--paper)}
+  body{padding-bottom:74px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="ld"><div class="emblem"><span class="ring"></span><span class="sun"></span></div><div class="nm">Saloni Kansal</div><div class="track"><i></i></div></div></div>
+
+<div class="progress" id="prog"></div>
+
+<header class="nav" id="nav">
+  <a href="#top" class="logo"><span class="d"></span>Saloni</a>
+  <nav class="links">
+    <a href="#me">Me</a>
+    <a href="#journey">Journey</a>
+    <a href="#method">How I work</a>
+    <a href="#work">Things I've made</a>
+    <a href="#trips">Life &amp; stories</a>
+  </nav>
+  <a href="#connect" class="nav-cta">Say hello</a>
+  <button class="burger" id="burger" aria-label="Menu">☰</button>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="place reveal"><span class="dot"></span> India · <span id="clock">—</span> local time</div>
+        <h1 class="reveal">Hi, I'm<br>Saloni Kansal</h1>
+        <div class="thesis reveal">Living between <span class="mk">control</span> and <span class="mkc">chaos</span>.</div>
+        <p class="intro reveal">Tech risk today, product next — with design and the mountains in between. Everything that doesn't fit on a business card.</p>
+        <div class="hero-cta reveal">
+          <a href="#method" class="btn btn-solid">See how I work →</a>
+          <a href="#connect" class="btn btn-ghost">Say hello</a>
+          <a href="assets/Saloni-Kansal-CV.pdf" class="btn btn-ghost" download>Download CV</a>
+        </div>
+      </div>
+      <div class="hero-art reveal">
+        <div class="sun-disc"></div>
+        <span class="fold a"></span><span class="fold b"></span><span class="fold c"></span>
+        <img src="assets/hero-traveller.png" alt="Illustration of Saloni"/>
+      </div>
+    </div>
+  </div>
+  <svg class="hero-hills" viewBox="0 0 1440 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <polygon points="0,150 0,86 250,120 250,150" fill="#edece6"/>
+    <polygon points="250,150 250,120 560,70 560,150" fill="#dbdace"/>
+    <polygon points="520,150 520,104 820,132 820,150" fill="#edece6"/>
+    <polygon points="820,150 820,132 1120,64 1120,150" fill="#dbdace"/>
+    <polygon points="1080,150 1080,110 1440,140 1440,150" fill="#edece6"/>
+  </svg>
+  <div class="scrollhint"><span class="bar"></span>Scroll</div>
+</section>
+
+<!-- ME / THREE VERSIONS -->
+<section class="block" id="me">
+  <div class="wrap">
+    <div class="kicker reveal"><span class="eyebrow">A little about me</span>
+      <h2 class="h-sec">I've never been<br>just <span class="mk">one thing</span>.</h2>
+      <p class="lead">Tech risk is the day job, and I actually enjoy it. Design and building is where I tinker after hours. The mountains are where I switch off. Different hats — but it's the same me under each one, happiest when I'm untangling something.</p>
+    </div>
+    <div class="versions">
+      <div class="ver reveal">
+        <span class="tape"></span>
+        <div class="frame"><img src="assets/card-consultant.png" alt="Saloni, consultant"/></div>
+        <div class="vtext">
+          <div class="k">At work</div>
+          <h3>Tech risk &amp; audit</h3>
+          <p>I read how systems are built, and find where they break.</p>
+        </div>
+      </div>
+      <div class="ver reveal">
+        <span class="tape"></span>
+        <div class="frame"><img src="assets/card-builder.png" alt="Saloni, builder"/></div>
+        <div class="vtext">
+          <div class="k">Can't sit still</div>
+          <h3>Design &amp; product</h3>
+          <p>Half my notebooks are wireframes for apps that don't exist yet.</p>
+        </div>
+      </div>
+      <div class="ver reveal">
+        <span class="tape"></span>
+        <div class="frame"><img src="assets/card-traveller.png" alt="Saloni, traveller"/></div>
+        <div class="vtext">
+          <div class="k">Rather be outside</div>
+          <h3>Mountains &amp; travel</h3>
+          <p>A free weekend, and I'm on a trail in the Himalayas.</p>
+        </div>
+      </div>
+    </div>
+    <p class="versions-note reveal">Where the three overlap is where I do my best work.</p>
+  </div>
+</section>
+
+<!-- JOURNEY -->
+<section class="block journey" id="journey">
+  <div class="wrap">
+    <div class="kicker reveal"><span class="eyebrow">How I got here</span>
+      <h2 class="h-sec">The short version.</h2>
+    </div>
+    <div class="tl">
+      <div class="it reveal">
+        <div class="w">2024 — now</div>
+        <h3>Tech Risk Consulting</h3>
+        <div class="r">Associate Consultant · EY India, Digital Risk</div>
+        <p>Auditing how enterprise systems are controlled — ITGC/ITAC testing, cybersecurity and compliance reviews, and IT policies written from scratch to ISO 27001.</p>
+        <div class="kl"><b>Learned:</b> real systems are messier than any framework expects.</div>
+        <div class="chips"><span class="chip">IT Audit</span><span class="chip">ITGC / ITAC</span><span class="chip">ISO 27001</span><span class="chip">Cybersecurity</span></div>
+      </div>
+      <div class="it reveal">
+        <div class="w">2022 — 2024</div>
+        <h3>UI / UX &amp; Graphic Design</h3>
+        <div class="r">Digital Paani · Zobyt Technologies</div>
+        <p>Interfaces and user flows from scratch, research, and brands built from nothing. Still how I think.</p>
+        <div class="kl"><b>Learned:</b> you design for the person stuck inside the system, not the system.</div>
+        <div class="chips"><span class="chip">UI / UX</span><span class="chip">User Flows</span><span class="chip">Research</span></div>
+      </div>
+      <div class="it reveal">
+        <div class="w">2020 — 2024</div>
+        <h3>B.Tech, Information Technology</h3>
+        <div class="r">Chairperson, ACM Chapter · SIH 2024 Finalist</div>
+        <p>Ran the ACM student chapter — workshops, 30+ volunteers, and the annual coding symposium.</p>
+        <div class="kl"><b>Learned:</b> leading people is nothing like leading a process.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHOD -->
+<section class="block" id="method">
+  <div class="wrap">
+    <div class="kicker reveal"><span class="badge"><b>★</b> A method I actually use</span>
+      <h2 class="fw-name">The <span class="i">Cold-Start</span> Audit</h2>
+      <p class="lead">Sometimes I get handed something no one has audited before — no template, no map. I kept taking the same path through it, so I gave it a name.</p>
+    </div>
+    <div class="fw-steps">
+      <div class="fw-step reveal"><div class="s">01</div><h4>Map the actuals</h4><p>What really happens, not what the document says.</p><div class="arr">→</div></div>
+      <div class="fw-step reveal"><div class="s">02</div><h4>Find the hand-offs</h4><p>Risk hides at the seams and decision points.</p><div class="arr">→</div></div>
+      <div class="fw-step reveal"><div class="s">03</div><h4>Risks, bottom-up</h4><p>Built from the process, not a checklist.</p><div class="arr">→</div></div>
+      <div class="fw-step reveal"><div class="s">04</div><h4>Pressure-test</h4><p>Walkthroughs to check the map is true.</p><div class="arr">→</div></div>
+      <div class="fw-step reveal"><div class="s">05</div><h4>Controls &amp; proof</h4><p>What good looks like, and what evidences it.</p><div class="arr">→</div></div>
+      <div class="fw-step reveal"><div class="s">06</div><h4>Leave a template</h4><p>So the next person starts warm, not cold.</p></div>
+    </div>
+    <div class="fw-note reveal">Step six is the one I care about most — turning a one-off into something <b>reusable</b>. It's how an ISO 27001 policy build became a review structure I reused, and how a set of testing templates ended up shared around the team.</div>
+  </div>
+</section>
+
+<!-- WORK -->
+<section class="block" id="work">
+  <div class="wrap">
+    <div class="kicker reveal"><span class="eyebrow">The work</span>
+      <h2 class="h-sec">What I do, in the<br>language of the field.</h2>
+      <p class="lead">Real EY engagements, client names anonymised — the headline and the keywords a recruiter is scanning for.</p>
+    </div>
+    <div class="pgrid">
+      <article class="pcard reveal"><span class="pk">Risk &amp; Audit</span><h3>Policy from Zero</h3><div class="ptags"><span>ISO 27001</span><span>IT Policy</span><span>Compliance</span></div></article>
+      <article class="pcard reveal"><span class="pk">Risk &amp; Audit</span><h3>SAM Governance Audit</h3><div class="ptags"><span>Software Asset Mgmt</span><span>IT Governance</span><span>Audit</span></div></article>
+      <article class="pcard reveal"><span class="pk">Risk &amp; Audit</span><h3>ITGC Testing &amp; Templates</h3><div class="ptags"><span>ITGC</span><span>ITAC</span><span>Controls Testing</span></div></article>
+      <article class="pcard reveal"><span class="pk">Risk &amp; Audit</span><h3>RPA Controls Audit</h3><div class="ptags"><span>RPA</span><span>Automation Controls</span><span>IT Audit</span></div></article>
+    </div>
+    <p class="pfull reveal">A detailed portfolio — the situation, the approach, what I built — is in the works. Meanwhile, a pile of product &amp; design concepts lives on its own page. <a href="ideas.html">See the concepts &amp; experiments →</a></p>
+  </div>
+</section>
+
+<!-- STATEMENT -->
+<section class="statement">
+  <div class="circle"></div>
+  <div class="t">Systems are predictable.<br>Humans are <b>not</b>.</div>
+</section>
+
+<!-- BEYOND -->
+<section class="beyond" id="beyond">
+  <div class="wrap">
+    <div class="lead-in reveal">
+      <div class="kicker"><span class="eyebrow">The person behind the work</span></div>
+      <h2>Beyond the <span class="i">frameworks</span></h2>
+      <p>Between meetings and assessments, I disappear into the mountains. Trekking taught me things no management book did — and it's where I think best.</p>
+    </div>
+    <div id="trips" class="trips-in">
+      <h3 class="trips-h reveal">From the trail, <span class="i">collecting stories</span></h3>
+      <div class="tgrid">
+        <div class="tcard reveal"><span class="tape"></span><div class="ph"><img loading="lazy" src="https://cdn.prod.website-files.com/6554d3c8e85ca3e4e9807979/66b282c5781125613cf3ee54_IMG_20240330_142245.jpg" alt="Triund trek, Macleodganj"></div><div class="cap"><div class="m">Jul 2024 · 2850m</div><div class="p">Macleodganj — Triund</div></div></div>
+        <div class="tcard reveal"><span class="tape"></span><div class="ph"><img loading="lazy" src="https://cdn.prod.website-files.com/6554d3c8e85ca3e4e9807979/66b282c6316a5fd112eba743_IMG_20240330_110535.jpg" alt="Chopta and Tungnath"></div><div class="cap"><div class="m">May 2024 · 3680m</div><div class="p">Chopta &amp; Tungnath</div></div></div>
+        <div class="tcard reveal"><span class="tape"></span><div class="ph"><img loading="lazy" src="https://cdn.prod.website-files.com/6554d3c8e85ca3e4e9807979/66b282c7bd9e8bfee8d1afa7_IMG_20240331_142457.jpg" alt="Jibhi"></div><div class="cap"><div class="m">Mar 2024</div><div class="p">Jibhi</div></div></div>
+        <div class="tcard reveal"><span class="tape"></span><div class="ph"><img loading="lazy" src="https://cdn.prod.website-files.com/6554d3c8e85ca3e4e9807979/66b282c75cce69f321cc6f4e_IMG_20240331_145125.jpg" alt="Kheerganga trek, Kasol"></div><div class="cap"><div class="m">Kheerganga trek</div><div class="p">Kasol</div></div></div>
+      </div>
+      <p class="tnote reveal">Also on the map: Jaipur's palaces, Kerala's tea country in Munnar, and every emerald lake I could hike to. <a href="diaries/">Read the full diaries →</a></p>
+    </div>
+  </div>
+  <div class="ridge">
+    <!-- folded paper crane -->
+    <svg class="crane" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <polygon points="50,20 20,52 50,46" fill="#fffdf8"/>
+      <polygon points="50,20 80,52 50,46" fill="#e7e0cf"/>
+      <polygon points="50,46 20,52 50,70" fill="#efeadd"/>
+      <polygon points="50,46 80,52 50,70" fill="#ded5c0"/>
+      <polygon points="50,20 62,10 56,26" fill="#f5c518"/>
+      <polygon points="20,52 8,60 30,58" fill="#e7e0cf"/>
+      <polygon points="80,52 92,60 70,58" fill="#ded5c0"/>
+    </svg>
+    <div class="note sticky n1">How to find footholds when there's no clear path forward.</div>
+    <div class="note paper2 n2">How to trust your instincts when the data runs out.</div>
+    <div class="note claynote n3">How to know when to pivot, and when to commit.</div>
+    <div class="sun"></div>
+    <svg class="mtn" viewBox="0 0 1440 360" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- far range (lightest, folded facets) -->
+      <g>
+        <polygon points="-100,360 60,95 60,360" fill="#e0ded6"/>
+        <polygon points="60,95 360,360 60,360" fill="#cbc9c1"/>
+        <polygon points="520,360 720,110 720,360" fill="#e0ded6"/>
+        <polygon points="720,110 980,360 720,360" fill="#cbc9c1"/>
+        <polygon points="1000,360 1180,100 1180,360" fill="#e0ded6"/>
+        <polygon points="1180,100 1500,360 1180,360" fill="#cbc9c1"/>
+      </g>
+      <!-- mid range -->
+      <g>
+        <polygon points="180,360 400,132 400,360" fill="#9e9d95"/>
+        <polygon points="400,132 640,360 400,360" fill="#73726b"/>
+        <polygon points="640,360 860,120 860,360" fill="#9e9d95"/>
+        <polygon points="860,120 1120,360 860,360" fill="#73726b"/>
+        <polygon points="1080,360 1300,136 1300,360" fill="#9e9d95"/>
+        <polygon points="1300,136 1520,360 1300,360" fill="#73726b"/>
+      </g>
+      <!-- front range (darkest, anchors the base) -->
+      <g>
+        <polygon points="-120,360 180,176 180,360" fill="#32322d"/>
+        <polygon points="180,176 520,360 180,360" fill="#1a1a17"/>
+        <polygon points="440,360 620,166 620,360" fill="#32322d"/>
+        <polygon points="620,166 940,360 620,360" fill="#1a1a17"/>
+        <polygon points="880,360 1080,182 1080,360" fill="#32322d"/>
+        <polygon points="1080,182 1560,360 1080,360" fill="#1a1a17"/>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- CONNECT -->
+<section class="block connect" id="connect">
+  <div class="wrap">
+    <svg class="plane" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <polygon points="90,12 8,44 44,52" fill="#f5c518"/>
+      <polygon points="90,12 44,52 40,86" fill="#e5ac04"/>
+      <polygon points="90,12 44,52 62,50" fill="#ffe07a"/>
+    </svg>
+    <span class="eyebrow reveal" style="color:var(--sun);justify-content:center">Let's build something meaningful</span>
+    <h2 class="h-sec reveal" style="margin-top:14px">Bringing clarity <span class="i">in chaos</span>.</h2>
+    <p class="sub reveal">Up for a good conversation — risk, product, design, travel, or a team that needs a few hats worn at once. If that's you, say hi.</p>
+    <div class="socs reveal">
+      <a class="soc" href="https://www.linkedin.com/in/saloni-kansal/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="soc" href="https://github.com/saloship" target="_blank" rel="noopener">GitHub ↗</a>
+      <a class="soc" href="https://dribbble.com/saloship" target="_blank" rel="noopener">Dribbble ↗</a>
+      <a class="soc" href="https://www.instagram.com/saloni_falls/" target="_blank" rel="noopener">Instagram ↗</a>
+    </div>
+    <a class="mail reveal" href="mailto:salonikansal.in@gmail.com?subject=Hi%20Saloni">✉ salonikansal.in@gmail.com</a>
+    <div class="cvline reveal">Prefer the short version? <a href="assets/Saloni-Kansal-CV.pdf" download>Download my CV (PDF) ↓</a></div>
+  </div>
+</section>
+
+<footer>Made by Saloni Kansal · with <span class="h">♥</span>, somewhere between control and chaos</footer>
+
+<div class="mobar">
+  <a class="g" href="#work">The work</a>
+  <a class="s" href="#connect">Say hello</a>
+</div>
+
+<div class="msheet" id="msheet">
+  <button class="mx" id="mx" aria-label="Close">×</button>
+  <div class="mt">Jump to</div>
+  <a href="#me">Me</a><a href="#journey">Journey</a><a href="#method">How I work</a><a href="#work">Things I've made</a><a href="#beyond">Beyond the frameworks</a><a href="#trips">Life &amp; stories</a><a href="#connect">Say hello</a>
+</div>
+
+<script>
+/* LOADER — hide on load, with a short minimum + fail-safe */
+(function(){
+  var ld=document.getElementById('loader');if(!ld)return;
+  var start=Date.now();
+  function hide(){var wait=Math.max(0,650-(Date.now()-start));setTimeout(function(){ld.classList.add('hide');},wait);}
+  if(document.readyState==='complete')hide();else addEventListener('load',hide);
+  setTimeout(function(){ld.classList.add('hide');},4000); /* fail-safe */
+})();
+
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.08});
+function observeReveals(){document.querySelectorAll('.reveal:not(.in)').forEach((el,i)=>{el.style.transitionDelay=(Math.min(i,5)*55)+'ms';io.observe(el);});}
+observeReveals();
+/* paint above-the-fold immediately, and fail-safe so nothing ever stays hidden */
+requestAnimationFrame(()=>document.querySelectorAll('.hero .reveal').forEach(el=>el.classList.add('in')));
+setTimeout(()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>el.classList.add('in')),1400);
+/* headings draw their yellow underline as they scroll into view */
+const drawIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('drawn');drawIO.unobserve(e.target);}}),{threshold:.55});
+document.querySelectorAll('.h-sec,.fw-name,.beyond h2').forEach(h=>drawIO.observe(h));
+
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();}});
+
+const nav=document.getElementById('nav'),prog=document.getElementById('prog');
+const heroSun=document.querySelector('.sun-disc'),hills=document.querySelector('.hero-hills');
+const reduceMo=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let ticking=false;
+function onScroll(){
+  nav.classList.toggle('scrolled',scrollY>40);
+  const h=document.documentElement.scrollHeight-innerHeight;prog.style.width=(scrollY/h*100)+'%';
+  if(!reduceMo){const y=scrollY;if(y<1100){
+    if(heroSun)heroSun.style.transform='translateX(-50%) translateY('+(y*0.22).toFixed(1)+'px) scale('+(1+y*0.00026).toFixed(4)+')';
+    if(hills)hills.style.transform='translateY('+(y*0.08).toFixed(1)+'px)';
+  }}
+  ticking=false;
+}
+addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(onScroll);ticking=true;}});
+const msheet=document.getElementById('msheet');
+function openMenu(){msheet.classList.add('on');document.body.style.overflow='hidden';}
+function closeMenu(){msheet.classList.remove('on');document.body.style.overflow='';}
+document.getElementById('burger').addEventListener('click',openMenu);
+document.getElementById('mx').addEventListener('click',closeMenu);
+msheet.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+
+/* local time (IST) */
+function tick(){try{const t=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'}).format(new Date());document.getElementById('clock').textContent=t;}catch(e){}}
+tick();setInterval(tick,30000);
+</script>
+</body>
+</html>
