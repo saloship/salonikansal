@@ -3,6 +3,7 @@
 Work-in-progress redesign of [saloship.github.io](https://saloship.github.io). The live site is untouched until this is explicitly merged.
 
 **Preview:** https://saloship.github.io/site-v2/
+**M1 composition gate:** https://saloship.github.io/site-v2/wireframe.html
 
 ## The idea
 
