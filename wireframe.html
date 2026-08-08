@@ -33,6 +33,10 @@ h1{font-size:clamp(26px,3.4vw,40px);letter-spacing:-.02em;line-height:1.1;margin
 .sub{max-width:64ch;color:var(--ink-2);font-size:15px}
 .gate{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:7px 13px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);font-family:var(--mono);font-size:11px;letter-spacing:.05em}
 .gate b{color:var(--sun-ink)}
+.rule{margin-top:26px;max-width:78ch;background:var(--paper);border:1px solid var(--line);border-left:2px solid var(--ink);border-radius:6px;padding:18px 22px}
+.rule h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:500;margin-bottom:10px}
+.rule p{font-size:14px;color:var(--ink-2);margin-bottom:9px}
+.rule .rule-line{font-size:15px;color:var(--ink);font-style:italic;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line)}
 
 /* ---------- layout ---------- */
 .tool{display:grid;grid-template-columns:1fr 320px;gap:26px;padding:30px 0}
@@ -83,8 +87,8 @@ ol.shots button[aria-current="true"] .sd{color:#c9c8c2}
 .obj .top{fill:#f2f1ec}
 .obj .side{fill:#e6e5df}
 .obj .screen{fill:#f4f3ee;stroke-width:1.7}
-.obj .lbl{font-family:var(--mono);font-size:26px;fill:var(--ink-2);paint-order:stroke;stroke:#fbfbf8;stroke-width:7px;stroke-linejoin:round}
-.obj .lead{stroke:var(--line-2);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.lbl{font-family:var(--mono);font-size:26px;fill:var(--ink-2);paint-order:stroke;stroke:#fbfbf8;stroke-width:7px;stroke-linejoin:round}
+.lead{stroke:var(--line-2);stroke-width:1.6;vector-effect:non-scaling-stroke}
 /* hover float — the thing video could never do.
    Lift eases both ways; the bob rests at 0 so mouse-out never snaps. */
 .obj .body{transition:transform 320ms cubic-bezier(.2,.8,.2,1);transform-box:fill-box;transform-origin:center}
@@ -100,9 +104,15 @@ ol.shots button[aria-current="true"] .sd{color:#c9c8c2}
 .obj .shadow{fill:var(--ink);opacity:0;transition:opacity 300ms}
 .obj:hover .shadow{opacity:.09}
 .obj:hover .face{stroke-width:2.8}
-/* focus colour — the control/chaos mechanic */
-.obj.lit .accent{fill:var(--sun)}
-.obj .accent{fill:#fff;transition:fill 420ms}
+/* focus colour — the control/chaos mechanic.
+   The desk is a wireframe until a section is in shot; then that object
+   takes its OWN real colour (--c), not a blanket yellow. */
+.obj .accent{fill:#fff;transition:fill 460ms}
+.obj.lit .accent{fill:var(--c)}
+.obj .sw{fill:#fff;stroke:var(--ink);stroke-width:1.6;vector-effect:non-scaling-stroke;transition:fill 460ms}
+.obj.lit .sw{fill:var(--sc)}
+.obj .wbink{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.5;transition:stroke 460ms,opacity 460ms}
+.obj.lit .wbink{stroke:var(--c);opacity:1}
 
 .wallobj rect,.wallobj path,.wallobj line{vector-effect:non-scaling-stroke}
 .deskplane{fill:#faf9f5;stroke:var(--ink);stroke-width:2.6;vector-effect:non-scaling-stroke;stroke-linejoin:round}
@@ -150,7 +160,14 @@ footer{border-top:1px solid var(--line);padding:20px 0 60px;font-family:var(--mo
     <div class="eyebrow">Milestone 1 · composition gate</div>
     <h1>The Desk — block-out</h1>
     <p class="sub">Deliberately throwaway. Labelled boxes, correct positions and heights, camera path drawn over the top. The point is to settle <em>where everything sits</em> before any of it gets drawn properly — moving a box here costs a minute, moving a finished illustration costs a day.</p>
-    <div class="gate"><b>◆</b> Nothing gets drawn in detail until this is signed off</div>
+    <div class="gate"><b>◆</b> Rev 2 — seated chair, four objects added, colour rule revised</div>
+
+    <div class="rule">
+      <h3>The colour rule</h3>
+      <p>The desk stays a <strong>wireframe</strong>. No fills, no colour, just line. When a section comes into shot, the objects that section is about take <strong>their own real colours</strong> — paint in the pans, greens on the map, terracotta on the mug, blue ink on the whiteboard. Not a blanket yellow on everything.</p>
+      <p>Yellow goes back to being the brand colour in the interface — buttons, underlines, the progress bar — rather than being smeared across the illustration.</p>
+      <p class="rule-line">The world stays a sketch until you look closely. Then it becomes real.</p>
+    </div>
   </div>
 </header>
 
@@ -168,8 +185,8 @@ footer{border-top:1px solid var(--line);padding:20px 0 60px;font-family:var(--mo
       <div class="grp">
         <h3>Who's in the chair</h3>
         <div class="seg" id="variant">
-          <button data-v="a" aria-pressed="true">A · empty</button>
-          <button data-v="b" aria-pressed="false">B · seated</button>
+          <button data-v="a" aria-pressed="false">A · empty</button>
+          <button data-v="b" aria-pressed="true">B · seated</button>
         </div>
         <p class="varnote" id="varnote"></p>
       </div>
@@ -179,7 +196,7 @@ footer{border-top:1px solid var(--line);padding:20px 0 60px;font-family:var(--mo
         <div class="toggles">
           <label><input type="checkbox" id="tLabels" checked> Object labels</label>
           <label><input type="checkbox" id="tCam" checked> Camera path &amp; shot frames</label>
-          <label><input type="checkbox" id="tLit"> Focus colour (yellow on the active cluster)</label>
+          <label><input type="checkbox" id="tLit" checked> Focus colour (real colours on the active cluster)</label>
         </div>
       </div>
 
@@ -194,7 +211,7 @@ footer{border-top:1px solid var(--line);padding:20px 0 60px;font-family:var(--mo
     <div class="camhead">
       <div>
         <h2>What the camera actually sees</h2>
-        <p>The same scene, cropped to the selected shot. This is the real mechanic from milestone 3 — a transform on a group, not a video — so it stays sharp at any zoom. <strong>The flat yellow is a block-out marker, not the design</strong>: in the real scene the accent arrives as a thin grid, a route line, a few filled cells — never a solid slab.</p>
+        <p>The same scene, cropped to the selected shot. This is the real mechanic from milestone 3 — a transform on a group, not a video — so it stays sharp at any zoom. Flat fills are block-out markers: in the drawn scene the colour arrives as paint in the pans, contours on the map, ink on the whiteboard — never a solid slab.</p>
       </div>
     </div>
     <div class="viewport">
@@ -211,14 +228,15 @@ footer{border-top:1px solid var(--line);padding:20px 0 60px;font-family:var(--mo
   </section>
 
   <section class="decide">
-    <h2>What I need from you</h2>
-    <p>Answer these and M2 starts — that's the milestone where the desk actually gets drawn.</p>
+    <h2>Settled at this gate</h2>
+    <p>All four answered. What changed in rev 2:</p>
     <div class="qs">
-      <div class="q"><b>1 · Chair: empty or seated?</b><span>Switch between A and B above. B adds human warmth but her shoulders cover the mug, part of the keyboard and part of the paper pile — the exact things the audit shots zoom into. My read: <strong>A</strong>, and the character sheet gets used elsewhere.</span></div>
-      <div class="q"><b>2 · Is anything missing from the desk?</b><span>It should read as <em>your</em> desk. Anything you actually reach for that isn't here — a specific notebook, a second screen, a water bottle, something from a trip?</span></div>
-      <div class="q"><b>3 · Do the eight shots tell the right story?</b><span>Especially shot 6 — the pull-back where the tidy grid quietly comes apart again. It's the one that earns the tagline instead of just stating it.</span></div>
-      <div class="q"><b>4 · Is the wall doing enough?</b><span>Right now: whiteboard, one pinned mountain photo, a few stray stickies. The whiteboard is what becomes the ridgeline in shot 7, so it needs to stay fairly clear.</span></div>
+      <div class="q"><b>Chair — seated ✓</b><span>Built as over-the-shoulder: head above the chair back, left of centre and low. She's present without covering the monitor, papers, keyboard, mug or the right-hand cluster, and she falls outside the crop entirely on shots 4, 5 and 7.</span></div>
+      <div class="q"><b>Four objects added ✓</b><span>Water bottle, iPad on a stand, speaker, and the travel paint set. The paint set earns its place twice — it's true to you, and it's the clearest possible demo of the colour rule.</span></div>
+      <div class="q"><b>Shots approved ✓</b><span>All eight unchanged, including the shot 6 pull-back.</span></div>
+      <div class="q"><b>Whiteboard has content ✓</b><span>Now what you actually use it for: a client digital-landscape map (boxes and connectors) alongside loose idea scribbles. Those connector lines are what morph into the ridgeline in shot 7 — a system map becoming a mountain is a better transition than I had before.</span></div>
     </div>
+    <p style="margin-top:20px;font-size:13.5px;color:var(--ink-2)">Last look at placement, then M2 — where the desk actually gets drawn.</p>
   </section>
 
   <footer>saloni kansal · site-v2 · milestone 1 of 5 — block-out, not artwork</footer>
@@ -231,51 +249,69 @@ footer{border-top:1px solid var(--line);padding:20px 0 60px;font-family:var(--mo
    ============================================================ */
 
 const WALL = [
-  {id:'whiteboard', label:'whiteboard · becomes the ridgeline in shot 7', x:1290, y:100, w:1040, h:510, accent:true, lx:1300, ly:76,  an:'start'},
-  {id:'photo',      label:'pinned photo · mtn', x:250, y:210, w:310,  h:260, lx:250, ly:180, an:'start'},
-  {id:'wsticky1',   label:'',                   x:1160,y:200, w:70,   h:70,  accent:true},
-  {id:'wsticky2',   label:'stray stickies',     x:1150,y:310, w:70,   h:70,  accent:true, lx:1120, ly:434, an:'end'},
-  {id:'wsticky3',   label:'',                   x:2200,y:640, w:70,   h:70,  accent:true}
+  /* a whiteboard is white — the MARKERS take colour, not the board */
+  {id:'whiteboard', label:'whiteboard · client digital landscape + idea scribbles', x:1290, y:100, w:1040, h:510,
+   col:'#2f6f8f', lx:1300, ly:76, an:'start',
+   /* what's actually on it — the map's connectors are what morph into the ridgeline in shot 7 */
+   content:`<g class="wbink">
+      <rect x="1340" y="160" width="150" height="86" rx="4"/><rect x="1560" y="160" width="150" height="86" rx="4"/>
+      <rect x="1780" y="160" width="150" height="86" rx="4"/><rect x="1450" y="320" width="150" height="86" rx="4"/>
+      <rect x="1670" y="320" width="150" height="86" rx="4"/><rect x="1890" y="320" width="150" height="86" rx="4"/>
+      <path d="M1490 203 L1560 203 M1710 203 L1780 203 M1415 246 L1525 320 M1635 246 L1745 320 M1855 246 L1965 320 M1600 363 L1670 363 M1820 363 L1890 363"/>
+      <path d="M2080 180 q60 -30 110 20 t100 10 M2080 250 q70 40 140 -10 M2080 320 q50 -34 120 6"/>
+      <path d="M2110 400 l60 0 M2110 440 l120 0 M2110 480 l80 0"/>
+    </g>`},
+  {id:'photo',      label:'pinned photo · mtn', x:250, y:210, w:310,  h:260, col:'#8fa9b8', lx:250, ly:180, an:'start'},
+  /* clustered on open wall left of the whiteboard — behind the monitor they'd never be seen */
+  {id:'wsticky1',   label:'',                   x:600, y:170, w:70,   h:70,  accent:true, col:'#e8c24a'},
+  {id:'wsticky2',   label:'stray stickies',     x:700, y:252, w:70,   h:70,  accent:true, col:'#d98f6a', lx:614, ly:132, an:'start'},
+  {id:'wsticky3',   label:'',                   x:588, y:296, w:70,   h:70,  accent:true, col:'#7fa8b8'}
 ];
 
 /* x, y = baseline on the desk plane; h = height above it; d = depth
-   lx, ly = explicit label anchor — placed by hand so callouts never collide */
+   lx, ly = explicit label anchor — placed by hand so callouts never collide
+   col   = the object's REAL colour, which only appears when it's in shot */
 const PROPS = [
-  {id:'lamp',     label:'desk lamp',            x:120,  y:900,  w:180, h:570, d:90,  cl:'general', lx:210,  ly:252},
-  {id:'pens',     label:'pens',                 x:330,  y:880,  w:110, h:180, d:70,  cl:'design',  lx:392,  ly:636},
-  {id:'sketch',   label:'sketchpad · open',     x:300,  y:1030, w:470, h:22,  d:220, cl:'design',  lx:470,  ly:876, accent:true},
-  {id:'notebooks',label:'notebooks · dated',    x:400,  y:1300, w:330, h:90,  d:170, cl:'journey', lx:452,  ly:1104,accent:true},
-  {id:'papers',   label:'control sheets · askew',x:620, y:1100, w:300, h:40,  d:200, cl:'risk',    lx:826,  ly:952, accent:true},
-  {id:'mug',      label:'mug',                  x:950,  y:1150, w:105, h:130, d:105, cl:'general', lx:1010, ly:938},
-  {id:'monitor',  label:'monitor',              x:800,  y:830,  w:860, h:530, d:50,  cl:'risk',    lx:1230, ly:196, accent:true, inset:true},
-  {id:'stickies', label:'stickies on bezel',    x:690,  y:700,  w:100, h:100, d:14,  cl:'risk',    lx:560,  ly:556, accent:true},
-  {id:'keyboard', label:'keyboard',             x:880,  y:1190, w:660, h:26,  d:200, cl:'risk',    lx:1180, ly:1046},
-  {id:'mouse',    label:'mouse',                x:1600, y:1180, w:100, h:34,  d:130, cl:'general', lx:1622, ly:1116},
-  {id:'phone',    label:'phone',                x:1720, y:1250, w:90,  h:16,  d:170, cl:'general', lx:1660, ly:1214},
-  {id:'cans',     label:'headphones',           x:1560, y:980,  w:160, h:70,  d:120, cl:'general', lx:1500, ly:826},
-  {id:'riser',    label:'riser + keydeck',      x:1740, y:960,  w:450, h:34,  d:260, cl:'work',    lx:1706, ly:966},
-  {id:'laptop',   label:'laptop screen',        x:1870, y:826,  w:420, h:330, d:40,  cl:'work',    lx:2090, ly:434, accent:true, inset:true},
-  {id:'map',      label:'map · part open',      x:1900, y:1300, w:500, h:26,  d:260, cl:'travel',  lx:2190, ly:1252,accent:true},
-  {id:'binocs',   label:'binoculars',           x:2040, y:1190, w:190, h:110, d:120, cl:'travel',  lx:2128, ly:996, accent:true},
-  {id:'tickets',  label:'tickets / passes',     x:1690, y:1325, w:250, h:12,  d:130, cl:'travel',  lx:1730, ly:1404,accent:true},
-  {id:'plant',    label:'plant',                x:2230, y:870,  w:150, h:250, d:110, cl:'general', lx:2300, ly:534}
+  {id:'bottle',   label:'water bottle',         x:30,   y:1210, w:96,  h:280, d:96,  cl:'general', col:'#8fa9b8', lx:40,   ly:846, an:'start'},
+  {id:'lamp',     label:'desk lamp',            x:150,  y:900,  w:180, h:570, d:90,  cl:'general', col:'#d9a441', lx:240,  ly:252},
+  {id:'pens',     label:'pens',                 x:360,  y:880,  w:110, h:180, d:70,  cl:'design',  col:'#c0603f', lx:422,  ly:636},
+  {id:'speaker',  label:'speaker',              x:500,  y:884,  w:130, h:150, d:110, cl:'general', col:'#4c4c48', lx:640,  ly:742, an:'start'},
+  {id:'sketch',   label:'sketchpad · open',     x:300,  y:1030, w:470, h:22,  d:220, cl:'design',  col:'#5b86a8', lx:470,  ly:876, accent:true},
+  {id:'palette',  label:'travel paint set',     x:110,  y:1258, w:250, h:30,  d:150, cl:'travel',  col:'#c4643f', lx:120,  ly:1186,an:'start', accent:true,
+                  swatches:['#b8452f','#d98f2a','#e0c341','#4f7d4a','#2f6f8f','#5b4a8a']},
+  {id:'notebooks',label:'notebooks · dated',    x:330,  y:1320, w:300, h:88,  d:170, cl:'journey', col:'#b5764a', lx:392,  ly:1128,accent:true},
+  {id:'papers',   label:'control sheets · askew',x:620, y:1100, w:300, h:40,  d:200, cl:'risk',    col:'#c0563f', lx:826,  ly:952, accent:true},
+  {id:'mug',      label:'mug',                  x:950,  y:1150, w:105, h:130, d:105, cl:'general', col:'#c96f4a', lx:1010, ly:938},
+  {id:'monitor',  label:'monitor',              x:800,  y:830,  w:860, h:530, d:50,  cl:'risk',    col:'#3d6f92', lx:1230, ly:196, accent:true, inset:true},
+  {id:'stickies', label:'stickies on bezel',    x:690,  y:700,  w:100, h:100, d:14,  cl:'risk',    col:'#e8c24a', lx:560,  ly:556, accent:true},
+  {id:'keyboard', label:'keyboard',             x:880,  y:1190, w:660, h:26,  d:200, cl:'risk',    col:'#9c9a92', lx:1180, ly:1046},
+  {id:'mouse',    label:'mouse',                x:1600, y:1180, w:100, h:34,  d:130, cl:'general', col:'#9c9a92', lx:1622, ly:1116},
+  {id:'cans',     label:'headphones',           x:1560, y:980,  w:160, h:70,  d:120, cl:'general', col:'#4c4c48', lx:1500, ly:826},
+  {id:'ipad',     label:'iPad + stand',         x:1700, y:1140, w:200, h:200, d:120, cl:'design',  col:'#3d6f92', lx:1636, ly:960, an:'end', accent:true, inset:true},
+  {id:'phone',    label:'phone',                x:1740, y:1250, w:90,  h:16,  d:170, cl:'general', col:'#4c4c48', lx:1830, ly:1216,an:'start'},
+  {id:'riser',    label:'riser + keydeck',      x:1740, y:960,  w:450, h:34,  d:260, cl:'work',    col:'#9c9a92', lx:2380, ly:906, an:'end'},
+  {id:'laptop',   label:'laptop screen',        x:1870, y:826,  w:420, h:330, d:40,  cl:'work',    col:'#3d6f92', lx:2090, ly:434, accent:true, inset:true},
+  {id:'map',      label:'map · part open',      x:1900, y:1300, w:500, h:26,  d:260, cl:'travel',  col:'#5d8a58', lx:2190, ly:1252,accent:true},
+  {id:'binocs',   label:'binoculars',           x:2040, y:1190, w:190, h:110, d:120, cl:'travel',  col:'#5c6350', lx:2128, ly:996, accent:true},
+  {id:'tickets',  label:'tickets / passes',     x:1620, y:1320, w:250, h:12,  d:130, cl:'travel',  col:'#d8a24a', lx:1660, ly:1420,accent:true},
+  {id:'plant',    label:'plant',                x:2230, y:870,  w:150, h:250, d:110, cl:'general', col:'#6f9160', lx:2300, ly:534}
 ];
 
 /* every rect is 16:10 so the camera never distorts */
 const SHOTS = [
   {n:1, t:'Hero',            r:[0,0,2400,1500],       lit:[],                              d:'Full desk, wide, monochrome. Everything present, nothing lit.'},
-  {n:2, t:'Me · three hats',  r:[180,120,2040,1275],   lit:['papers','sketch','map','binocs'],d:'Slight push. Papers, sketchpad, then map light in turn.'},
+  {n:2, t:'Me · three hats',  r:[180,120,2040,1275],   lit:['papers','sketch','ipad','map','binocs','palette'],d:'Slight push. Papers, then sketchpad + iPad, then map and paint set.'},
   {n:3, t:'Journey',          r:[240,700,1200,750],    lit:['notebooks'],                   d:'Pan left to right. Dated notebooks read as a timeline.'},
   {n:4, t:'Method',           r:[620,300,1120,700],    lit:['monitor','papers','stickies'], d:'Deep zoom. Loose sheets align into a control matrix on screen.'},
   {n:5, t:'Work',            r:[1560,540,840,525],    lit:['laptop'],                      d:'Pan to the laptop. Projects appear as clean screens.'},
   {n:6, t:'Statement',        r:[-120,-80,2640,1650],  lit:[],                              d:'Hard pull back. The tidy grid quietly comes apart again.'},
-  {n:7, t:'Beyond',          r:[1700,880,680,425],    lit:['map','binocs','tickets','whiteboard'], d:'Map unfolds. Contours morph into a ridgeline on the whiteboard behind.'},
-  {n:8, t:'Connect',          r:[0,0,2400,1500],       lit:['monitor','sketch','map','notebooks','laptop','photo'], d:'Back to the full desk — ordered, lamp on, yellow present.'}
+  {n:7, t:'Beyond',          r:[1700,880,680,425],    lit:['map','binocs','tickets','whiteboard','palette'], d:'Map unfolds. The whiteboard’s landscape connectors morph into a ridgeline.'},
+  {n:8, t:'Connect',          r:[0,0,2400,1500],       lit:['monitor','sketch','ipad','map','notebooks','laptop','photo','palette','plant','mug'], d:'Back to the full desk — ordered, lamp on, the whole thing finally in colour.'}
 ];
 
 const VARNOTES = {
-  a:'The chair reads as <strong>yours</strong> — you are the one sitting in it, looking at your own desk. Nothing on the desk gets covered.',
-  b:'Warmer and gives human scale, but her shoulders sit right on top of the mug, the keyboard and the paper pile — the things shots 3 and 4 zoom into.'
+  a:'Empty chair. Kept here only for comparison — the desk reads as yours, but nobody is home.',
+  b:'<strong>Chosen.</strong> Over-the-shoulder: head above the chair back, seated left of centre and low. She reads as present, and the monitor, papers, keyboard, mug and the whole right-hand cluster stay clear. She sits outside the crop on shots 4, 5 and 7.'
 };
 
 /* ============================================================
@@ -285,8 +321,9 @@ const DX = d => d*0.55, DY = d => -d*0.42;   // depth recedes up-and-right
 
 function box(o){
   const {x,y,w,h,d} = o, dx = DX(d), dy = DY(d), t = y-h;
-  /* screened objects put the accent on the display, not the top face */
-  const topAccent = (o.accent && !o.inset) ? 'accent' : '';
+  /* screened objects put the colour on the display; everything else on the top face,
+     so any object can be lit without needing to be flagged */
+  const topAccent = o.inset ? '' : 'accent';
   let s = `
     <path class="face side" d="M${x+w} ${t} L${x+w+dx} ${t+dy} L${x+w+dx} ${y+dy} L${x+w} ${y} Z"/>
     <path class="face top ${topAccent}" d="M${x} ${t} L${x+w} ${t} L${x+w+dx} ${t+dy} L${x+dx} ${t+dy} Z"/>
@@ -298,44 +335,69 @@ function box(o){
   return s;
 }
 
+/* the paint set is the clearest demo of the rule: pans are empty outlines
+   until the travel section is in shot, then they carry actual paint */
+function swatches(o){
+  if(!o.swatches) return '';
+  const t = o.y - o.h, dx = DX(o.d), dy = DY(o.d), n = o.swatches.length;
+  const step = (o.w - 24) / n;
+  return o.swatches.map((c,i)=>{
+    const sx = o.x + 12 + i*step + dx*0.5, sy = t + dy*0.5 - 11;
+    return `<rect class="sw" x="${sx}" y="${sy}" width="${step*0.74}" height="22" rx="2" style="--sc:${c}"/>`;
+  }).join('');
+}
+
 function prop(o){
   const cx = o.x + o.w/2, top = o.y - o.h + DY(o.d);
   const lx = o.lx ?? cx, ly = o.ly ?? Math.max(38, top - 26);
   /* leader runs from just under the label to the nearest point on the object */
   const ty = ly < top ? top - 4 : (ly > o.y ? o.y + 4 : ly);
-  const anchor = lx < o.x ? 'end' : (lx > o.x + o.w ? 'start' : 'middle');
-  return `<g class="obj" id="p-${o.id}" data-label="${o.label}" data-cl="${o.cl}">
+  const anchor = o.an || (lx < o.x ? 'end' : (lx > o.x + o.w ? 'start' : 'middle'));
+  return `<g class="lblg">
+      <line class="lead" x1="${lx}" y1="${ly+10}" x2="${cx}" y2="${ty}"/>
+      <text class="lbl" x="${lx}" y="${ly}" text-anchor="${anchor}">${o.label}</text>
+    </g>`;
+}
+
+function propBody(o){
+  const cx = o.x + o.w/2;
+  return `<g class="obj" id="p-${o.id}" data-label="${o.label}" data-cl="${o.cl}" style="--c:${o.col||'#f5c518'}">
       <ellipse class="shadow" cx="${cx+DX(o.d)/2}" cy="${o.y+6}" rx="${o.w*0.52}" ry="${Math.max(9,o.w*0.1)}"/>
-      <g class="body"><g class="bob">${box(o)}</g></g>
-      <g class="lblg">
-        <line class="lead" x1="${lx}" y1="${ly+10}" x2="${cx}" y2="${ty}"/>
-        <text class="lbl" x="${lx}" y="${ly}" text-anchor="${anchor}">${o.label}</text>
-      </g>
+      <g class="body"><g class="bob">${box(o)}${swatches(o)}</g></g>
     </g>`;
 }
 
-function wallItem(o){
-  return `<g class="obj wallobj" id="p-${o.id}" data-label="${o.label||'sticky note'}" data-cl="wall">
-      <g class="body"><g class="bob"><rect class="face ${o.accent?'accent':''}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="3"/></g></g>
-      ${o.label?`<g class="lblg">
-        <line class="lead" x1="${o.lx??o.x+o.w/2}" y1="${(o.ly??o.y+o.h+34)+10}" x2="${o.x+o.w/2}" y2="${(o.ly??0) < o.y ? o.y-4 : o.y+o.h+4}"/>
-        <text class="lbl" x="${o.lx??o.x+o.w/2}" y="${o.ly??o.y+o.h+34}" text-anchor="${o.an||'middle'}">${o.label}</text>
-      </g>`:''}
+function wallBody(o){
+  return `<g class="obj wallobj" id="p-${o.id}" data-label="${o.label||'sticky note'}" data-cl="wall" style="--c:${o.col||'#f5c518'}">
+      <g class="body"><g class="bob"><rect class="face ${o.accent?'accent':''}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="3"/>${o.content||''}</g></g>
     </g>`;
 }
 
-const CHAIR_A = `<g id="chair">
-    <path class="chairpart" d="M560 1500 L560 1420 Q560 1372 616 1372 L1404 1372 Q1460 1372 1460 1420 L1460 1500 Z"/>
-    <line class="chairpart" x1="1010" y1="1372" x2="1010" y2="1500"/>
-  </g>`;
+function wallLabel(o){
+  if(!o.label) return '';
+  const lx = o.lx ?? o.x+o.w/2, ly = o.ly ?? o.y+o.h+34;
+  return `<g class="lblg">
+      <line class="lead" x1="${lx}" y1="${ly+10}" x2="${o.x+o.w/2}" y2="${ly < o.y ? o.y-4 : o.y+o.h+4}"/>
+      <text class="lbl" x="${lx}" y="${ly}" text-anchor="${o.an||'middle'}">${o.label}</text>
+    </g>`;
+}
 
-const CHAIR_B = CHAIR_A + `<g id="figure">
-    <path class="figpart" d="M790 1372 Q800 1258 900 1236 L1120 1236 Q1220 1258 1230 1372 Z"/>
-    <circle class="figpart" cx="1010" cy="1150" r="94"/>
-    <path class="figpart" d="M930 1112 Q1010 1040 1090 1112 Q1090 1058 1010 1050 Q930 1058 930 1112 Z"/>
-    <line class="constr" x1="1010" y1="1010" x2="1010" y2="1400"/>
-    <line class="constr" x1="880" y1="1236" x2="1140" y2="1236"/>
-  </g>`;
+/* Over-the-shoulder: the chair back crops the bottom of the frame and her
+   head sits above it. Placed left of centre and low, so the monitor, papers,
+   keyboard, mug and the whole right-hand cluster stay clear of her. */
+const CHAIR_BACK = `<path class="chairpart" d="M470 1520 L470 1396 Q470 1330 542 1330 L1048 1330 Q1120 1330 1120 1396 L1120 1520 Z"/>
+    <line class="chairpart" x1="795" y1="1330" x2="795" y2="1520"/>`;
+
+const CHAIR_A = `<g id="chair">${CHAIR_BACK}</g>`;
+
+const CHAIR_B = `<g id="figure">
+    <path class="figpart" d="M540 1450 Q556 1316 795 1298 Q1034 1316 1050 1450 Z"/>
+    <circle class="figpart" cx="795" cy="1246" r="100"/>
+    <path class="figpart" d="M697 1214 Q795 1118 893 1214 Q904 1128 795 1116 Q686 1128 697 1214 Z"/>
+    <line class="constr" x1="795" y1="1096" x2="795" y2="1470"/>
+    <line class="constr" x1="640" y1="1246" x2="950" y2="1246"/>
+  </g>
+  <g id="chair">${CHAIR_BACK}</g>`;
 
 function scene(variant, opts){
   const o = opts || {};
@@ -344,9 +406,11 @@ function scene(variant, opts){
     <line id="wallline" x1="0" y1="790" x2="2400" y2="790"/>
     <path class="deskplane" d="M200 790 L2230 790 L2460 1330 L-60 1330 Z"/>
     <path class="deskplane" d="M-60 1330 L2460 1330 L2460 1424 L-60 1424 Z"/>
-    <g id="wall">${WALL.map(wallItem).join('')}</g>
-    <g id="props">${PROPS.map(prop).join('')}</g>
+    <g id="wall">${WALL.map(wallBody).join('')}</g>
+    <g id="props">${PROPS.map(propBody).join('')}</g>
     ${variant === 'b' ? CHAIR_B : CHAIR_A}
+    <!-- labels ride on their own layer so no object can bury a callout -->
+    <g id="labels">${WALL.map(wallLabel).join('')}${PROPS.map(prop).join('')}</g>
     ${o.cam ? camOverlay() : ''}`;
 }
 
@@ -366,7 +430,7 @@ function camOverlay(){
    ============================================================ */
 const plan = document.getElementById('plan');
 const camg = document.getElementById('camg');
-let state = { variant:'a', shot:1, labels:true, cam:true, lit:false };
+let state = { variant:'b', shot:1, labels:true, cam:true, lit:true };
 
 function render(){
   plan.innerHTML = scene(state.variant, {cam:state.cam});
@@ -376,8 +440,8 @@ function render(){
 }
 
 function applyLabels(){
-  plan.querySelectorAll('.lblg, .wallobj text').forEach(el=>el.classList.toggle('hidden', !state.labels));
-  camg.querySelectorAll('.lblg, .wallobj text').forEach(el=>el.classList.add('hidden'));
+  plan.querySelectorAll('.lblg').forEach(el=>el.classList.toggle('hidden', !state.labels));
+  camg.querySelectorAll('.lblg').forEach(el=>el.classList.add('hidden'));
 }
 
 function applyShot(){
