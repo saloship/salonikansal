@@ -10,7 +10,7 @@ Work-in-progress redesign of [saloship.github.io](https://saloship.github.io). T
 One master illustration — a real, lived-in work desk — that the page never leaves. Every section is a camera move into a region of that desk, where objects settle, unfold, or morph into an ordered state. The visual argument for the tagline: *living between control and chaos*.
 
 - **Chaos is density, not disorder.** A good adult work desk with a lot on it, arranged the way things land when they're used every day.
-- **Colour is the reward for focus.** The scene sits in monochrome line art; an object only takes fill when its section is in focus.
+- **Colour is the reward for focus.** The scene sits in monochrome line art. When a section comes into shot, the objects it is about take *their own real colours* — paint in the pans, greens on the map, blue marker on the whiteboard. Not a blanket yellow; yellow stays the brand colour in the interface. **The world stays a sketch until you look closely, then it becomes real.**
 
 Style reference: monoline 2.5D sketch — line-weight hierarchy and flat tone faces imply volume without shading.
 
