@@ -77,8 +77,8 @@ def keymap(p, x, y, z):
             cd = cap["d"]
             off = (pitch - cd) / 2
             note(cx + inset, y, rz + off, cw, cap["h"], cd)
-            D.dbox(DX + cx + inset, DY + y, DZ + rz + off, cw, cap["h"], cd,
-                   bevel=cap.get("fillet", 0.9), seg=2, angle=25)
+            D.dcap(DX + cx + inset, DY + y, DZ + rz + off, cw, cd, cap["h"],
+                   taper=cap.get("taper", 0.78), bevel=cap.get("fillet", 0.5))
             made += 1
             cx += kw * u
         widest = max(widest, (cx - x) / u)

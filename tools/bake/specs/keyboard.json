@@ -2,6 +2,11 @@
   "id": "keyboard",
   "name": "KEYBOARD — ANSI TENKEYLESS",
   "shots": [4],
+
+  "pipeline": "hand",
+  "pipelineNote": "HAND-AUTHORED, decided by experiment — see bake-test.html. A keyboard is a flat array of 87 near-identical small parts, and at every zoom it is actually seen at, the truthful details are sub-pixel: the real 1.05mm cap gap is a fifth of a pixel. Baking it added the taper sides, cap fronts and hidden rims as noise rather than information, and it stopped reading as a keyboard at all. The hand-authored version wins because for this object a legible diagram beats a faithful projection. This spec is kept because it is still the source of truth for the layout and dimensions the hand-authored keyMap() uses — 19.05mm pitch, the row widths, the 87-key count.",
+
+  "bakeWhen": "Bake objects whose form is genuinely three-dimensional and mechanical: the lamp's articulated arm, the laptop hinge and scissor riser, the chair, and curved bodies (mug, bottle, plant pot, binocular barrels). There, computed hidden-line removal and exact curvature are information you cannot get by hand. Do not bake flat arrays of small repeated parts.",
   "source": "ANSI 87-key tenkeyless. 19.05mm key pitch and 18.0mm keycap tops are the industry standard (0.750in / 0.709in); 8mm bezel and 20mm case height are typical of a plate-mount TKL.",
 
   "datum": {
@@ -9,8 +14,8 @@
     "note": "front-left-bottom corner of the case, sitting on the desk top. Placed so the board centres roughly under the monitor and clears the sketchpad at x<600 and the mouse at x>1274."
   },
   "envelope": {
-    "w": 368, "h": 38, "d": 154,
-    "note": "FULL ASSEMBLY, not the case. Height runs from the underside of the feet (-8) to the keycap tops (+30); depth includes the 24mm cable stub behind the case. The case alone is 368 x 20 x 130 and is dimensioned on the `shell` part."
+    "w": 368, "h": 35, "d": 154,
+    "note": "FULL ASSEMBLY, not the case. Height runs from the underside of the feet (-8) to the keycap tops (+27); depth includes the 24mm cable stub behind the case. The case alone is 368 x 20 x 130 and is dimensioned on the `shell` part."
   },
   "tilt": { "deg": 6, "axis": "x", "note": "rear raised by the flip-out feet; the case itself is prismatic, which is how a real board works" },
 
@@ -28,7 +33,13 @@
       "id": "keyfield", "kind": "keymap", "lod": 2,
       "x": 8, "y": 8, "z": 8,
       "u": 19.05, "pitch": 19.05,
-      "cap": { "w": 18.0, "d": 18.0, "h": 22.0, "fillet": 0.9, "note": "22mm tall so the cap top lands 30mm above the desk — 10mm proud of the 20mm rim" },
+      "cap": {
+        "w": 16.0, "d": 16.0, "h": 19.0, "taper": 0.76, "fillet": 0.5,
+        "realW": 18.0,
+        "widthNote": "DRAWN at 16.0mm; the real cap top is 18.0mm. A real 18mm cap at 19.05mm pitch leaves a 1.05mm gap, which is under a fifth of a pixel at every zoom this object is ever seen at — so all 87 cap outlines merged and the field read as grey mush. 16.0mm gives a 3.05mm gap that survives the projection. This is the same exaggeration drafting applies to a thread or a weld symbol; the true figure is recorded above and the 19.05mm PITCH is untouched, so the layout stays correct.",
+        "heightNote": "19mm on the 8mm well floor puts the cap top 7mm proud of the 20mm rim. At 10mm proud each cap's front face was as tall as its projected top (11.7mm) and every key read as a block instead of a key.",
+        "taperNote": "0.76 — a real keycap narrows toward its top. Straight boxes gave 87 slats with no distinguishable tops."
+      },
       "rows": [
         [1, -1, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -0.5, 1, 1, 1],

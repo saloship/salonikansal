@@ -90,6 +90,23 @@ def dcyl(cx, cz, r, h, y0=0, axis='y', verts=48, bevel=0.4, seg=2, angle=30):
     return _finish(ob, bevel, seg, angle)
 
 
+def dcap(x, y, z, w, dp, h, taper=0.78, bevel=0.5, seg=2, angle=25):
+    """A keycap: truncated pyramid, not a box.
+
+    A real cap narrows toward its top. Drawn as straight boxes, 87 of them read as
+    a field of slats - the taper is what gives each key a distinct top face that
+    separates it from its neighbours.
+    """
+    R = 0.5 * math.sqrt(2)          # 4-vertex cone: radius is the half-diagonal
+    bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=R, radius2=R * taper, depth=1)
+    ob = bpy.context.active_object
+    ob.rotation_euler = (0, 0, math.radians(45))     # square, not diamond
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+    ob.scale = (w, dp, h)
+    ob.location = (x + w / 2, z + dp / 2, y + h / 2)
+    return _finish(ob, bevel, seg, angle)
+
+
 def well(x, y, z, w, h, dp, wall=8, floor=16):
     """A recessed well: base plate plus four rim walls.
 

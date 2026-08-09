@@ -8,6 +8,26 @@ One spec per object: `tools/bake/specs/<id>.json`. The `id` must match the prop 
 in `assets/scene/desk.mjs`, because the layout checker and the camera both key off
 it.
 
+## Which pipeline — `"pipeline": "hand" | "bake"`
+
+Not every object wants the same treatment, and this is decided by looking, not by
+preference. Recorded in the spec so it is not rediscovered each time.
+
+**Bake** an object whose form is genuinely three-dimensional and mechanical: the
+lamp's articulated arm, the laptop hinge, the scissor riser, the chair, and curved
+bodies — mug, bottle, plant pot, binocular barrels. There, computed hidden-line
+removal and exact curvature are real information that cannot be got by hand.
+
+**Hand-author** flat arrays of small repeated parts. The keyboard was the test
+case (`bake-test.html`): 87 near-identical caps whose true 1.05mm gap is a fifth
+of a pixel at any zoom the object is seen at. Baking added truthful taper sides,
+cap fronts and hidden rims — all of which became noise, and it stopped reading as
+a keyboard. A legible diagram beat a faithful projection.
+
+The spec is written either way. It is the source of truth for dimensions whichever
+pipeline consumes it — `keyMap()` in `desk.mjs` reads the same 19.05mm pitch and
+row widths that `build.py` would have.
+
 ## Coordinates
 
 Same system as `desk.mjs`, in **millimetres**:

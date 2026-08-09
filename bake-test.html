@@ -37,25 +37,34 @@
 </style>
 
 <div class="wrap">
-  <h1>Same keyboard, two pipelines</h1>
-  <p class="lede">Both at 351&times;114&nbsp;mm, both in the scene's cabinet projection, both drawn with the
-  identical line-weight hierarchy. The left is hand-authored SVG; the right is modelled in Blender and
-  rendered through Freestyle with geometric hidden-line removal. The right one registers into the
-  scene's own coordinate space via a single transform, because the model is sheared by the projection
-  before an orthographic render &mdash; so a bake can sit in the real drawing unchanged.</p>
+  <h1>Same keyboard, two pipelines &mdash; and why the left one won</h1>
+  <p class="lede">Both at 368&times;130&nbsp;mm, both in the scene's cabinet projection, both drawn with the
+  identical line-weight hierarchy, both built from the same spec. The left is hand-authored SVG. The
+  right is modelled in Blender from real ANSI dimensions and rendered through Freestyle with computed
+  hidden-line removal.</p>
+  <p class="lede"><b>The right one is more truthful and reads worse.</b> A keyboard is a flat array of
+  87 near-identical small parts, and at any zoom this object is actually seen at, its truth is
+  sub-pixel &mdash; the real 1.05&nbsp;mm gap between caps is a fifth of a pixel. Every faithful edge the
+  bake adds (taper sides, cap fronts, hidden rims) lands as noise rather than information, and it
+  stops reading as a keyboard. So the keyboard is hand-authored, recorded as
+  <code>"pipeline": "hand"</code> in its spec.</p>
+  <p class="lede">The bake still earns its place, but on different objects: the lamp's articulated arm,
+  the laptop hinge, the scissor riser, the chair, and curved bodies. There, computed occlusion and
+  exact curvature are information that cannot be had by hand. The registration transform below is
+  printed by the builder, never tuned &mdash; a bake drops into the real drawing unchanged.</p>
 
   <div class="grid">
     <figure>
       <svg id="hand" viewBox="598 960 318 115" aria-label="hand-authored keyboard"></svg>
-      <figcaption><b>Hand-authored</b><span class="n" id="nHand"></span></figcaption>
+      <figcaption><b>Hand-authored — shipping</b><span class="n" id="nHand"></span></figcaption>
     </figure>
     <figure>
       <svg viewBox="598 960 318 115" aria-label="baked keyboard">
         <!-- registration: baked SVG px -> scene viewBox units -->
         <!-- printed by tools/bake/build.py — never hand-tuned -->
-        <g id="baked" transform="translate(588.590 908.785) scale(0.188416)"></g>
+        <g id="baked" transform="translate(588.590 909.865) scale(0.188416)"></g>
       </svg>
-      <figcaption><b>Modelled + baked</b><span class="n" id="nBaked"></span></figcaption>
+      <figcaption><b>Modelled + baked — rejected for this object</b><span class="n" id="nBaked"></span></figcaption>
     </figure>
   </div>
 
