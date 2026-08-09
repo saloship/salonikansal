@@ -53,7 +53,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    square corners, a double rule the way a sheet frames a detail view, and a
    header field carrying the item reference. It is meant to read as one more
    annotation on the blueprint. */
-#copy .card{pointer-events:auto;max-width:54ch;position:relative;
+#copy .card{pointer-events:auto;width:min(56ch,46vw);max-width:100%;position:relative;
             /* 94% rather than solid, so the sheet grid whispers through and the
                panel reads as part of the drawing instead of floating over it. This
                part is not light-dependent, so it holds on desktop too — a first
@@ -65,7 +65,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 #copy .card::before{content:"";position:absolute;inset:5px;
                     border:1px solid var(--rule-2);pointer-events:none}
 #copy .card > *{position:relative}
-#copy section:nth-child(even) .card{margin-left:auto}
+/* All panels sit left, always. They used to alternate sides, which looked lively but
+   meant the camera had no single clear zone to bias away from — so the drawing was
+   always colliding with the copy on one side or the other. */
 .tag{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
      padding-bottom:9px;margin-bottom:15px;border-bottom:1px solid var(--rule-2)}
 .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;
@@ -219,8 +221,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 /* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
 #mobar,#msheet{display:none}
+/* the object carries this content on desktop; the panel must not repeat it */
+@media (min-width:761px){ .deep.on-object{display:none} }
+
 @media (max-width:760px){
   #rail{display:none}
+  /* PORTRAIT LAYOUT: copy in the top two thirds, desk in the bottom third.
+     Both were centred, so the card sat directly over the drawing and the desk was
+     invisible. Pushing the stage to the bottom of the viewport and the copy to the top
+     gives each its own band — which is also how her reference mock-up is composed. */
+  #stage-wrap{place-items:end center}
+  #stage{width:100%}
+  #copy section{align-items:flex-start;padding:7vh 16px 40vh}
+  #copy .card{width:100%;padding:20px 18px 18px}
+  .card h2{font-size:clamp(21px,6.4vw,28px)}
+  .card p,.deep dd,.lessons li{font-size:14px}
+  .tag{gap:10px}
+  .ref{font-size:9px}
   #mobar{display:flex;position:fixed;left:10px;right:10px;bottom:10px;z-index:7;gap:8px}
   #mobar button{flex:1;border:1px solid rgba(227,237,248,.3);border-radius:3px;cursor:pointer;
                 font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:12px 8px;
@@ -263,6 +280,9 @@ import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
 import { SECTIONS, KEYWORDS, NAV, FOOTER } from './assets/scene/content.js';
 
+/* sections whose deep content is rendered onto an object in the drawing */
+const ON_OBJECT = new Set(['method']);
+
 const pad = n => String(n).padStart(2, '0');
 const external = h => /^(https?:|mailto:)/.test(h);
 
@@ -280,7 +300,12 @@ const linkHTML = l => l.shot !== undefined
    nothing to click. Making the reader open a panel on every single scroll was the
    flow-breaking part, and it was only ever there because the old scroll model capped
    a section at one viewport. */
-const deepHTML = d => `<div class="deep">
+/* `onObject` means this content is ALSO drawn on a device in the scene. On desktop the
+   object carries it and the panel stays out of the way — the six audit steps were
+   appearing twice, once on the monitor and once in the card. Under 760px the monitor is
+   a few hundred pixels wide and unreadable, so the panel takes it back. One copy per
+   viewport, never none and never two. */
+const deepHTML = (d, onObject) => `<div class="deep${onObject ? ' on-object' : ''}">
   ${d.title ? `<p class="dtitle">${d.title}</p>` : ''}
   <dl>${d.items.map(i => `
     ${i.d ? `<dt class="dmeta">${i.d}</dt>` : ''}
@@ -309,7 +334,7 @@ document.getElementById('copy').innerHTML = SHOTS.map(s => {
       <h2>${c.head}</h2>
       <p>${c.body}</p>
       ${c.links ? `<div class="links">${c.links.map(linkHTML).join('')}</div>` : ''}
-      ${sec.deep ? deepHTML(sec.deep) : ''}
+      ${sec.deep ? deepHTML(sec.deep, ON_OBJECT.has(s.id)) : ''}
     </div>
   </section>`;
 }).join('');

@@ -17,11 +17,21 @@ import { P } from './desk.mjs';
 
 export const SHEET_W = 2400, ASPECT = 1.6;
 
-/** Frame `cw` viewBox units wide, centred on a world point. */
-export const frameAt = (cw, world) => {
+/** Frame `cw` viewBox units wide, with the world point placed at (bx, by) as a
+ *  fraction of the frame rather than dead centre.
+ *
+ *  Centring the subject was fighting the copy panel: both wanted the middle. Biasing
+ *  it down and to the right pushes the drawing into a corner and leaves the upper
+ *  left clear, so the panel has room to breathe and the subject is still the thing
+ *  your eye lands on. */
+export const frameAt = (cw, world, bx = 0.5, by = 0.5) => {
   const [cx, cy] = world ? P(...world) : [SHEET_W / 2, SHEET_W / ASPECT / 2];
-  return [cx - cw / 2, cy - cw / (ASPECT * 2), cw, cw / ASPECT];
+  const ch = cw / ASPECT;
+  return [cx - cw * bx, cy - ch * by, cw, ch];
 };
+
+/* Subject down-right, panel upper-left. */
+const B = 0.68, BY = 0.60;
 
 const WHOLE = [0, 0, SHEET_W, SHEET_W / ASPECT];
 
@@ -31,12 +41,12 @@ export const SHOTS = [
     beat: 'Everything present, dense, nothing lit. The tagline has to carry it.'
   },
   {
-    n: 2, id: 'me', title: 'Three hats', r: frameAt(2160, [1000, 240, 340]),
+    n: 2, id: 'me', title: 'Three hats', r: frameAt(2280, [1060, 210, 340], 0.58, 0.55),
     lit: ['papers', 'sketchpad', 'ipad', 'map', 'binoculars', 'palette'],
     beat: 'Three clusters light in turn: risk, design, travel.'
   },
   {
-    n: 3, id: 'journey', title: 'Journey', r: frameAt(1000, [210, 40, 140]),
+    n: 3, id: 'journey', title: 'Journey', r: frameAt(1320, [210, 40, 140], B, BY),
     lit: ['notebooks'],
     beat: 'The notebook stack and the dated tickets read as a timeline.'
   },
@@ -44,12 +54,12 @@ export const SHOTS = [
     /* Framed to hold the monitor AND the paper pile. Centred on the screen alone,
        the papers fell off the bottom edge — and they are the subject of the morph,
        so the one thing the shot exists to show was happening out of frame. */
-    n: 4, id: 'method', title: 'Method', r: frameAt(880, [885, 165, 560]),
+    n: 4, id: 'method', title: 'Method', r: frameAt(1180, [905, 210, 560], B, 0.54),
     lit: ['monitor', 'papers', 'stickies-bezel'],
     beat: 'Hero morph: the loose workpapers square up and resolve into the control table on screen.'
   },
   {
-    n: 5, id: 'work', title: 'Work', r: frameAt(820, [1510, 200, 690]),
+    n: 5, id: 'work', title: 'Work', r: frameAt(1080, [1510, 200, 690], B, BY),
     lit: ['laptop'],
     beat: 'Projects appear as clean screens on the laptop.'
   },
@@ -59,7 +69,7 @@ export const SHOTS = [
     beat: 'Hard pull back. Systems are predictable. Humans are not.'
   },
   {
-    n: 7, id: 'beyond', title: 'Beyond', r: frameAt(900, [1700, 40, 220]),
+    n: 7, id: 'beyond', title: 'Beyond', r: frameAt(1180, [1700, 40, 220], B, BY),
     lit: ['map', 'binoculars', 'tickets', 'whiteboard', 'palette', 'photo'],
     beat: 'Second hero morph: the map contours become a ridgeline.'
   },
