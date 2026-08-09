@@ -220,12 +220,39 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 
 /* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
+/* ---- the stuck typewriter panel (portrait only) ------------------------- */
+#tw{display:none}
+@media (max-width:900px){
+  #tw{display:block;position:fixed;left:14px;right:14px;top:7vh;z-index:4;
+      background:rgba(242,245,249,.96);border:1px solid var(--rule);
+      box-shadow:0 22px 48px -18px rgba(0,0,0,.6);padding:16px 18px 15px;
+      color:var(--card-ink-2);min-height:31vh}
+  #tw::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule-2)}
+  #tw > *{position:relative}
+  #tw h2{font-family:'Fraunces',Georgia,serif;font-size:clamp(20px,5.8vw,27px);line-height:1.14;
+         letter-spacing:-.015em;font-weight:600;margin:0 0 9px;color:var(--card-ink);
+         min-height:1.14em}
+  #tw p{font-size:14px;margin:0;min-height:1.5em}
+  /* the caret only exists while something is actually being typed */
+  #tw .caret::after{content:"";display:inline-block;width:.5ch;height:1em;
+       margin-left:1px;background:var(--card-ink);vertical-align:-.12em;
+       animation:blink .9s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+}
+@media (prefers-reduced-motion:reduce){#tw .caret::after{animation:none}}
+
 #mobar,#msheet{display:none}
 /* the object carries this content on desktop; the panel must not repeat it */
 @media (min-width:901px){ .deep.on-object{display:none} }
 
 @media (max-width:900px){
   #rail{display:none}
+  /* Portrait hides the scrolling cards entirely — the stuck panel carries the copy and
+     the detail lives on the objects. The sections stay in the document as plain scroll
+     spacers, one viewport each, which is what drives section progress and gives the
+     type-out an even rhythm. */
+  #copy .card{display:none}
+  #copy section{min-height:100vh;padding:0}
   /* PORTRAIT LAYOUT: copy in the top two thirds, desk in the bottom third.
      Both were centred, so the card sat directly over the drawing and the desk was
      invisible. Pushing the stage to the bottom of the viewport and the copy to the top
@@ -273,6 +300,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 <div id="scroller">
   <div id="stage-wrap"><svg id="stage" aria-label="The desk — one drawing, eight shots"></svg></div>
   <div id="copy"></div>
+</div>
+
+<!-- Portrait only: one stuck panel that never moves. Content types out and back in as
+     the active section changes, so it reads as a single terminal rather than a stack of
+     cards travelling past. -->
+<div id="tw" aria-live="polite">
+  <div class="tag"><span class="eyebrow" id="tw-e"></span><span class="ref" id="tw-r"></span></div>
+  <h2 id="tw-h"></h2>
+  <p id="tw-b"></p>
 </div>
 
 <nav id="rail" aria-label="Sections"></nav>
@@ -407,12 +443,83 @@ const bar = document.getElementById('bar');
 const hud = document.getElementById('hud');
 const btns = [...rail.querySelectorAll('button')];
 
+/* ---- the typewriter -----------------------------------------------------
+   One stuck panel whose text is replaced by typing rather than by scrolling. A token
+   guards every run: scrolling fast fires several section changes in a row, and without
+   it two type-ins interleave character by character into gibberish. Any newer run
+   silently abandons the older one mid-keystroke.
+
+   The heading types as PLAIN text and is then swapped for its real HTML, so the yellow
+   marker inks in once the words have landed. Typing the markup character by character
+   would have printed the tags. */
+const tw = {
+  e: document.getElementById('tw-e'), r: document.getElementById('tw-r'),
+  h: document.getElementById('tw-h'), b: document.getElementById('tw-b')
+};
+const plain = html => html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '');
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let twToken = 0;
+
+async function type(el, text, ms, token) {
+  el.classList.add('caret');
+  for (let i = 1; i <= text.length; i++) {
+    if (token !== twToken) return false;
+    el.textContent = text.slice(0, i);
+    /* pause a beat on sentence ends — an even cadence reads as a machine, and the
+       whole point of a typewriter is that something is being said */
+    await wait(/[.,—:]/.test(text[i - 1]) ? ms * 6 : ms);
+  }
+  el.classList.remove('caret');
+  return token === twToken;
+}
+
+async function untype(el, ms, token) {
+  const t = el.textContent;
+  if (!t) return token === twToken;     // nothing to erase; do not burn two beats
+  el.classList.add('caret');
+  for (let i = t.length; i >= 0; i -= 2) {
+    if (token !== twToken) return false;
+    el.textContent = t.slice(0, i);
+    await wait(ms);
+  }
+  return token === twToken;
+}
+
+let twFirst = true;
+
+async function twShow(id, n) {
+  const c = SECTIONS[id] && SECTIONS[id].panel;
+  if (!c) return;
+  const token = ++twToken;
+  const ref = `SK-01 · ${pad(n)}/${pad(SHOTS.length)}`;
+
+  /* The first section lands instantly. Typing it in means the panel is blank for a
+     second or two on arrival, which reads as a page that has not loaded rather than as
+     an effect — the typewriter is for the CHANGE between sections. */
+  if (twFirst || matchMedia('(prefers-reduced-motion:reduce)').matches) {
+    twFirst = false;
+    tw.e.textContent = c.eyebrow; tw.r.textContent = ref;
+    tw.h.innerHTML = c.head; tw.b.textContent = c.body;
+    return;
+  }
+
+  if (!(await untype(tw.b, 6, token))) return;
+  if (!(await untype(tw.h, 7, token))) return;
+  tw.e.textContent = c.eyebrow;
+  tw.r.textContent = ref;
+  if (!(await type(tw.h, plain(c.head), 26, token))) return;
+  tw.h.innerHTML = c.head;                 // the marker inks in behind the words
+  await type(tw.b, c.body, 9, token);
+}
+
+let lastShot = -1;
 cam.onShot((near, p) => {
   btns.forEach(b => b.setAttribute('aria-current', +b.dataset.n === near + 1));
   bar.style.width = (p / (SHOTS.length - 1) * 100).toFixed(2) + '%';
   const s = cam.stats();
   hud.textContent = `SHOT ${near + 1}/${SHOTS.length} · ${SHOTS[near].title.toUpperCase()} · `
     + `${s.drawn}/${s.objects} OBJECTS DRAWN · ${s.paths} PATHS`;
+  if (near !== lastShot) { lastShot = near; twShow(SHOTS[near].id, near + 1); }
 });
 </script>
 </body>
