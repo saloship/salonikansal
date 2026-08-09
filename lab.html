@@ -44,12 +44,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
             overflow:hidden;z-index:1}
 #stage{display:block;width:min(100%,1700px);height:auto}
 #copy{position:relative;z-index:2;margin-top:-100vh;pointer-events:none}
-#copy section{min-height:100vh;display:flex;align-items:center;padding:0 clamp(20px,6vw,90px)}
+/* min-height, not height: a section with six sub-items grows past the viewport and
+   the page simply gets longer. That is the capacity fix — no copy is trimmed to fit a
+   screen any more, and the camera holds still while you read it. */
+#copy section{min-height:100vh;display:flex;align-items:center;
+              padding:13vh clamp(20px,6vw,90px)}
 /* The copy panel is a piece of the drawing sheet laid on the navy, not a UI card:
    square corners, a double rule the way a sheet frames a detail view, and a
    header field carrying the item reference. It is meant to read as one more
    annotation on the blueprint. */
-#copy .card{pointer-events:auto;max-width:47ch;position:relative;
+#copy .card{pointer-events:auto;max-width:54ch;position:relative;
             /* 94% rather than solid, so the sheet grid whispers through and the
                panel reads as part of the drawing instead of floating over it. This
                part is not light-dependent, so it holds on desktop too — a first
@@ -84,13 +88,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 /* Deep content is a disclosure for now. It is REAL content that works, rather than
    a button that pretends to open something — the object-mapped dialog replaces it,
    and until then nothing here is a promise the page cannot keep. */
-.deep{margin-top:15px;border-top:1px solid var(--rule-2);padding-top:12px}
-.deep summary{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
-              cursor:pointer;color:var(--card-ink);opacity:.8;list-style:none}
-.deep summary::-webkit-details-marker{display:none}
-.deep summary::after{content:" +";opacity:.6}
-.deep[open] summary::after{content:" –"}
-.deep dl{margin:12px 0 0;display:grid;gap:9px}
+.deep{margin-top:16px;border-top:1px solid var(--rule-2);padding-top:14px}
+.deep dl{margin:0;display:grid;gap:2px}
+.deep dt+dt,.deep dd+dt{margin-top:13px}
 .deep dt{font-size:13px;font-weight:600;color:var(--card-ink)}
 .deep dd{margin:1px 0 0;font-size:13px;line-height:1.5;color:var(--card-ink-2)}
 .deep .dnote{margin-top:11px;font-size:12.5px;color:var(--card-ink-2)}
@@ -230,8 +230,12 @@ const linkHTML = l => l.shot !== undefined
    content audit found missing — the dates and employers are the load-bearing
    credibility, and the learned lines are what separate having done the work from
    having read about it. */
-const deepHTML = d => `<details class="deep">
-  <summary>${d.label}</summary>
+/* Full content, inline and open. No disclosure and no dialog: a section is as tall
+   as it needs to be and the camera holds still while you read it, so there is
+   nothing to click. Making the reader open a panel on every single scroll was the
+   flow-breaking part, and it was only ever there because the old scroll model capped
+   a section at one viewport. */
+const deepHTML = d => `<div class="deep">
   ${d.title ? `<p class="dtitle">${d.title}</p>` : ''}
   <dl>${d.items.map(i => `
     ${i.d ? `<dt class="dmeta">${i.d}</dt>` : ''}
@@ -241,7 +245,7 @@ const deepHTML = d => `<details class="deep">
     ${i.learned ? `<dd class="dlearn">Learned: ${i.learned}</dd>` : ''}`).join('')}</dl>
   ${d.note ? `<p class="dnote">${d.note}</p>` : ''}
   ${d.link ? `<p class="dnote"><a href="${d.link.href}">${d.link.label} →</a></p>` : ''}
-</details>`;
+</div>`;
 
 /* One viewport per shot, in the shot list's own order. The header field carries the
    sheet reference so the panel reads as part of the drawing rather than an overlay

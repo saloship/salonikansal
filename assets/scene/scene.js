@@ -45,7 +45,8 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = t => (t < 0 ? 0 : t > 1 ? 1 : t);
 const smooth = t => t * t * (3 - 2 * t);
 
-export function mountScene(svg, { sheet = '', overlay = '', copy = null } = {}) {
+export function mountScene(svg, { sheet = '', overlay = '', copy = null,
+                                  sections = '#copy section', hold = 0.62 } = {}) {
   svg.setAttribute('viewBox', VIEWBOX);
   svg.innerHTML = `${GRID_DEFS}
     <rect class="gridbg" x="0" y="0" width="${SHEET_W}" height="${SHEET_H}" fill="url(#bp50)"/>
@@ -168,16 +169,46 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null } = {}) 
     return near;
   }
 
-  /* --- scroll driver ------------------------------------------------------ */
-  let raf = 0, target = 0, onShot = null;
+  /* --- scroll driver ------------------------------------------------------
+     Progress is measured from where the SECTIONS actually are, not from a fixed
+     viewport-per-shot. That is what lets a section be as tall as its content needs:
+     a chapter with six sub-items simply occupies more page than a one-line
+     statement, and no copy has to be trimmed or hidden behind a button to fit.
+
+     Within a section the camera HOLDS for the first `hold` of it and moves to the
+     next shot over the remainder. So the camera is still while you are reading and
+     travels while you are between things, which is both calmer and the right way
+     round — it used to drift continuously, which is restless and makes long text
+     unreadable. */
+  let raf = 0, target = 0, onShot = null, marks = [];
+
+  function measure() {
+    const y = window.scrollY;
+    marks = [...document.querySelectorAll(sections)]
+      .map(s => Math.round(s.getBoundingClientRect().top + y));
+  }
+
+  function progressAt(scrollTop) {
+    if (marks.length < 2) return 0;
+    const last = Math.min(marks.length, list.length) - 1;
+    /* the reading line sits a third down the viewport — a section counts as being
+       read once its copy has risen to about there, not when it first peeks in */
+    const probe = scrollTop + window.innerHeight * 0.34;
+    let i = 0;
+    while (i < last && marks[i + 1] <= probe) i++;
+    if (i >= last) return last;
+    const span = Math.max(1, marks[i + 1] - marks[i]);
+    const local = (probe - marks[i]) / span;
+    const t = local <= hold ? 0 : (local - hold) / (1 - hold);
+    return i + clamp01(t);
+  }
 
   function tick() {
     raf = 0;
-    const span = window.innerHeight * (list.length - 1);
-    let p = clamp01(target / span) * (list.length - 1);
+    let p = progressAt(target);
     if (reduceMo) p = Math.round(p);        // snap between shots, no scrubbing
     const near = render(p);
-    if (onShot) onShot(near, p);
+    if (onShot) onShot(near, p, marks.length);
   }
 
   function schedule() {
@@ -201,18 +232,32 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null } = {}) 
   addEventListener('resize', () => {
     const next = pickList();
     if (next !== list) { list = next; lastLit = -1; }
+    measure();
     schedule();
   }, { passive: true });
 
+  /* Section heights depend on text reflow, which depends on fonts. Re-measure once
+     they land, or every mark is computed against the fallback metrics. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { measure(); schedule(); });
+  }
+  addEventListener('load', () => { measure(); schedule(); });
+
+  measure();
   schedule();
 
   return {
     /* Force a synchronous render from the current scroll position. Needed after a
        layout change that moves the sections, and it is the only way to drive the
        camera when requestAnimationFrame is not being serviced. */
-    update() { target = window.scrollY; tick(); },
+    update() { measure(); target = window.scrollY; tick(); },
     shots: () => list,
-    goTo(n) { scrollTo({ top: (n - 1) * window.innerHeight, behavior: reduceMo ? 'auto' : 'smooth' }); },
+    /* land on the section itself, wherever measurement put it */
+    goTo(n) {
+      measure();
+      const y = marks[n - 1] ?? 0;
+      scrollTo({ top: y, behavior: reduceMo ? 'auto' : 'smooth' });
+    },
     onShot(fn) { onShot = fn; schedule(); },
     stats: () => ({
       objects: objs.length,
