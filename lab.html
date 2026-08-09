@@ -50,15 +50,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    header field carrying the item reference. It is meant to read as one more
    annotation on the blueprint. */
 #copy .card{pointer-events:auto;max-width:47ch;position:relative;
-            /* 94% rather than solid, so the grid whispers through and the panel
-               reads as part of the sheet instead of floating over it; plus a faint
-               cyan rim so it sits in the SAME LIGHT as the illuminated objects.
-               A first move on the two-worlds problem, not the whole answer. */
+            /* 94% rather than solid, so the sheet grid whispers through and the
+               panel reads as part of the drawing instead of floating over it. This
+               part is not light-dependent, so it holds on desktop too — a first
+               move on the two-worlds problem, not the whole answer. */
             background:rgba(242,245,249,.94);backdrop-filter:blur(3px);
             border:1px solid var(--rule);
-            box-shadow:0 24px 56px -20px rgba(0,0,0,.62),
-                       0 0 0 1px rgba(120,224,240,.16),
-                       0 0 48px -8px rgba(120,224,240,.18);
+            box-shadow:0 24px 56px -20px rgba(0,0,0,.62);
             padding:26px 30px 24px;color:var(--card-ink-2)}
 #copy .card::before{content:"";position:absolute;inset:5px;
                     border:1px solid var(--rule-2);pointer-events:none}
@@ -75,6 +73,28 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .card p{font-size:15px;color:var(--card-ink-2)}
 .card .beat{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--card-ink);
             opacity:.5;margin-top:15px;padding-top:12px;border-top:1px solid var(--rule-2)}
+.card em{font-style:normal;background:linear-gradient(transparent 62%,rgba(245,197,24,.55) 62%)}
+
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.lnk{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-decoration:none;
+     color:var(--card-ink);border:1px solid var(--rule-2);background:transparent;
+     padding:7px 11px;cursor:pointer;transition:background 180ms,border-color 180ms}
+.lnk:hover{background:var(--card-ink);color:var(--paper);border-color:var(--card-ink)}
+
+/* Deep content is a disclosure for now. It is REAL content that works, rather than
+   a button that pretends to open something — the object-mapped dialog replaces it,
+   and until then nothing here is a promise the page cannot keep. */
+.deep{margin-top:15px;border-top:1px solid var(--rule-2);padding-top:12px}
+.deep summary{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+              cursor:pointer;color:var(--card-ink);opacity:.8;list-style:none}
+.deep summary::-webkit-details-marker{display:none}
+.deep summary::after{content:" +";opacity:.6}
+.deep[open] summary::after{content:" –"}
+.deep dl{margin:12px 0 0;display:grid;gap:9px}
+.deep dt{font-size:13px;font-weight:600;color:var(--card-ink)}
+.deep dd{margin:1px 0 0;font-size:13px;line-height:1.5;color:var(--card-ink-2)}
+.deep .dnote{margin-top:11px;font-size:12.5px;color:var(--card-ink-2)}
+.deep .dnote a{color:var(--card-ink)}
 
 /* ---- the drawing language ---------------------------------------------- */
 .art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
@@ -95,14 +115,25 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .obj.lit .col{fill:var(--c)}
 .obj.lit .colstroke{stroke:var(--c);opacity:1}
 
-/* An illuminated object: its linework goes to a bright cyan-white and blooms, as
-   if the drawing itself were backlit. The object still takes its own real colour —
-   the glow is the LIGHT, the colour is the THING, and they are separate ideas. */
-.art .obj{transition:filter 700ms ease}
-.obj.lit{filter:drop-shadow(0 0 4px var(--glow-1)) drop-shadow(0 0 14px var(--glow-2))}
-.obj.lit .ol,.obj.lit .vis{stroke:var(--lit-line);transition:stroke 700ms ease}
-.obj.lit .con,.obj.lit .cen{stroke:var(--lit-line);opacity:.6}
-.no-glow .obj.lit{filter:none}
+/* GLOW IS PORTRAIT-ONLY.
+   On a phone an object is a few hundred pixels across and a colour fill barely
+   registers, so light has to carry the focus. On desktop the fill is large enough
+   to do that on its own, and adding a bloom there would only be decoration — plus
+   it keeps the drop-shadow filter out of the animated tree at the zoom levels where
+   it would cost the most.
+   760px matches the breakpoint scene.js uses to switch to the portrait shot list,
+   so illumination and the mobile framing arrive together rather than independently. */
+@media (max-width:760px){
+  .art .obj{transition:filter 700ms ease}
+  .obj.lit{filter:drop-shadow(0 0 4px var(--glow-1)) drop-shadow(0 0 14px var(--glow-2))}
+  .obj.lit .ol,.obj.lit .vis{stroke:var(--lit-line);transition:stroke 700ms ease}
+  .obj.lit .con,.obj.lit .cen{stroke:var(--lit-line);opacity:.6}
+  .no-glow .obj.lit{filter:none}
+  /* the panel only borrows the cyan light where there IS cyan light to borrow */
+  #copy .card{box-shadow:0 24px 56px -20px rgba(0,0,0,.62),
+                         0 0 0 1px rgba(120,224,240,.16),
+                         0 0 48px -8px rgba(120,224,240,.18)}
+}
 
 /* layers get their own transform for parallax; will-change keeps them composited */
 #L-room,#L-wall,#L-back,#L-front,#L-fg{will-change:transform}
@@ -150,43 +181,40 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 import { mountScene } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
+import { SECTIONS } from './assets/scene/content.js';
 
-/* Copy is placeholder for now — M4 brings the real sections across from v1. What
-   this page is for is whether the camera FEELS right, which is a question about
-   pacing and easing, not about words. */
-const COPY = {
-  hero:      ['Saloni Kansal', 'Living between control and chaos.',
-              'Risk and controls by trade, design by instinct, travel by need. One desk holds all three.'],
-  me:        ['Three hats', 'Auditor, designer, traveller.',
-              'The workpapers, the sketchpad and the map are not three careers. They are the same habit pointed at different problems.'],
-  journey:   ['Journey', 'Dated, in order, on paper.',
-              'A stack of notebooks and a run of boarding passes is the only CV that never rounds anything up.'],
-  method:    ['Method', 'The Cold-Start Audit.',
-              'Six steps that take a pile of loose paper and leave a control matrix. Watch the sheets square up.'],
-  work:      ['Work', 'Four things worth showing.',
-              'Each one started as a mess on this desk and left as something with edges.'],
-  statement: ['', 'Systems are predictable. Humans are not.',
-              'Every control I have ever written assumed otherwise, and every one of them was wrong somewhere.'],
-  beyond:    ['Beyond', 'Where the contours go.',
-              'The map on the desk is not decoration. The lines on it become a ridgeline if you look long enough.'],
-  connect:   ['Connect', 'The desk, resolved.',
-              'Lamp on, everything in its place. Say hello.']
-};
+const pad = n => String(n).padStart(2, '0');
+const external = h => /^(https?:|mailto:)/.test(h);
 
-/* sections: one viewport per shot, in the shot list's own order */
+const linkHTML = l => l.shot !== undefined
+  ? `<button class="lnk" data-goto="${l.shot}">${l.label}</button>`
+  : `<a class="lnk" href="${l.href}"${l.download ? ' download' : ''}` +
+    `${external(l.href) ? ' target="_blank" rel="noopener"' : ''}>${l.label}</a>`;
+
+const deepHTML = d => `<details class="deep">
+  <summary>${d.label}</summary>
+  <dl>${d.items.map(i => `<dt>${i.k}</dt><dd>${i.v}</dd>`).join('')}</dl>
+  ${d.note ? `<p class="dnote">${d.note}${d.link
+    ? ` <a href="${d.link.href}">${d.link.label} →</a>` : ''}</p>` : ''}
+</details>`;
+
+/* One viewport per shot, in the shot list's own order. The header field carries the
+   sheet reference so the panel reads as part of the drawing rather than an overlay
+   that happens to sit on top of it. */
 document.getElementById('copy').innerHTML = SHOTS.map(s => {
-  const [eyebrow, head, body] = COPY[s.id] || ['', s.title, ''];
-  /* the header field carries the sheet reference, so the panel reads as part of
-     the drawing rather than an overlay that happens to be on top of it */
+  const sec = SECTIONS[s.id] || {};
+  const c = sec.panel;
+  if (!c) return `<section data-shot="${s.n}"></section>`;
   return `<section data-shot="${s.n}">
     <div class="card">
       <div class="tag">
-        <span class="eyebrow">${eyebrow || s.title}</span>
-        <span class="ref">SK-01 · ${String(s.n).padStart(2, '0')}/${String(SHOTS.length).padStart(2, '0')}</span>
+        <span class="eyebrow">${c.eyebrow}</span>
+        <span class="ref">SK-01 · ${pad(s.n)}/${pad(SHOTS.length)}</span>
       </div>
-      <h2>${head}</h2>
-      <p>${body}</p>
-      <div class="beat">${s.beat}</div>
+      <h2>${c.head}</h2>
+      <p>${c.body}</p>
+      ${c.links ? `<div class="links">${c.links.map(linkHTML).join('')}</div>` : ''}
+      ${sec.deep ? deepHTML(sec.deep) : ''}
     </div>
   </section>`;
 }).join('');
@@ -202,6 +230,12 @@ rail.innerHTML = SHOTS.map(s => `<button data-n="${s.n}" title="${s.title}">${s.
 rail.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (b) cam.goTo(+b.dataset.n);
+});
+
+/* in-panel buttons that fly the camera to another shot */
+document.getElementById('copy').addEventListener('click', e => {
+  const b = e.target.closest('[data-goto]');
+  if (b) cam.goTo(+b.dataset.goto);
 });
 
 const bar = document.getElementById('bar');
