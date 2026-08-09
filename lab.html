@@ -110,6 +110,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art #wall{fill:var(--bp-wall);stroke:none}
 .art *{vector-effect:non-scaling-stroke}
 .art .colstroke{stroke:var(--bp-con)}
+
+/* Screen copy: faint white on navy at rest, dark on the lit screen — because at
+   rest the display has no fill and the navy ground shows through it. */
+.art .scr{font-family:var(--mono);fill:var(--bp-ink);opacity:.42;stroke:none;
+          transition:fill 600ms ease,opacity 600ms ease}
+.art .scr-h{letter-spacing:.13em}
+.art .scr-k{font-weight:500}
+.obj.lit .scr{fill:#173254;opacity:1}
+.obj.lit .scr-v{opacity:.78}
 .art .col{fill:none;transition:fill 600ms ease}
 .art .colstroke{transition:stroke 600ms ease,opacity 600ms ease}
 .obj.lit .col{fill:var(--c)}
@@ -219,8 +228,13 @@ document.getElementById('copy').innerHTML = SHOTS.map(s => {
   </section>`;
 }).join('');
 
+/* The devices in the drawing display the actual content, at full length. A list of
+   headlines reads as thin, and thin does not earn anyone's trust — so the six audit
+   steps are ON the monitor, readable once the camera arrives, rather than trimmed
+   to a summary in the panel. */
 const cam = mountScene(document.getElementById('stage'), {
-  sheet: sheetFurniture(2400, 1500)
+  sheet: sheetFurniture(2400, 1500),
+  copy: { monitor: SECTIONS.method.deep }
 });
 window.__cam = cam;   // so the camera can be driven and inspected from the console
 

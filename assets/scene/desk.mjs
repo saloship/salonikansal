@@ -341,6 +341,33 @@ export function panelSil(fn, n = 30) {
 
 /* --- screen content ------------------------------------------------------- */
 
+/** REAL, READABLE COPY ON A DEVICE SCREEN.
+ *
+ *  A screen lies in a plane of constant z, which under this projection is
+ *  fronto-parallel — so text on it is upright and undistorted, and it scales with
+ *  the camera. At the hero framing it is illegible, which is exactly right: you
+ *  cannot read someone's monitor from across the room. It resolves as you arrive.
+ *
+ *  This is what lets the site show work at full length instead of trimming it to
+ *  headlines. A list of headlines reads as thin, and thin does not earn trust.
+ *
+ *  `blocks` are laid out downward from the top of the box: { t, size, cls, indent,
+ *  gap } with sizes in real millimetres.
+ */
+export function screenText(x, y, z, w, h, blocks) {
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  let cy = y + h;
+  const out = [];
+  for (const b of blocks) {
+    const size = b.size ?? 11;
+    cy -= size * 1.3 + (b.gap || 0);
+    const p = P(x + (b.indent || 0), cy, z);
+    out.push(`<text class="scr ${b.cls || ''}" x="${f(p[0])}" y="${f(p[1])}" ` +
+             `font-size="${f(size * SC)}">${esc(b.t)}</text>`);
+  }
+  return out.join('');
+}
+
 /* Rows in the control table. The paper pile carries the same count, because in
    shot 4 the loose workpapers resolve into this table and a path morph needs
    both variants built on matching geometry. */
@@ -538,8 +565,21 @@ export const PROPS = [
       <path class="con" d="${poly(circle2(P(cx, 92, Z), 44), false)}"/>`;
     } },
 
-  { id: 'monitor', cl: 'risk', z: 560, art: () => {
+  { id: 'monitor', cl: 'risk', z: 560, art: (ctx = {}) => {
       const X = 600, Y = 146, Z = 560, W = 560, H = 340, D = 26;
+      /* If copy is supplied the screen shows the actual document, at full length.
+         The abstract dashboard is the fallback for the check tools, which build the
+         scene without any copy. */
+      const doc = ctx.copy && ctx.copy.monitor;
+      const body = doc
+        ? screenText(X + 26, Y + 50, Z, W - 52, H - 84, [
+            { t: doc.title.toUpperCase(), size: 15, cls: 'scr-h', gap: 4 },
+            ...doc.items.flatMap(i => [
+              { t: i.k, size: 12, cls: 'scr-k', gap: 7 },
+              { t: i.v, size: 10, cls: 'scr-v', indent: 26 }
+            ])
+          ])
+        : dashboard(X + 26, Y + 50, Z, W - 52, H - 84);
       return `
       ${centre(880, 560, -40, 640)}
       <!-- base: cable channel, rubber feet, tilt scale. Sits at z 560 so the
@@ -556,7 +596,7 @@ export const PROPS = [
       ${box(X, Y, Z, W, H, D)}
       <path class="vis" d="${rrectXY(X + 22, Y + 46, Z, W - 44, H - 76, 6)}"/>
       <path class="col vis" style="--c:${SCREEN}" d="${rrectXY(X + 26, Y + 50, Z, W - 52, H - 84, 4)}"/>
-      ${dashboard(X + 26, Y + 50, Z, W - 52, H - 84)}
+      ${body}
       <!-- chin: power LED and its centre mark, brand rule -->
       <path class="con" d="${line2(P(X + 240, Y + 22, Z), P(X + 320, Y + 22, Z))}"/>
       ${screw(X + W - 40, Y + 22, Z, 5)}
@@ -1055,7 +1095,7 @@ export const ROOM = () => {
 };
 
 /* --- assemble ------------------------------------------------------------- */
-export function buildScene() {
+export function buildScene(ctx = {}) {
   /* Far to near, so nearer objects occlude what sits behind them. */
   const sorted = [...PROPS].sort((a, b) => b.z - a.z);
 
@@ -1081,7 +1121,7 @@ export function buildScene() {
      camera will use the same numbers to cull and to size annotation on zoom. */
   const g = list => list.map(p => {
     probeStart(p.id);
-    const art = p.art();
+    const art = p.art(ctx);
     const b = probeEnd();
     const foot = b ? `${Math.round(b.x0)} ${Math.round(b.z0)} ${Math.round(b.x1)} ${Math.round(b.z1)} ${Math.round(b.y1)}` : '';
     return `<g class="obj" id="p-${p.id}" data-cl="${p.cl}" data-foot="${foot}">${art}</g>`;

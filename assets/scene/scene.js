@@ -45,11 +45,11 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = t => (t < 0 ? 0 : t > 1 ? 1 : t);
 const smooth = t => t * t * (3 - 2 * t);
 
-export function mountScene(svg, { sheet = '', overlay = '' } = {}) {
+export function mountScene(svg, { sheet = '', overlay = '', copy = null } = {}) {
   svg.setAttribute('viewBox', VIEWBOX);
   svg.innerHTML = `${GRID_DEFS}
     <rect class="gridbg" x="0" y="0" width="${SHEET_W}" height="${SHEET_H}" fill="url(#bp50)"/>
-    <g id="camg"><g class="art" id="scene">${buildScene()}</g>${overlay}</g>
+    <g id="camg"><g class="art" id="scene">${buildScene({ copy })}</g>${overlay}</g>
     <g class="sheet" id="furniture">${sheet}</g>`;
 
   const camg = svg.querySelector('#camg');
