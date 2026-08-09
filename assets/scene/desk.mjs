@@ -354,6 +354,18 @@ export function panelSil(fn, n = 30) {
  *  `blocks` are laid out downward from the top of the box: { t, size, cls, indent,
  *  gap } with sizes in real millimetres.
  */
+/** Naive word wrap. SVG text does not reflow, so line breaks are decided here. */
+export function wrapText(s, max) {
+  const out = [];
+  let line = '';
+  for (const word of String(s).split(/\s+/)) {
+    if (line && (line + ' ' + word).length > max) { out.push(line); line = word; }
+    else line = line ? line + ' ' + word : word;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
 export function screenText(x, y, z, w, h, blocks) {
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   let cy = y + h;
@@ -575,11 +587,17 @@ export const PROPS = [
       const doc = ctx.copy && ctx.copy.monitor;
       const body = `<g class="scr-dash">${dashboard(X + 26, Y + 50, Z, W - 52, H - 84)}</g>`
         + (doc ? `<g class="scr-doc">${screenText(X + 26, Y + 50, Z, W - 52, H - 84, [
-            { t: doc.title.toUpperCase(), size: 15, cls: 'scr-h', gap: 4 },
+            { t: doc.title.toUpperCase(), size: 14, cls: 'scr-h', gap: 3 },
             ...doc.items.flatMap(i => [
-              { t: i.k, size: 12, cls: 'scr-k', gap: 7 },
-              { t: i.v, size: 10, cls: 'scr-v', indent: 26 }
-            ])
+              { t: i.k, size: 11, cls: 'scr-k', gap: 5 },
+              { t: i.v, size: 9.5, cls: 'scr-v', indent: 24 }
+            ]),
+            /* The outcome, one rule below the steps. Six steps are verbs anyone could
+               write; this is the line that proves they produced something. Sizes above
+               were tightened to make room for it rather than dropping it. */
+            ...(doc.note ? wrapText(doc.note, 78).map((t, i) => ({
+              t, size: 9, cls: 'scr-n', gap: i === 0 ? 9 : 0
+            })) : [])
           ])}</g>` : '');
       return `
       ${centre(880, 560, -40, 640)}

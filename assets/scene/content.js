@@ -15,9 +15,9 @@
 export const SECTIONS = {
   hero: {
     panel: {
-      eyebrow: 'Saloni Kansal',
+      eyebrow: 'Saloni Kansal · Gurugram, India',
       head: 'Living between <em>control</em> and <em>chaos</em>.',
-      body: 'Tech risk today, product next — with design and the mountains in between.',
+      body: 'Tech risk today, product next — with design and the mountains in between. I find where systems break, then design the replacement.',
       links: [
         { label: 'See how I work', shot: 4 },
         { label: 'Say hello', shot: 8 },
@@ -34,35 +34,58 @@ export const SECTIONS = {
     },
     deep: {
       on: 'sketchpad', label: 'Three hats',
-      title: 'The same person, three problems',
+      /* v1's actual thesis, restored. My replacement — "The same person, three
+         problems" — described the layout instead of making the argument. */
+      title: 'Where the three overlap is where I do my best work',
       items: [
-        { k: 'Tech risk & audit', v: 'I read how systems are built, and find where they break.' },
-        { k: 'Design & product', v: 'Half my notebooks are wireframes for apps that don’t exist yet.' },
-        { k: 'Mountains & travel', v: 'A free weekend, and I’m on a trail in the Himalayas.' }
-      ]
+        { d: 'At work', k: 'Tech risk & audit', v: 'I read how systems are built, and find where they break.' },
+        { d: 'Can’t sit still', k: 'Design & product', v: 'Half my notebooks are wireframes for apps that don’t exist yet — and seven of them are written up. One is built.' },
+        { d: 'Rather be outside', k: 'Mountains & travel', v: 'A free weekend, and I’m on a trail in the Himalayas.' }
+      ],
+      note: 'Comfortable moving between an audit workpaper, a wireframe, and a build.',
+      link: { label: 'The sketchbook — 7 concepts', href: 'ideas.html' }
     }
   },
 
   journey: {
     panel: {
       eyebrow: 'How I got here',
+      /* The dates go on the one guaranteed-visible surface. The previous body here
+         was filler — "three chapters, in order" — standing exactly where the facts
+         should have been. A reader cannot tell four months from fourteen years
+         without a date, and dates are the load-bearing wall of credibility. */
       head: 'The short version.',
-      body: 'Three chapters, in order — and each one still shows up in how I work.'
+      body: '2020 B.Tech IT · 2022 UI/UX and product · 2024 tech risk at EY. Each chapter still shows up in how I work.'
     },
     deep: {
       on: 'notebooks', label: 'The long version',
       title: 'How I got here',
+      /* `d` = dates, `r` = role and employer, `learned` = the judgement line. All
+         three were in v1 and all three were lost in the compression; they are what
+         separate someone who has done the work from someone who has read about it. */
       items: [
-        { k: 'Tech Risk Consulting', v: 'Auditing how enterprise systems are controlled — ITGC/ITAC testing, cybersecurity and compliance reviews, and IT policies written from scratch to ISO 27001.' },
-        { k: 'UI / UX & Graphic Design', v: 'Interfaces and user flows from scratch, research, and brands built from nothing. Still how I think.' },
-        { k: 'B.Tech, Information Technology', v: 'Ran the ACM student chapter — workshops, 30+ volunteers, and the annual coding symposium.' }
+        { d: '2024 — now', k: 'Tech Risk Consulting',
+          r: 'Associate Consultant · EY India, Digital Risk',
+          v: 'Auditing how enterprise systems are controlled — ITGC/ITAC testing, cybersecurity and compliance reviews, and IT policies written from scratch to ISO 27001.',
+          learned: 'Real systems are messier than any framework expects.' },
+        { d: '2022 — 2024', k: 'UI / UX & Graphic Design',
+          r: 'Digital Paani · Zobyt Technologies · Stych (Founder’s Office)',
+          v: 'Interfaces and user flows from scratch, research, and brands built from nothing. Front-end implementation in HTML/CSS/JS alongside design and product. Still how I think.',
+          learned: 'You design for the person stuck inside the system, not the system.' },
+        { d: '2020 — 2024', k: 'B.Tech, Information Technology',
+          r: 'Chairperson, ACM Chapter · Smart India Hackathon 2024 Finalist',
+          v: 'BVCOE, New Delhi (GGSIPU). Led the ACM student chapter — a 40+ member body, 10+ events a year, sponsors and logistics, and the annual coding symposium.',
+          learned: 'Leading people is nothing like leading a process.' }
       ]
     }
   },
 
   method: {
     panel: {
-      eyebrow: 'How I work',
+      /* v1's badge, restored. It pre-empts the exact suspicion a reader has about a
+         named framework on a personal site — did you invent this for the portfolio?
+         — and answers it in five words. "How I work" is just a section header. */
+      eyebrow: '★ A method I actually use',
       head: 'The <em>Cold-Start</em> Audit.',
       body: 'Sometimes I get handed something no one has audited before — no template, no map. I kept taking the same path through it, so I gave it a name.'
     },
@@ -76,7 +99,11 @@ export const SECTIONS = {
         { k: '04 · Pressure-test', v: 'Walkthroughs to check the map is true.' },
         { k: '05 · Controls & proof', v: 'What good looks like, and what evidences it.' },
         { k: '06 · Leave a template', v: 'So the next person starts warm, not cold.' }
-      ]
+      ],
+      /* The outcome sits on the SAME screen as the steps, one rule below. Six steps
+         are verbs anyone could write; this is the only line proving they produced
+         anything, and v1 had it. Detached from the method it would read as a boast. */
+      note: 'Step six matters most. An ISO 27001 policy build became a reusable control-to-policy-to-evidence mapping; a set of testing templates and a gap tracker ended up shared around the team.'
     }
   },
 
@@ -89,12 +116,20 @@ export const SECTIONS = {
     deep: {
       on: 'laptop', label: 'Four engagements',
       title: 'Selected work',
+      /* Scope, not just keywords. A keyword is unassessable; "104 controls in a
+         three-week window" is a competence. These numbers are on her CV and were on
+         neither version of the site — SHE SHOULD VERIFY THE WORDING. */
       items: [
-        { k: 'Policy from Zero', v: 'ISO 27001 · IT Policy · Compliance' },
-        { k: 'SAM Governance Audit', v: 'Software Asset Mgmt · IT Governance · Audit' },
-        { k: 'ITGC Testing & Templates', v: 'ITGC · ITAC · Controls Testing' },
-        { k: 'RPA Controls Audit', v: 'RPA · Automation Controls · IT Audit' }
-      ]
+        { k: 'Policy from Zero', v: 'A full IT policy set written from scratch to ISO 27001 · control-to-policy-to-evidence mapping' },
+        { k: 'SAM Governance Audit', v: 'Software asset management · contributed to the governance workstream' },
+        { k: 'ITGC Testing & Templates', v: 'ITGC/ITAC across enterprise applications · testing templates and a gap tracker the wider team reused' },
+        { k: 'RPA Controls Audit', v: '104 controls delivered within a three-week window · automation controls' }
+      ],
+      /* v1 said the case studies were coming. Deleting that removed a competence
+         signal — she knows four keyword rows are not a portfolio — and it removed the
+         only route to ideas.html, which has seven design projects in it. */
+      note: 'Full case studies — the situation, the approach, what I built — are being written. Ask me for one. Meanwhile a pile of product and design concepts lives on its own page.',
+      link: { label: 'The concepts & experiments', href: 'ideas.html' }
     }
   },
 
@@ -102,7 +137,11 @@ export const SECTIONS = {
     panel: {
       eyebrow: 'Statement',
       head: 'Systems are predictable.<br>Humans are <em>not</em>.',
-      body: 'Every control I have ever written assumed otherwise, and every one of them was wrong somewhere.'
+      /* My first attempt at this line was "every control I have ever written…was
+         wrong somewhere". Honest, but on the page whose job is to establish
+         competence a stranger reads "my controls are wrong". Same humility, moved
+         off her work and onto the problem — so it now describes a skill. */
+      body: 'Every control assumes someone will follow it. Designing for the one who won’t is the job.'
     }
   },
 

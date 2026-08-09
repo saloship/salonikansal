@@ -95,6 +95,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .deep dd{margin:1px 0 0;font-size:13px;line-height:1.5;color:var(--card-ink-2)}
 .deep .dnote{margin-top:11px;font-size:12.5px;color:var(--card-ink-2)}
 .deep .dnote a{color:var(--card-ink)}
+.deep .dtitle{margin:11px 0 0;font-size:13.5px;font-weight:600;color:var(--card-ink)}
+.deep .dmeta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+             color:var(--card-ink);opacity:.55;margin-top:6px}
+.deep .drole{font-size:12px;color:var(--card-ink);opacity:.75;margin-top:1px}
+.deep .dlearn{font-size:12.5px;font-style:italic;color:var(--card-ink-2);margin-top:3px}
 
 /* ---- the drawing language ---------------------------------------------- */
 .art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
@@ -117,6 +122,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
           transition:fill 600ms ease,opacity 600ms ease}
 .art .scr-h{letter-spacing:.13em}
 .art .scr-k{font-weight:500}
+.art .scr-n{font-style:italic}
+.obj.lit .scr-n{opacity:.72}
 .obj.lit .scr{fill:#173254;opacity:1}
 .obj.lit .scr-v{opacity:.78}
 
@@ -219,11 +226,21 @@ const linkHTML = l => l.shot !== undefined
   : `<a class="lnk" href="${l.href}"${l.download ? ' download' : ''}` +
     `${external(l.href) ? ' target="_blank" rel="noopener"' : ''}>${l.label}</a>`;
 
+/* `d` (date or kicker), `r` (role and employer) and `learned` are the fields the
+   content audit found missing — the dates and employers are the load-bearing
+   credibility, and the learned lines are what separate having done the work from
+   having read about it. */
 const deepHTML = d => `<details class="deep">
   <summary>${d.label}</summary>
-  <dl>${d.items.map(i => `<dt>${i.k}</dt><dd>${i.v}</dd>`).join('')}</dl>
-  ${d.note ? `<p class="dnote">${d.note}${d.link
-    ? ` <a href="${d.link.href}">${d.link.label} →</a>` : ''}</p>` : ''}
+  ${d.title ? `<p class="dtitle">${d.title}</p>` : ''}
+  <dl>${d.items.map(i => `
+    ${i.d ? `<dt class="dmeta">${i.d}</dt>` : ''}
+    <dt>${i.k}</dt>
+    ${i.r ? `<dd class="drole">${i.r}</dd>` : ''}
+    <dd>${i.v}</dd>
+    ${i.learned ? `<dd class="dlearn">Learned: ${i.learned}</dd>` : ''}`).join('')}</dl>
+  ${d.note ? `<p class="dnote">${d.note}</p>` : ''}
+  ${d.link ? `<p class="dnote"><a href="${d.link.href}">${d.link.label} →</a></p>` : ''}
 </details>`;
 
 /* One viewport per shot, in the shot list's own order. The header field carries the
