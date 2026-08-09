@@ -132,13 +132,18 @@ export function cyl(cx, cz, r, h, y0 = 0, o = {}) {
     ${o.fill ? `<path class="col vis" style="--c:${o.fill}" d="${poly(ringXZ(cx, y0 + h - 14, cz, r - (o.inner || 6) - 2))}"/>` : ''}`;
 }
 
+/* A lit screen is BRIGHT. Filling the display with a mid-blue turned it into a
+   dark slab and buried the dashboard drawn on top of it — the panel glows and the
+   data on it stays navy, which is the way round a real screen works. */
+export const SCREEN = '#d7e5f1';
+
 /** Screen device — panel plus an inset display that carries the colour. */
 export function panel(x, y, z, w, h, dp, o = {}) {
   const m = Math.min(w, h) * 0.055;
   const scr = [P(x + m, y + m, z), P(x + w - m, y + m, z), P(x + w - m, y + h - m, z), P(x + m, y + h - m, z)];
   return `
     ${box(x, y, z, w, h, dp, { nohidden: o.nohidden })}
-    <path class="col vis" style="--c:${o.col || '#3d6f92'}" d="${poly(scr)}"/>
+    <path class="col vis" style="--c:${o.col || SCREEN}" d="${poly(scr)}"/>
     ${o.content ? o.content(x + m, y + m, z, w - 2 * m, h - 2 * m) : ''}`;
 }
 
@@ -550,7 +555,7 @@ export const PROPS = [
       <!-- panel: bezel, chin, screen -->
       ${box(X, Y, Z, W, H, D)}
       <path class="vis" d="${rrectXY(X + 22, Y + 46, Z, W - 44, H - 76, 6)}"/>
-      <path class="col vis" style="--c:#3d6f92" d="${rrectXY(X + 26, Y + 50, Z, W - 52, H - 84, 4)}"/>
+      <path class="col vis" style="--c:${SCREEN}" d="${rrectXY(X + 26, Y + 50, Z, W - 52, H - 84, 4)}"/>
       ${dashboard(X + 26, Y + 50, Z, W - 52, H - 84)}
       <!-- chin: power LED and its centre mark, brand rule -->
       <path class="con" d="${line2(P(X + 240, Y + 22, Z), P(X + 320, Y + 22, Z))}"/>

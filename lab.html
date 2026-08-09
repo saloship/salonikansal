@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>M3 · The Desk — scroll-driven camera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#151414; --ink-2:#4d4c47; --dim:#8e8d85;
+  --sun:#f5c518; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --w-ol:2.6; --w-vis:1.6; --w-hid:1.2; --w-con:1.0;
+  /* one line colour; hierarchy from weight and tone, never from hue */
+  --bp-ground:#f4f6f9; --bp-ink:#1b3a5c; --bp-con:#1b3a5c;
+  --bp-grid:#e4eaf1; --bp-grid-b:#d6dfea; --bp-fill:#f4f6f9; --bp-wall:#edf1f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:var(--ink);
+     line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ---- the pinned drawing --------------------------------------------------
+   The stage sticks for the whole scroller; the copy is pulled back over it with
+   a negative margin so sections travel across the drawing instead of after it. */
+#scroller{position:relative}
+#stage-wrap{position:sticky;top:0;height:100vh;display:grid;place-items:center;
+            overflow:hidden;z-index:1}
+#stage{display:block;width:min(100%,1700px);height:auto}
+#copy{position:relative;z-index:2;margin-top:-100vh;pointer-events:none}
+#copy section{min-height:100vh;display:flex;align-items:center;padding:0 clamp(20px,6vw,90px)}
+#copy .card{pointer-events:auto;max-width:44ch;background:rgba(244,246,249,.86);
+            backdrop-filter:blur(7px);border:1px solid #dde4ee;border-radius:10px;
+            padding:26px 28px}
+#copy section:nth-child(even) .card{margin-left:auto}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+         color:var(--bp-ink);opacity:.62}
+.card h2{font-family:'Fraunces',Georgia,serif;font-size:clamp(24px,3vw,36px);line-height:1.12;
+         letter-spacing:-.015em;font-weight:600;margin:8px 0 10px}
+.card p{font-size:15px;color:var(--ink-2)}
+.card .beat{font-family:var(--mono);font-size:11.5px;color:var(--bp-ink);opacity:.55;margin-top:12px}
+
+/* ---- the drawing language ---------------------------------------------- */
+.art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
+     shape-rendering:geometricPrecision}
+.art .ol {stroke-width:var(--w-ol)}
+.art .vis{stroke-width:var(--w-vis)}
+.art .hid{stroke-width:var(--w-hid);stroke-dasharray:9 6;opacity:.44}
+.art .con{stroke-width:var(--w-con);stroke:var(--bp-con);opacity:.40}
+.art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.34}
+.art .solid{fill:var(--bp-fill);stroke:none}
+.art #wall{fill:var(--bp-wall);stroke:none}
+.art *{vector-effect:non-scaling-stroke}
+.art .colstroke{stroke:var(--bp-con)}
+.art .col{fill:none;transition:fill 600ms ease}
+.art .colstroke{transition:stroke 600ms ease,opacity 600ms ease}
+.obj.lit .col{fill:var(--c)}
+.obj.lit .colstroke{stroke:var(--c);opacity:1}
+
+/* layers get their own transform for parallax; will-change keeps them composited */
+#L-room,#L-wall,#L-back,#L-front,#L-fg{will-change:transform}
+#camg{will-change:transform}
+
+.sheet{fill:none;stroke:var(--bp-ink);shape-rendering:geometricPrecision;opacity:.9}
+.sheet *{vector-effect:non-scaling-stroke}
+.sh-bg{fill:var(--bp-ground);stroke:none}
+.sh-frame{stroke-width:2.2;fill:none}
+.sh-line{stroke-width:1.1;fill:none}
+.sh-cen{stroke-width:1;stroke:var(--bp-con);stroke-dasharray:16 4 3 4;fill:none;opacity:.34}
+.sh-arrowfill{fill:var(--bp-ink);stroke:none}
+.sh-k{fill:var(--bp-con);stroke:none;font-family:var(--mono);font-size:13px;letter-spacing:.12em;opacity:.58}
+.sh-v{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:16px}
+.sh-title{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:22px;letter-spacing:.1em}
+.sh-zone{fill:var(--bp-con);stroke:none;font-family:var(--mono);font-size:15px;opacity:.5}
+
+/* ---- fixed chrome: progress rail and a live read-out ------------------- */
+#rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:5;
+      display:flex;flex-direction:column;gap:9px}
+#rail button{width:26px;height:26px;border-radius:6px;border:1px solid #cfd8e6;
+             background:rgba(244,246,249,.8);font-family:var(--mono);font-size:10px;
+             color:var(--bp-ink);cursor:pointer;display:grid;place-items:center;padding:0}
+#rail button[aria-current="true"]{background:var(--bp-ink);color:#fff;border-color:var(--bp-ink)}
+#hud{position:fixed;left:18px;bottom:16px;z-index:5;font-family:var(--mono);font-size:10.5px;
+     letter-spacing:.05em;color:var(--bp-ink);opacity:.55}
+#bar{position:fixed;left:0;top:0;height:3px;background:var(--sun);z-index:6;width:0}
+@media (max-width:760px){#rail{display:none}}
+</style>
+</head>
+<body>
+
+<div id="bar"></div>
+
+<div id="scroller">
+  <div id="stage-wrap"><svg id="stage" aria-label="The desk — one drawing, eight shots"></svg></div>
+  <div id="copy"></div>
+</div>
+
+<nav id="rail" aria-label="shots"></nav>
+<div id="hud"></div>
+
+<script type="module">
+import { mountScene } from './assets/scene/scene.js';
+import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
+import { SHOTS } from './assets/scene/shots.js';
+
+/* Copy is placeholder for now — M4 brings the real sections across from v1. What
+   this page is for is whether the camera FEELS right, which is a question about
+   pacing and easing, not about words. */
+const COPY = {
+  hero:      ['Saloni Kansal', 'Living between control and chaos.',
+              'Risk and controls by trade, design by instinct, travel by need. One desk holds all three.'],
+  me:        ['Three hats', 'Auditor, designer, traveller.',
+              'The workpapers, the sketchpad and the map are not three careers. They are the same habit pointed at different problems.'],
+  journey:   ['Journey', 'Dated, in order, on paper.',
+              'A stack of notebooks and a run of boarding passes is the only CV that never rounds anything up.'],
+  method:    ['Method', 'The Cold-Start Audit.',
+              'Six steps that take a pile of loose paper and leave a control matrix. Watch the sheets square up.'],
+  work:      ['Work', 'Four things worth showing.',
+              'Each one started as a mess on this desk and left as something with edges.'],
+  statement: ['', 'Systems are predictable. Humans are not.',
+              'Every control I have ever written assumed otherwise, and every one of them was wrong somewhere.'],
+  beyond:    ['Beyond', 'Where the contours go.',
+              'The map on the desk is not decoration. The lines on it become a ridgeline if you look long enough.'],
+  connect:   ['Connect', 'The desk, resolved.',
+              'Lamp on, everything in its place. Say hello.']
+};
+
+/* sections: one viewport per shot, in the shot list's own order */
+document.getElementById('copy').innerHTML = SHOTS.map(s => {
+  const [eyebrow, head, body] = COPY[s.id] || ['', s.title, ''];
+  return `<section data-shot="${s.n}">
+    <div class="card">
+      ${eyebrow ? `<div class="eyebrow">${eyebrow}</div>` : ''}
+      <h2>${head}</h2>
+      <p>${body}</p>
+      <div class="beat">${s.beat}</div>
+    </div>
+  </section>`;
+}).join('');
+
+const cam = mountScene(document.getElementById('stage'), {
+  sheet: sheetFurniture(2400, 1500)
+});
+
+/* rail */
+const rail = document.getElementById('rail');
+rail.innerHTML = SHOTS.map(s => `<button data-n="${s.n}" title="${s.title}">${s.n}</button>`).join('');
+rail.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b) cam.goTo(+b.dataset.n);
+});
+
+const bar = document.getElementById('bar');
+const hud = document.getElementById('hud');
+const btns = [...rail.querySelectorAll('button')];
+
+cam.onShot((near, p) => {
+  btns.forEach(b => b.setAttribute('aria-current', +b.dataset.n === near + 1));
+  bar.style.width = (p / (SHOTS.length - 1) * 100).toFixed(2) + '%';
+  const s = cam.stats();
+  hud.textContent = `SHOT ${near + 1}/${SHOTS.length} · ${SHOTS[near].title.toUpperCase()} · `
+    + `${s.drawn}/${s.objects} OBJECTS DRAWN · ${s.paths} PATHS`;
+});
+</script>
+</body>
+</html>
