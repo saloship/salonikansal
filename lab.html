@@ -153,7 +153,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    it would cost the most.
    760px matches the breakpoint scene.js uses to switch to the portrait shot list,
    so illumination and the mobile framing arrive together rather than independently. */
-@media (max-width:760px){
+@media (max-width:900px){
   .art .obj{transition:filter 700ms ease}
   .obj.lit{filter:drop-shadow(0 0 4px var(--glow-1)) drop-shadow(0 0 14px var(--glow-2))}
   .obj.lit .ol,.obj.lit .vis{stroke:var(--lit-line);transition:stroke 700ms ease}
@@ -222,17 +222,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
 #mobar,#msheet{display:none}
 /* the object carries this content on desktop; the panel must not repeat it */
-@media (min-width:761px){ .deep.on-object{display:none} }
+@media (min-width:901px){ .deep.on-object{display:none} }
 
-@media (max-width:760px){
+@media (max-width:900px){
   #rail{display:none}
   /* PORTRAIT LAYOUT: copy in the top two thirds, desk in the bottom third.
      Both were centred, so the card sat directly over the drawing and the desk was
      invisible. Pushing the stage to the bottom of the viewport and the copy to the top
      gives each its own band — which is also how her reference mock-up is composed. */
-  #stage-wrap{place-items:end center}
-  #stage{width:100%}
-  #copy section{align-items:flex-start;padding:7vh 16px 40vh}
+  /* The desk becomes an opaque FOREGROUND band and the copy scrolls behind it. With
+     the copy on top, a long card (the six audit steps) simply overflowed into the
+     bottom third and cut the drawing in half. Behind it, the band always reads as the
+     desk and the text disappears into a soft fade at the boundary rather than being
+     clipped — which is also how her mock-up is composed. */
+  #stage-wrap{place-items:end center;z-index:3;pointer-events:none}
+  #stage-wrap::before{content:"";position:absolute;left:0;right:0;bottom:0;height:48vh;
+    background:linear-gradient(to bottom,transparent,var(--navy) 38%)}
+  #stage{width:100%;position:relative}
+  #copy section{align-items:flex-start;padding:7vh 16px 46vh}
   #copy .card{width:100%;padding:20px 18px 18px}
   .card h2{font-size:clamp(21px,6.4vw,28px)}
   .card p,.deep dd,.lessons li{font-size:14px}

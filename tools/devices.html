@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>device harness</title>
+<!--
+  WHY THIS EXISTS
+  ---------------
+  Checking a responsive layout from an automated browser kept failing: resizing the
+  OS window did not change the page's reported viewport, and CDP device emulation was
+  unavailable because another browser instance held the profile.
+
+  CSS media queries inside an iframe evaluate against the IFRAME's viewport, not the
+  window's. So a 390x844 iframe is a genuine 390x844 viewport — `@media (max-width:760px)`
+  fires, `100vh` is 844px, `position:fixed` pins to the frame, and `window.innerWidth`
+  inside it reads 390. No external tooling, no flags, no device needed.
+
+  Usage:  tools/devices.html?u=../lab.html
+  Console API:  dev.list() · dev.scroll(name, y) · dev.goto(name, shot) · dev.probe(name)
+-->
+<style>
+  :root{--ink:#12263f}
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9edf3;font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--ink)}
+  header{padding:10px 14px;background:#fff;border-bottom:1px solid #cfd8e6;
+         display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  header b{font-size:13px}
+  input{font:inherit;padding:5px 8px;border:1px solid #cfd8e6;width:230px}
+  button{font:inherit;padding:5px 10px;border:1px solid #cfd8e6;background:#fff;cursor:pointer}
+  .rack{display:flex;gap:14px;padding:14px;align-items:flex-start;overflow:auto}
+  figure{margin:0;background:#fff;border:1px solid #cfd8e6;padding:8px}
+  figcaption{padding-bottom:6px;font-size:11px;letter-spacing:.04em}
+  iframe{display:block;border:0;background:#fff}
+</style>
+</head>
+<body>
+
+<header>
+  <b>device harness</b>
+  <label>url <input id="u" value="../lab.html"></label>
+  <button id="go">load</button>
+  <button data-y="0">top</button>
+  <button data-shot="4">shot 4</button>
+  <button data-shot="7">shot 7</button>
+  <span id="out"></span>
+</header>
+
+<div class="rack" id="rack"></div>
+
+<script>
+/* Real device viewports, not round numbers — these are the ones that break layouts.
+   360x800 is the most common Android; 390x844 is the iPhone 13/14/15 class; 768x1024
+   sits exactly on the far side of a 760px breakpoint, which is where off-by-one lives. */
+const DEVICES = [
+  { name: 'android-360', w: 360, h: 800 },
+  { name: 'iphone-390', w: 390, h: 844 },
+  { name: 'tablet-768', w: 768, h: 1024 }
+];
+
+const params = new URLSearchParams(location.search);
+if (params.get('u')) document.getElementById('u').value = params.get('u');
+
+const rack = document.getElementById('rack');
+const frames = new Map();
+
+function build() {
+  const url = document.getElementById('u').value;
+  rack.innerHTML = '';
+  frames.clear();
+  for (const d of DEVICES) {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<figcaption>${d.name} · ${d.w}×${d.h}</figcaption>`;
+    const f = document.createElement('iframe');
+    f.width = d.w; f.height = d.h;
+    f.src = url + (url.includes('?') ? '&' : '?') + 'dev=' + d.name;
+    fig.appendChild(f);
+    rack.appendChild(fig);
+    frames.set(d.name, f);
+  }
+}
+
+/* Same-origin, so the frame's window and document are reachable — which is what makes
+   this a test harness rather than just a picture of one. */
+const win = name => frames.get(name)?.contentWindow;
+
+window.dev = {
+  list: () => [...frames.keys()],
+
+  probe(name) {
+    const w = win(name);
+    if (!w) return { error: 'no such frame: ' + name };
+    const d = w.document;
+    const vis = sel => {
+      const el = d.querySelector(sel);
+      if (!el) return 'absent';
+      const cs = w.getComputedStyle(el);
+      return cs.display === 'none' ? 'display:none' : cs.display;
+    };
+    const stage = d.getElementById('stage');
+    const card = d.querySelector('#copy .card');
+    const r = el => { const b = el?.getBoundingClientRect(); return b ? {
+      top: Math.round(b.top), h: Math.round(b.height), w: Math.round(b.width) } : null; };
+    return {
+      innerWidth: w.innerWidth, innerHeight: w.innerHeight,
+      mobileBranch: w.matchMedia('(max-width:900px)').matches,
+      scrollY: Math.round(w.scrollY), docH: d.documentElement.scrollHeight,
+      stage: r(stage), card: r(card),
+      rail: vis('#rail'), mobar: vis('#mobar'), msheet: vis('#msheet'),
+      hud: d.getElementById('hud')?.textContent || null,
+      /* the thing that was wrong: card and drawing both centred, desk invisible */
+      cardBottom: card ? Math.round(card.getBoundingClientRect().bottom) : null,
+      stageTop: stage ? Math.round(stage.getBoundingClientRect().top) : null
+    };
+  },
+
+  scroll(name, y) {
+    const w = win(name);
+    if (!w) return 'no frame';
+    w.scrollTo({ top: y, behavior: 'instant' });
+    w.__cam?.update();
+    return this.probe(name);
+  },
+
+  goto(name, shot) {
+    const w = win(name);
+    if (!w) return 'no frame';
+    const secs = w.document.querySelectorAll('#copy section');
+    const s = secs[shot - 1];
+    if (!s) return 'no such section';
+    w.scrollTo({ top: s.getBoundingClientRect().top + w.scrollY + 40, behavior: 'instant' });
+    w.__cam?.update();
+    return this.probe(name);
+  },
+
+  all(fn) { return Object.fromEntries([...frames.keys()].map(n => [n, fn(n)])); }
+};
+
+document.getElementById('go').addEventListener('click', build);
+document.querySelector('header').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.y !== undefined) dev.all(n => dev.scroll(n, +b.dataset.y));
+  if (b.dataset.shot) dev.all(n => dev.goto(n, +b.dataset.shot));
+});
+
+build();
+</script>
+</body>
+</html>

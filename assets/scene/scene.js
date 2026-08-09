@@ -110,8 +110,13 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     return up * (1 - smooth(clamp01((p - (m.out - 0.75)) / 0.75)));
   }
 
+  /* 900, not 760. A 768px portrait tablet has exactly the phone's problem — too narrow
+     for the copy and the drawing side by side, and too narrow for a deep zoom to land
+     its subject anywhere useful. The device harness caught it sitting in the desktop
+     branch with the card straight over the drawing. One breakpoint, so the stacked
+     layout, the portrait shot list and the glow all switch together. */
   function pickList() {
-    return matchMedia('(max-width: 760px)').matches ? SHOTS_MOBILE : SHOTS;
+    return matchMedia('(max-width: 900px)').matches ? SHOTS_MOBILE : SHOTS;
   }
 
   /** Camera rect at fractional shot position p. */
