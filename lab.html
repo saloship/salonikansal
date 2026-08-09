@@ -10,17 +10,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#151414; --ink-2:#4d4c47; --dim:#8e8d85;
+  /* TRUE BLUEPRINT — reversed print. The drawing is white line on navy, and the
+     copy sits on a piece of sheet laid over it. That is what fixes the contrast:
+     the text now holds the strongest value on the page instead of competing with
+     the linework at the same lightness. */
+  --navy:#122a45; --navy-2:#17324f;
+  --paper:#f2f5f9; --rule:#1b3958; --rule-2:#c6d4e5;
+  --card-ink:#132437; --card-ink-2:#485d76;
   --sun:#f5c518; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
-  --w-ol:2.6; --w-vis:1.6; --w-hid:1.2; --w-con:1.0;
-  /* one line colour; hierarchy from weight and tone, never from hue */
-  --bp-ground:#f4f6f9; --bp-ink:#1b3a5c; --bp-con:#1b3a5c;
-  --bp-grid:#e4eaf1; --bp-grid-b:#d6dfea; --bp-fill:#f4f6f9; --bp-wall:#edf1f6;
+  /* lighter lines on a dark ground bloom, so every weight comes down from the
+     values that were right on white — 2.6 outline reads fat here */
+  --w-ol:2.1; --w-vis:1.25; --w-hid:1.0; --w-con:0.9;
+  --bp-ground:#122a45; --bp-ink:#e3edf8; --bp-con:#e3edf8;
+  --bp-grid:rgba(227,237,248,.085); --bp-grid-b:rgba(227,237,248,.15);
+  --bp-fill:#122a45; --bp-wall:#17324f;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:var(--ink);
+body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--bp-ink);
      line-height:1.6;-webkit-font-smoothing:antialiased}
 
 /* ---- the pinned drawing --------------------------------------------------
@@ -32,25 +40,40 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 #stage{display:block;width:min(100%,1700px);height:auto}
 #copy{position:relative;z-index:2;margin-top:-100vh;pointer-events:none}
 #copy section{min-height:100vh;display:flex;align-items:center;padding:0 clamp(20px,6vw,90px)}
-#copy .card{pointer-events:auto;max-width:44ch;background:rgba(244,246,249,.86);
-            backdrop-filter:blur(7px);border:1px solid #dde4ee;border-radius:10px;
-            padding:26px 28px}
+/* The copy panel is a piece of the drawing sheet laid on the navy, not a UI card:
+   square corners, a double rule the way a sheet frames a detail view, and a
+   header field carrying the item reference. It is meant to read as one more
+   annotation on the blueprint. */
+#copy .card{pointer-events:auto;max-width:47ch;position:relative;
+            background:var(--paper);border:1px solid var(--rule);
+            box-shadow:0 24px 56px -20px rgba(0,0,0,.62);
+            padding:26px 30px 24px;color:var(--card-ink-2)}
+#copy .card::before{content:"";position:absolute;inset:5px;
+                    border:1px solid var(--rule-2);pointer-events:none}
+#copy .card > *{position:relative}
 #copy section:nth-child(even) .card{margin-left:auto}
-.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
-         color:var(--bp-ink);opacity:.62}
-.card h2{font-family:'Fraunces',Georgia,serif;font-size:clamp(24px,3vw,36px);line-height:1.12;
-         letter-spacing:-.015em;font-weight:600;margin:8px 0 10px}
-.card p{font-size:15px;color:var(--ink-2)}
-.card .beat{font-family:var(--mono);font-size:11.5px;color:var(--bp-ink);opacity:.55;margin-top:12px}
+.tag{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
+     padding-bottom:9px;margin-bottom:15px;border-bottom:1px solid var(--rule-2)}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;
+         color:var(--card-ink);opacity:.72}
+.ref{font-family:var(--mono);font-size:10px;letter-spacing:.12em;white-space:nowrap;
+     color:var(--card-ink);opacity:.42}
+.card h2{font-family:'Fraunces',Georgia,serif;font-size:clamp(23px,2.9vw,35px);line-height:1.12;
+         letter-spacing:-.015em;font-weight:600;margin:0 0 10px;color:var(--card-ink)}
+.card p{font-size:15px;color:var(--card-ink-2)}
+.card .beat{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--card-ink);
+            opacity:.5;margin-top:15px;padding-top:12px;border-top:1px solid var(--rule-2)}
 
 /* ---- the drawing language ---------------------------------------------- */
 .art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
      shape-rendering:geometricPrecision}
 .art .ol {stroke-width:var(--w-ol)}
 .art .vis{stroke-width:var(--w-vis)}
-.art .hid{stroke-width:var(--w-hid);stroke-dasharray:9 6;opacity:.44}
-.art .con{stroke-width:var(--w-con);stroke:var(--bp-con);opacity:.40}
-.art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.34}
+/* held-back weights need MORE opacity on a dark ground than on white — a faint
+   light line disappears into navy far faster than a faint dark line does on paper */
+.art .hid{stroke-width:var(--w-hid);stroke-dasharray:9 6;opacity:.50}
+.art .con{stroke-width:var(--w-con);stroke:var(--bp-con);opacity:.46}
+.art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.38}
 .art .solid{fill:var(--bp-fill);stroke:none}
 .art #wall{fill:var(--bp-wall);stroke:none}
 .art *{vector-effect:non-scaling-stroke}
@@ -79,12 +102,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 /* ---- fixed chrome: progress rail and a live read-out ------------------- */
 #rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:5;
       display:flex;flex-direction:column;gap:9px}
-#rail button{width:26px;height:26px;border-radius:6px;border:1px solid #cfd8e6;
-             background:rgba(244,246,249,.8);font-family:var(--mono);font-size:10px;
+#rail button{width:26px;height:26px;border-radius:3px;border:1px solid rgba(227,237,248,.3);
+             background:rgba(18,42,69,.55);font-family:var(--mono);font-size:10px;
              color:var(--bp-ink);cursor:pointer;display:grid;place-items:center;padding:0}
-#rail button[aria-current="true"]{background:var(--bp-ink);color:#fff;border-color:var(--bp-ink)}
+#rail button:hover{border-color:rgba(227,237,248,.7)}
+#rail button[aria-current="true"]{background:var(--bp-ink);color:var(--navy);border-color:var(--bp-ink)}
 #hud{position:fixed;left:18px;bottom:16px;z-index:5;font-family:var(--mono);font-size:10.5px;
-     letter-spacing:.05em;color:var(--bp-ink);opacity:.55}
+     letter-spacing:.05em;color:var(--bp-ink);opacity:.5}
 #bar{position:fixed;left:0;top:0;height:3px;background:var(--sun);z-index:6;width:0}
 @media (max-width:760px){#rail{display:none}}
 </style>
@@ -131,9 +155,14 @@ const COPY = {
 /* sections: one viewport per shot, in the shot list's own order */
 document.getElementById('copy').innerHTML = SHOTS.map(s => {
   const [eyebrow, head, body] = COPY[s.id] || ['', s.title, ''];
+  /* the header field carries the sheet reference, so the panel reads as part of
+     the drawing rather than an overlay that happens to be on top of it */
   return `<section data-shot="${s.n}">
     <div class="card">
-      ${eyebrow ? `<div class="eyebrow">${eyebrow}</div>` : ''}
+      <div class="tag">
+        <span class="eyebrow">${eyebrow || s.title}</span>
+        <span class="ref">SK-01 · ${String(s.n).padStart(2, '0')}/${String(SHOTS.length).padStart(2, '0')}</span>
+      </div>
       <h2>${head}</h2>
       <p>${body}</p>
       <div class="beat">${s.beat}</div>

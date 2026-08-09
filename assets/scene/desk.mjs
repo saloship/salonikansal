@@ -424,9 +424,9 @@ const cards = (x, y, z, w, h) => {
    PROPS — each returns SVG, positioned in world space
    ========================================================================= */
 
-const PENS = ['#c0563f', '#2f6f8f', '#4f7d4a', '#141c22'];
-const PAN_COLS = ['#b8452f', '#d9822a', '#e0c341', '#4f7d4a', '#2f6f8f', '#5b4a8a',
-                  '#8a3f5a', '#c25a33', '#6f8f3f', '#356f74', '#3b4f8a', '#6a5140'];
+const PENS = ['#e0846c', '#5fa8cf', '#79b06b', '#9db0c6'];
+const PAN_COLS = ['#e0705a', '#d9822a', '#e0c341', '#79b06b', '#5fa8cf', '#9385c4',
+                  '#c07a92', '#e08a5e', '#a3c268', '#5fa8ad', '#7a8fce', '#a68872'];
 
 export const PROPS = [
 
@@ -446,7 +446,7 @@ export const PROPS = [
                      `M${f(P(x + 610, y + 120, Z)[0])} ${f(P(x + 610, y + 120, Z)[1])} c 44 -24 92 14 132 -4`]
         .map(p => `<path class="colstroke con" d="${p}"/>`).join('');
       return `<path class="solid" d="${poly(bd)}"/><path class="ol" d="${poly(bd)}"/>
-              <g style="--c:#2f6f8f">${nb}${link}${scrib}</g>
+              <g style="--c:#5fa8cf">${nb}${link}${scrib}</g>
               <path class="con" d="${line2(P(x + 40, y + 40, Z), P(x + w - 40, y + 40, Z))}"/>`;
     } },
 
@@ -460,7 +460,7 @@ export const PROPS = [
     } },
 
   { id: 'stickies-wall', cl: 'risk', z: 737, art: () => {
-      const S = [[560, 620, '#e8c24a'], [676, 556, '#d98f6a'], [548, 500, '#7fa8b8']];
+      const S = [[560, 620, '#e8c24a'], [676, 556, '#d98f6a'], [548, 500, '#9cc4d4']];
       return S.map(([x, y, c]) => {
         const b = [P(x, y, 737), P(x + 66, y, 737), P(x + 66, y + 66, 737), P(x, y + 66, 737)];
         return `<path class="solid" d="${poly(b)}"/><path class="col vis" style="--c:${c}" d="${poly(b)}"/>`;
@@ -485,8 +485,8 @@ export const PROPS = [
         ${cyl(cx, cz, 74, 76, 30, { inner: 9 })}
         ${centre(cx, cz, -30, 340)}
         <path class="con" d="${poly(ringXZ(cx, 96, cz, 74))}"/>
-        <path class="col" style="--c:#5a4632" d="${poly(ringXZ(cx, 92, cz, 63))}"/>
-        <g style="--c:#6f9160">${leaf(1.92, 210, 24, 34)}${leaf(1.46, 250, -8, 40)}${leaf(1.08, 195, -30, 32)}${leaf(2.36, 168, 28, 30)}${leaf(1.70, 140, 6, 26)}</g>`;
+        <path class="col" style="--c:#977a5e" d="${poly(ringXZ(cx, 92, cz, 63))}"/>
+        <g style="--c:#8fb87e">${leaf(1.92, 210, 24, 34)}${leaf(1.46, 250, -8, 40)}${leaf(1.08, 195, -30, 32)}${leaf(2.36, 168, 28, 30)}${leaf(1.70, 140, 6, 26)}</g>`;
     } },
 
   { id: 'lamp', cl: 'general', z: 560, art: () => {
@@ -661,7 +661,7 @@ export const PROPS = [
       const hx = cx + r, ho = cx + r + 74;          // handle springs off the right side
       return `
       ${centre(cx, cz, -26, 150)}
-      ${cyl(cx, cz, r, 96, 0, { inner: 7, fill: '#4a2f1e' })}
+      ${cyl(cx, cz, r, 96, 0, { inner: 7, fill: '#a3714a' })}
       <path class="ol" fill="none" d="M${f(P(hx, 68, cz)[0])} ${f(P(hx, 68, cz)[1])} C${f(P(ho, 76, cz)[0])} ${f(P(ho, 76, cz)[1])} ${f(P(ho, 22, cz)[0])} ${f(P(ho, 22, cz)[1])} ${f(P(hx, 28, cz)[0])} ${f(P(hx, 28, cz)[1])}"/>`;
     } },
 
@@ -706,11 +706,11 @@ export const PROPS = [
       </g>`;
       /* pencil lying across the corner of the pad */
       const pencil = poly([P(x + 260, 12, z + 210), P(x + 396, 12, z + 246), P(x + 394, 20, z + 250), P(x + 258, 20, z + 214)]);
-      return `${sheet(x, 0, z, w, dp, 8, { col: '#5b86a8' })}${wire}
+      return `${sheet(x, 0, z, w, dp, 8, { col: '#7fadd0' })}${wire}
         <g class="con">${Array.from({ length: 8 }, (_, i) => `<path d="${poly(circle2(P(x - 10, 10, z + 20 + i * 32), 8))}"/>`).join('')}</g>
         <path class="hid" d="${line2(P(x, 0, z), P(x, 8, z))}"/>
         <path class="solid" d="${pencil}"/><path class="vis" d="${pencil}"/>
-        <path class="col vis" style="--c:#c0563f" d="${poly([P(x + 384, 12, z + 244), P(x + 396, 12, z + 246), P(x + 394, 20, z + 250), P(x + 382, 20, z + 248)])}"/>`;
+        <path class="col vis" style="--c:#e0846c" d="${poly([P(x + 384, 12, z + 244), P(x + 396, 12, z + 246), P(x + 394, 20, z + 250), P(x + 382, 20, z + 248)])}"/>`;
     } },
 
   { id: 'palette', cl: 'travel', z: 330, art: () => {
@@ -732,7 +732,7 @@ export const PROPS = [
       /* three books: visible page block on the near edge, an elastic closure
          on the top one, and a dated spine label — the reason they read as a
          timeline in shot 3 */
-      const cols = ['#b5764a', '#356f74', '#8a3f5a'];
+      const cols = ['#cf9a6d', '#5fa8ad', '#c07a92'];
       return cols.map((c, i) => {
         const x = 60 + i * 8, y = i * 26, z = 40 + i * 6, w = 300 - i * 12, dp = 210 - i * 8;
         const pages = `<g class="con">${[6, 11, 16].map(o =>
@@ -781,7 +781,7 @@ export const PROPS = [
 
   /* 76 x 158 — a phone, not the tea tray it used to be */
   { id: 'phone', cl: 'general', z: 20, art: () => `
-      ${sheet(1290, 0, 20, 76, 158, 12, { col: '#141c22' })}` },
+      ${sheet(1290, 0, 20, 76, 158, 12, { col: '#9db0c6' })}` },
 
   /* passes lying on the map is a real thing a desk does — declared, so the
      layout checker treats it as intent rather than an accident of draw order */
@@ -842,7 +842,7 @@ export const PROPS = [
       /* route with waypoints, a compass rose and a scale bar */
       const route = poly([at(0.10, 0.82), at(0.22, 0.62), at(0.30, 0.66), at(0.42, 0.40), at(0.52, 0.24)], false);
       const pins = [[0.10, 0.82], [0.30, 0.66], [0.52, 0.24]].map(([u, v]) =>
-        `<path class="col" style="--c:#c0563f" d="${poly(circle2(at(u, v), 7), 12)}"/>
+        `<path class="col" style="--c:#e0846c" d="${poly(circle2(at(u, v), 7), 12)}"/>
          <path class="vis" d="${poly(circle2(at(u, v), 7), 12)}"/>`).join('');
       const rose = (() => {
         const c = at(0.50, 0.86), r = 26;
@@ -862,10 +862,10 @@ export const PROPS = [
         }).join('');
         return seg;
       })();
-      return `<path class="solid" d="${poly(flat)}"/><path class="ol col" style="--c:#5d8a58" d="${poly(flat)}"/>
-        <g style="--c:#4f7d4a">${[0, 1, 2, 3].map(contour).join('')}</g>
+      return `<path class="solid" d="${poly(flat)}"/><path class="ol col" style="--c:#82b374" d="${poly(flat)}"/>
+        <g style="--c:#79b06b">${[0, 1, 2, 3].map(contour).join('')}</g>
         ${creases}
-        <path class="colstroke vis" style="--c:#c0563f" d="${route}"/>${pins}
+        <path class="colstroke vis" style="--c:#e0846c" d="${route}"/>${pins}
         ${rose}${scaleBar}
         <path class="solid" d="${poly(fold)}"/><path class="ol" d="${poly(fold)}"/>
         <path class="con" d="${line2(P(x + w * .74, 38, z + 20), P(x + w * .74, 38, z + dp - 20))}"/>`;
@@ -885,7 +885,7 @@ export const PROPS = [
           <path class="con" d="${poly(circle2(P(cx, y, cz + L * .4), r + (rF - r) * .4))}"/>
           <path class="solid" d="${poly(circle2(n0, r))}"/><path class="ol" d="${poly(circle2(n0, r))}"/>
           <path class="vis" d="${poly(circle2(n0, r - 10))}"/>
-          <path class="col vis" style="--c:#2f4f5c" d="${poly(circle2(n0, r - 17))}"/>`;
+          <path class="col vis" style="--c:#6d94a5" d="${poly(circle2(n0, r - 17))}"/>`;
       };
       /* hinge bridge, focus wheel on its axis, dioptre ring, strap lugs */
       const focus = (() => {
