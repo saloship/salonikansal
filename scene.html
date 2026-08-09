@@ -15,8 +15,11 @@
   --line:#d5d4cd; --line-2:#c2c1b8;
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
   --w-ol:2.6; --w-vis:1.6; --w-hid:1.2; --w-con:1.0;
-  --bp-ground:#fbfbf8; --bp-ink:#141c22; --bp-con:#7fa6bd;
-  --bp-grid:#e2ebef; --bp-grid-b:#d2e0e7; --bp-fill:#fbfbf8; --bp-wall:#f4f6f7;
+  /* ONE line colour. The drawing previously ran near-black outlines against pale
+     steel-blue construction lines, and two hues at once read as a mistake rather
+     than a hierarchy. Everything is navy now; weight and tone do the ranking. */
+  --bp-ground:#f4f6f9; --bp-ink:#1b3a5c; --bp-con:#1b3a5c;
+  --bp-grid:#e4eaf1; --bp-grid-b:#d6dfea; --bp-fill:#f4f6f9; --bp-wall:#edf1f6;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -36,9 +39,10 @@ h1{font-size:clamp(26px,3.4vw,40px);letter-spacing:-.02em;line-height:1.1;margin
 .art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;shape-rendering:geometricPrecision}
 .art .ol {stroke-width:var(--w-ol)}
 .art .vis{stroke-width:var(--w-vis)}
-.art .hid{stroke-width:var(--w-hid);stroke-dasharray:9 6;opacity:.62}
-.art .con{stroke-width:var(--w-con);stroke:var(--bp-con);opacity:.85}
-.art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.9}
+/* same hue throughout, so the ranking has to come from tone */
+.art .hid{stroke-width:var(--w-hid);stroke-dasharray:9 6;opacity:.44}
+.art .con{stroke-width:var(--w-con);stroke:var(--bp-con);opacity:.40}
+.art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.34}
 .art .solid{fill:var(--bp-fill);stroke:none}
 .art #wall{fill:var(--bp-wall);stroke:none}
 .art *{vector-effect:non-scaling-stroke}
@@ -74,18 +78,20 @@ ol.shots button[aria-current="true"] .sn{background:#f5c518;color:var(--ink);bor
 .sh-bg{fill:var(--bp-ground);stroke:none}
 .sh-frame{stroke-width:2.2;fill:none}
 .sh-line{stroke-width:1.1;fill:none}
-.sh-cen{stroke-width:1;stroke:var(--bp-con);stroke-dasharray:16 4 3 4;fill:none}
-.sh-lead{stroke-width:1.1;stroke:var(--bp-con);fill:none}
+/* the sheet's secondary marks were the other half of the two-colour problem:
+   they were pale blue against near-black. Same navy now, held back by opacity. */
+.sh-cen{stroke-width:1;stroke:var(--bp-con);stroke-dasharray:16 4 3 4;fill:none;opacity:.34}
+.sh-lead{stroke-width:1.1;stroke:var(--bp-con);fill:none;opacity:.5}
 .sh-cut{stroke-width:3.4;stroke-dasharray:34 8 8 8;fill:none}
-.sh-detail{stroke-width:1.4;stroke:var(--bp-con);stroke-dasharray:10 6;fill:none}
-.sh-dot{fill:var(--bp-con);stroke:none}
+.sh-detail{stroke-width:1.4;stroke:var(--bp-con);stroke-dasharray:10 6;fill:none;opacity:.5}
+.sh-dot{fill:var(--bp-con);stroke:none;opacity:.6}
 .sh-arrowfill{fill:var(--bp-ink);stroke:none}
 .sh-balloon{stroke-width:1.5;fill:var(--bp-ground)}
 .sh-bal-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:19px;font-weight:500}
-.sh-k{fill:var(--bp-con);stroke:none;font-family:var(--mono);font-size:13px;letter-spacing:.12em}
+.sh-k{fill:var(--bp-con);stroke:none;font-family:var(--mono);font-size:13px;letter-spacing:.12em;opacity:.58}
 .sh-v{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:16px;letter-spacing:.02em}
 .sh-title{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:22px;letter-spacing:.1em}
-.sh-zone{fill:var(--bp-con);stroke:none;font-family:var(--mono);font-size:15px}
+.sh-zone{fill:var(--bp-con);stroke:none;font-family:var(--mono);font-size:15px;opacity:.5}
 .sh-detail-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:17px;letter-spacing:.08em}
 .hide-sheet .sheet{display:none}
 .hide-bal .balloon{display:none}
