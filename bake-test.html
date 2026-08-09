@@ -18,9 +18,12 @@
   .n{font-variant-numeric:tabular-nums;color:#8a8780}
 
   /* the same drawing language both sides, so the comparison is about geometry */
-  .ol{fill:none;stroke:var(--nav);stroke-width:2.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-  .vis{fill:none;stroke:var(--nav);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-  .hid{fill:none;stroke:var(--nav);stroke-width:1.1;stroke-dasharray:7 5;opacity:.55;vector-effect:non-scaling-stroke}
+  /* Weights tuned against the bake: with no occlusion fill, 178 interior edges
+     will out-shout a thin outline, so the assembly boundary has to carry more and
+     the interior less than it does in the hand-authored art. */
+  .ol{fill:none;stroke:var(--nav);stroke-width:3.2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .vis{fill:none;stroke:var(--nav);stroke-width:1.15;stroke-linejoin:round;opacity:.85;vector-effect:non-scaling-stroke}
+  .hid{fill:none;stroke:var(--nav);stroke-width:0.9;stroke-dasharray:9 6;opacity:.34;vector-effect:non-scaling-stroke}
   .con{fill:none;stroke:var(--nav);stroke-width:1;opacity:.6;vector-effect:non-scaling-stroke}
   .cen{fill:none;stroke:var(--nav);stroke-width:1;stroke-dasharray:22 5 3 5;opacity:.5;vector-effect:non-scaling-stroke}
   .solid{fill:var(--paper);stroke:none}
@@ -43,13 +46,14 @@
 
   <div class="grid">
     <figure>
-      <svg id="hand" viewBox="592 958 326 112" aria-label="hand-authored keyboard"></svg>
+      <svg id="hand" viewBox="598 960 318 115" aria-label="hand-authored keyboard"></svg>
       <figcaption><b>Hand-authored</b><span class="n" id="nHand"></span></figcaption>
     </figure>
     <figure>
-      <svg viewBox="592 958 326 112" aria-label="baked keyboard">
+      <svg viewBox="598 960 318 115" aria-label="baked keyboard">
         <!-- registration: baked SVG px -> scene viewBox units -->
-        <g id="baked" transform="translate(584.554 913.434) scale(0.188)"></g>
+        <!-- printed by tools/bake/build.py — never hand-tuned -->
+        <g id="baked" transform="translate(588.590 908.785) scale(0.188416)"></g>
       </svg>
       <figcaption><b>Modelled + baked</b><span class="n" id="nBaked"></span></figcaption>
     </figure>

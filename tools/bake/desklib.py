@@ -26,11 +26,26 @@ SC, OX, OY = 0.72, 40, 1150    # ditto - used to report the registration transfo
 _made = []
 
 
+HIDCOL = None
+
+
 def reset():
     """Factory reset FIRST - it wipes enabled addons, so enabling before is moot."""
+    global HIDCOL
     bpy.ops.wm.read_factory_settings(use_empty=True)
     addon_utils.enable("render_freestyle_svg", default_set=True)
     _made.clear()
+    # Parts whose hidden edges are worth dashing. Only these feed the `hid` line
+    # set: dashing what is behind all 87 keycaps turns a drawing into mush, and a
+    # real sheet shows hidden detail where it carries information.
+    HIDCOL = bpy.data.collections.new("hid_src")
+    bpy.context.scene.collection.children.link(HIDCOL)
+
+
+def mark_hidden(obs):
+    for ob in (obs if isinstance(obs, list) else [obs]):
+        if ob.name not in HIDCOL.objects:
+            HIDCOL.objects.link(ob)
 
 
 def _finish(ob, bevel, seg, angle):
@@ -57,12 +72,21 @@ def dbox(x, y, z, w, h, dp, bevel=0.5, seg=2, angle=30):
     return _finish(ob, bevel, seg, angle)
 
 
-def dcyl(cx, cz, r, h, y0=0, verts=48, bevel=0.4, seg=2, angle=30):
-    """Upright cylinder - mugs, bottles, pen cups, pots."""
+def dcyl(cx, cz, r, h, y0=0, axis='y', verts=48, bevel=0.4, seg=2, angle=30):
+    """Cylinder. axis 'y' is upright (mugs, bottles, pen cups); 'z' runs away from
+    the viewer (cable stubs, barrels); 'x' runs along the desk."""
     bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=1, depth=2)
     ob = bpy.context.active_object
     ob.scale = (r, r, h / 2)
-    ob.location = (cx, cz, y0 + h / 2)
+    if axis == 'z':
+        ob.rotation_euler = (math.radians(90), 0, 0)
+        ob.location = (cx, cz + h / 2, y0)
+    elif axis == 'x':
+        ob.rotation_euler = (0, math.radians(90), 0)
+        ob.location = (cx + h / 2, cz, y0)
+    else:
+        ob.location = (cx, cz, y0 + h / 2)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
     return _finish(ob, bevel, seg, angle)
 
 
@@ -73,11 +97,13 @@ def well(x, y, z, w, h, dp, wall=8, floor=16):
     line there and anything standing on it appears to float. Real cases have a
     well, and the well is what gives the caps something to sit in.
     """
-    dbox(x, y, z, w, floor, dp, bevel=1.6, seg=2)
-    dbox(x, y + floor, z, w, h - floor, wall, bevel=1.0)                    # front rim
-    dbox(x, y + floor, z + dp - wall, w, h - floor, wall, bevel=1.0)        # back rim
-    dbox(x, y + floor, z + wall, wall, h - floor, dp - 2 * wall, bevel=1.0)
-    dbox(x + w - wall, y + floor, z + wall, wall, h - floor, dp - 2 * wall, bevel=1.0)
+    return [
+        dbox(x, y, z, w, floor, dp, bevel=1.6, seg=2),
+        dbox(x, y + floor, z, w, h - floor, wall, bevel=1.0),                 # front rim
+        dbox(x, y + floor, z + dp - wall, w, h - floor, wall, bevel=1.0),     # back rim
+        dbox(x, y + floor, z + wall, wall, h - floor, dp - 2 * wall, bevel=1.0),
+        dbox(x + w - wall, y + floor, z + wall, wall, h - floor, dp - 2 * wall, bevel=1.0),
+    ]
 
 
 def shear_all():
@@ -162,6 +188,9 @@ def freestyle(crease_angle=20):
         ls.select_contour = False
         ls.select_edge_mark = True
         ls.visibility = vis
+        if vis == 'HIDDEN':
+            ls.select_by_collection = True
+            ls.collection = HIDCOL
         ls.linestyle.thickness = th
         ls.linestyle.color = (0.05, 0.11, 0.20)
         ls.linestyle.use_chaining = True

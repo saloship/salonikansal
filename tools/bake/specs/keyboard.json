@@ -1,0 +1,81 @@
+{
+  "id": "keyboard",
+  "name": "KEYBOARD — ANSI TENKEYLESS",
+  "shots": [4],
+  "source": "ANSI 87-key tenkeyless. 19.05mm key pitch and 18.0mm keycap tops are the industry standard (0.750in / 0.709in); 8mm bezel and 20mm case height are typical of a plate-mount TKL.",
+
+  "datum": {
+    "x": 720, "y": 0, "z": 190,
+    "note": "front-left-bottom corner of the case, sitting on the desk top. Placed so the board centres roughly under the monitor and clears the sketchpad at x<600 and the mouse at x>1274."
+  },
+  "envelope": {
+    "w": 368, "h": 38, "d": 154,
+    "note": "FULL ASSEMBLY, not the case. Height runs from the underside of the feet (-8) to the keycap tops (+30); depth includes the 24mm cable stub behind the case. The case alone is 368 x 20 x 130 and is dimensioned on the `shell` part."
+  },
+  "tilt": { "deg": 6, "axis": "x", "note": "rear raised by the flip-out feet; the case itself is prismatic, which is how a real board works" },
+
+  "parts": [
+    {
+      "id": "shell", "kind": "well", "lod": 1,
+      "x": 0, "y": 0, "z": 0,
+      "w": 368, "h": 20, "d": 130,
+      "wall": 8, "floor": 8, "fillet": 1.6,
+      "hidden": true,
+      "note": "A WELL, NOT A SLAB. 8mm bezel all round, floor 8mm up so the caps sit in a 12mm recess. A slab has a flat top face, hidden-line removal draws nothing there, and the caps float.",
+      "hiddenNote": "The shell is the one part worth dashing: its far rim and well floor running behind the caps is what tells you the caps sit IN something. The caps themselves are deliberately not dashed — 87 sets of hidden edges is mush, not a drawing."
+    },
+    {
+      "id": "keyfield", "kind": "keymap", "lod": 2,
+      "x": 8, "y": 8, "z": 8,
+      "u": 19.05, "pitch": 19.05,
+      "cap": { "w": 18.0, "d": 18.0, "h": 22.0, "fillet": 0.9, "note": "22mm tall so the cap top lands 30mm above the desk — 10mm proud of the 20mm rim" },
+      "rows": [
+        [1, -1, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -0.5, 1, 1, 1],
+        [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, -0.5, 1, 1, 1],
+        [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25],
+        [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -1.5, 1],
+        [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, -0.5, 1, 1, 1]
+      ],
+      "rowNote": "Widths in units. Negative entries are gaps and are what produce the function-row breaks, the offset navigation block and the arrow cluster's inverted T. Each row sums to 15u for the main block; the nav block sits 0.5u right of it.",
+      "check": { "rowSum": 18.5, "keys": 87 }
+    }
+  ],
+
+  "features": [
+    {
+      "id": "foot", "kind": "box", "lod": 2, "count": 2,
+      "at": [{ "x": 22, "y": -8, "z": 110 }, { "x": 304, "y": -8, "z": 110 }],
+      "w": 42, "h": 8, "d": 13, "fillet": 1.2,
+      "note": "flip-out feet, 8mm lift over 130mm depth — the 6deg tilt in `tilt`"
+    },
+    {
+      "id": "led", "kind": "cyl", "lod": 3, "count": 3,
+      "at": [{ "x": 322, "y": 19, "z": 4 }, { "x": 335, "y": 19, "z": 4 }, { "x": 348, "y": 19, "z": 4 }],
+      "r": 1.75, "h": 1.5,
+      "note": "num / caps / scroll indicators, let into the rear rim"
+    },
+    {
+      "id": "cable", "kind": "cyl", "lod": 3, "count": 1,
+      "at": [{ "x": 338, "y": 8, "z": 128 }],
+      "r": 2.5, "h": 26, "axis": "z",
+      "note": "USB-C exits the rear right of the case"
+    }
+  ],
+
+  "annotation": {
+    "dimensions": [
+      { "of": "envelope.w", "side": "front", "value": 368, "lod": 3 },
+      { "of": "envelope.d", "side": "right", "value": 130, "lod": 3 },
+      { "of": "keyfield.pitch", "side": "top", "value": 19.05, "note": "the one dimension that explains the whole part", "lod": 3 }
+    ],
+    "leader": { "x": 368, "y": 20, "z": 0, "note": "front-right top corner: outside the key field, on the side the sheet has room" },
+    "keepout": [
+      { "of": "keyfield", "note": "never run a leader across the key field — it is the part being described" },
+      { "of": "shell.front", "note": "the front rim carries the width dimension; keep leaders off it" }
+    ]
+  },
+
+  "colour": null,
+  "colourNote": "A keyboard stays monochrome even in shot. Its own colour says nothing, and shot 4 spends its colour on the monitor and the workpapers."
+}
