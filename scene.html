@@ -89,6 +89,13 @@ ol.shots button[aria-current="true"] .sn{background:#f5c518;color:var(--ink);bor
 .sh-detail-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:17px;letter-spacing:.08em}
 .hide-sheet .sheet{display:none}
 .hide-bal .balloon{display:none}
+/* Balloons and the detail callout track the parts they point at, so they ride
+   inside the camera group — which also means they magnify with it, and a balloon
+   at 3x is no longer annotation, it is a shape. They belong to the general
+   arrangement anyway: on a close shot you are reading the part, not the parts
+   list, so they stand down and let the object's own dimensions carry it. */
+#balloons{transition:opacity 500ms ease}
+#balloons.far{opacity:0}
 .balloon{cursor:pointer}
 .balloon .sh-balloon{transition:fill .25s}
 .balloon.on .sh-balloon{fill:#f5c518}
@@ -163,16 +170,22 @@ import { sheetFurniture, balloon, detailCallout, BOM } from './assets/scene/shee
 /* Balloon anchors: world point on the object, and where the circled number
    sits. Balloons ride inside the camera group — they are part of the drawing,
    not the sheet, so they zoom with what they label. */
+/* `at` is a point on the part; `to` is where the circled number sits on the
+   sheet. The two are kept separate because leaders have to thread the gaps
+   between objects, which no formula knows about — but every `to` here sits in
+   genuinely empty sheet space (the void below the desk edge, the strip above
+   the whiteboard, the margin right of the plant), so a prop shifting by a few
+   tens of millimetres lengthens a leader rather than burying a balloon. */
 const BAL = {
-  monitor:    { at: [660, 420, 560], to: [420, 244] },
-  papers:     { at: [520, 10, 420],  to: [232, 690] },
-  sketchpad:  { at: [330, 10, 330],  to: [128, 862] },
-  laptop:     { at: [1400, 200, 660],to: [1214, 198] },
-  map:        { at: [1980, 6, 160],  to: [1330, 1124] },
-  binoculars: { at: [1610, 62, 200], to: [1064, 1010] },
-  palette:    { at: [2060, 16, 90],  to: [1580, 1186] },
-  notebooks:  { at: [230, 30, 110],  to: [120, 1012] },
-  whiteboard: { at: [1100, 620, 739],to: [762, 150] }
+  monitor:    { at: [660, 420, 560], to: [286, 548] },
+  papers:     { at: [700, 10, 400],  to: [700, 828] },
+  sketchpad:  { at: [300, 10, 380],  to: [110, 906] },
+  laptop:     { at: [1400, 220, 690],to: [1770, 520] },
+  map:        { at: [1900, 6, 180],  to: [1640, 1215] },
+  binoculars: { at: [1556, 62, 180], to: [1150, 1330] },
+  palette:    { at: [1500, 16, 380], to: [980, 1255] },
+  notebooks:  { at: [200, 30, 120],  to: [110, 1240] },
+  whiteboard: { at: [1100, 620, 739],to: [1018, 196] }
 };
 
 /* Shots are defined by what they LOOK AT in world space plus how wide the
@@ -186,11 +199,11 @@ const frameAt = (cw, world) => {
 const SHOTS = [
   { n:1, t:'Hero',       r:[0, 0, 2400, 1500],                lit:[] },
   { n:2, t:'Three hats', r:frameAt(2160, [1000, 240, 340]),      lit:['papers','sketchpad','ipad','map','binoculars','palette'] },
-  { n:3, t:'Journey',    r:frameAt(1000, [330, 40, 130]),        lit:['notebooks'] },
+  { n:3, t:'Journey',    r:frameAt(1000, [210, 40, 140]),        lit:['notebooks'] },
   { n:4, t:'Method',     r:frameAt(980,  [880, 320, 560]),       lit:['monitor','papers','stickies-bezel'] },
-  { n:5, t:'Work',       r:frameAt(820,  [1470, 190, 640]),      lit:['laptop'] },
+  { n:5, t:'Work',       r:frameAt(820,  [1510, 200, 690]),      lit:['laptop'] },
   { n:6, t:'Statement',  r:[-140, -100, 2680, 1675],          lit:[] },
-  { n:7, t:'Beyond',     r:frameAt(760,  [1900, 60, 180]),       lit:['map','binoculars','tickets','whiteboard','palette','photo'] },
+  { n:7, t:'Beyond',     r:frameAt(900,  [1700, 40, 220]),       lit:['map','binoculars','tickets','whiteboard','palette','photo'] },
   { n:8, t:'Connect',    r:[0, 0, 2400, 1500],                lit:['monitor','sketchpad','ipad','map','notebooks','laptop','photo','palette','plant','mug','lamp','papers','tickets','binoculars','whiteboard'] }
 ];
 
@@ -206,7 +219,7 @@ stage.innerHTML = `${GRID_DEFS}
   <g id="camg">
     <g class="art" id="scene">${buildScene()}</g>
     <g class="sheet" id="balloons">${balloons}
-      ${detailCallout(...P(760, 48, 330), 150, 'A', '2:1')}
+      ${detailCallout(...P(1020, 48, 420), 150, 'A', '2:1')}
     </g>
   </g>
   <g class="sheet" id="furniture">${sheetFurniture(2400, 1500)}</g>`;
@@ -219,6 +232,7 @@ function applyShot() {
   const s = SHOTS.find(x => x.n === shot);
   const [rx, ry, rw] = s.r, k = 2400 / rw;
   document.getElementById('camg').style.transform = `scale(${k}) translate(${-rx}px, ${-ry}px)`;
+  document.getElementById('balloons').classList.toggle('far', k > 1.4);
   stage.querySelectorAll('.obj').forEach(o =>
     o.classList.toggle('lit', s.lit.includes(o.id.replace('p-', ''))));
   /* the BOM balloon lights with the item it labels */

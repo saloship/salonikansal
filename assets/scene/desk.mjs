@@ -23,7 +23,47 @@ export const KZX = 0.35, KZY = 0.65;
 export const SC = 0.72, OX = 40, OY = 1150;
 export const VIEWBOX = '0 0 2400 1500';
 
-export const P = (x, y, z) => [OX + (x + z * KZX) * SC, OY - (y + z * KZY) * SC];
+/* The desk top in world mm — one source of truth, used by ROOM() to draw it and
+   by check-layout.mjs to prove nothing has wandered off the edge. */
+export const DESK = { x0: 0, z0: 0, x1: 2050, z1: 720 };
+
+/* --- geometry probe --------------------------------------------------------
+   Every prop needs a known footprint: check-layout.mjs uses it to catch objects
+   sitting on top of each other, and the camera will use it to cull and to work
+   out on-screen scale. Declaring bounds next to the art would drift the moment
+   the art changed — and silently, which is worse than having no check at all.
+   So nothing is declared: P() records what it is actually asked to project, and
+   the footprint falls out of the geometry that really got drawn. */
+let probe = null;
+export const FOOTPRINTS = {};
+
+export function probeStart(id) {
+  probe = { id, x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity, y0: Infinity, y1: -Infinity };
+}
+export function probeEnd() {
+  const b = probe;
+  probe = null;
+  if (b && b.x0 < Infinity) FOOTPRINTS[b.id] = b;
+  return b;
+}
+
+export const P = (x, y, z) => {
+  if (probe) {
+    if (x < probe.x0) probe.x0 = x;
+    if (x > probe.x1) probe.x1 = x;
+    if (z < probe.z0) probe.z0 = z;
+    if (z > probe.z1) probe.z1 = z;
+    if (y < probe.y0) probe.y0 = y;
+    if (y > probe.y1) probe.y1 = y;
+  }
+  return [OX + (x + z * KZX) * SC, OY - (y + z * KZY) * SC];
+};
+
+/* Annotation and cables are kept out of the footprint. A centre line runs well
+   past the object it describes and a cable drapes over whatever is in its way;
+   neither is part of the space the object occupies, and counting them would have
+   the layout checker reporting collisions that do not exist. */
+const noProbe = fn => { const saved = probe; probe = null; const out = fn(); probe = saved; return out; };
 
 const f = n => Math.round(n * 100) / 100;
 const d_ = pts => 'M' + pts.map(p => `${f(p[0])} ${f(p[1])}`).join(' L');
@@ -103,7 +143,8 @@ export function panel(x, y, z, w, h, dp, o = {}) {
 }
 
 /** Centre line on a vertical axis of symmetry. */
-export const centre = (x, z, y0, y1) => `<path class="cen" d="${line2(P(x, y0, z), P(x, y1, z))}"/>`;
+export const centre = (x, z, y0, y1) =>
+  noProbe(() => `<path class="cen" d="${line2(P(x, y0, z), P(x, y1, z))}"/>`);
 
 /* --- feature detail ------------------------------------------------------- */
 
@@ -157,6 +198,140 @@ export function rrectXY(x, y, z, w, h, r) {
   const E = p(x + w - r, y + h), F = p(x + r, y + h), G = p(x, y + h - r), H = p(x, y + r);
   const q = (a, c, b) => `Q${f(c[0])} ${f(c[1])} ${f(b[0])} ${f(b[1])}`;
   return `M${f(A[0])} ${f(A[1])} L${f(B[0])} ${f(B[1])} ${q(B, p(x + w, y), C)} L${f(D[0])} ${f(D[1])} ${q(D, p(x + w, y + h), E)} L${f(F[0])} ${f(F[1])} ${q(F, p(x, y + h), G)} L${f(H[0])} ${f(H[1])} ${q(H, p(x, y), A)} Z`;
+}
+
+/** Rounded rectangle lying flat in the xz plane — keycaps, trackpads, mats. */
+export function rrectXZ(x, y, z, w, dp, r) {
+  const p = (a, b) => P(a, y, b);
+  const A = p(x + r, z), B = p(x + w - r, z), C = p(x + w, z + r), D = p(x + w, z + dp - r);
+  const E = p(x + w - r, z + dp), F = p(x + r, z + dp), G = p(x, z + dp - r), H = p(x, z + r);
+  const q = (c, b) => `Q${f(c[0])} ${f(c[1])} ${f(b[0])} ${f(b[1])}`;
+  return `M${f(A[0])} ${f(A[1])} L${f(B[0])} ${f(B[1])} ${q(p(x + w, z), C)} ` +
+         `L${f(D[0])} ${f(D[1])} ${q(p(x + w, z + dp), E)} L${f(F[0])} ${f(F[1])} ` +
+         `${q(p(x, z + dp), G)} L${f(H[0])} ${f(H[1])} ${q(p(x, z), A)} Z`;
+}
+
+/** A real keyboard rather than a grid of identical squares.
+ *
+ *  Rows are given as key widths in units — 1u is one letter key, so Tab is 1.5,
+ *  Caps 1.75, the right Shift 2.75, the spacebar 6.25. A negative number is a
+ *  gap, and that single convention is what produces the function-row breaks, the
+ *  offset navigation block and the inverted-T arrow cluster. Those three things
+ *  are most of what makes a board read as a board. */
+export function keyMap(x, y, z, rows, u = 19, pitch = 19, bevel = 1.6) {
+  const out = [];
+  rows.forEach((row, r) => {
+    const rz = z + r * pitch;
+    let cx = x;
+    for (const w of row) {
+      if (w < 0) { cx += -w * u; continue; }
+      out.push(rrectXZ(cx + bevel, y, rz + bevel, w * u - bevel * 2, pitch - bevel * 2, 2.2));
+      cx += w * u;
+    }
+  });
+  return out;
+}
+
+/** A cable run. Bows perpendicular to its own direction across the desk plane,
+ *  because a cable never takes the straight line between two points. */
+export function cable(a, b, bow = 0.3, cls = 'vis') {
+  return noProbe(() => cablePath(a, b, bow, cls));
+}
+function cablePath(a, b, bow, cls) {
+  const A = P(...a), B = P(...b);
+  const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2];
+  const px = -dz * bow, pz = dx * bow;
+  const C1 = P(a[0] + dx * 0.3 + px, a[1] + dy * 0.3, a[2] + dz * 0.3 + pz);
+  const C2 = P(a[0] + dx * 0.7 + px, a[1] + dy * 0.7, a[2] + dz * 0.7 + pz);
+  return `<path class="${cls}" fill="none" d="M${f(A[0])} ${f(A[1])} ` +
+         `C${f(C1[0])} ${f(C1[1])} ${f(C2[0])} ${f(C2[1])} ${f(B[0])} ${f(B[1])}"/>`;
+}
+
+/* --- parametric surfaces -------------------------------------------------- */
+
+let clipN = 0;
+
+/** Quad wireframe over a parametric surface.
+ *
+ *  `fn(u, v)` returns a world [x, y, z] for u and v in 0..1; the result is that
+ *  surface's u- and v-isolines. This is the single largest difference between a
+ *  drawing that reads as a solid object and one that reads as an outline — a
+ *  head, a chair back or a mouse shell described only by its silhouette looks
+ *  flat no matter how many other details it carries.
+ *
+ *  Cost is nu + nv paths rather than nu x nv, because each isoline is one
+ *  polyline. Pass `clip` (a path `d`) to hold the mesh inside a silhouette,
+ *  which is what lets a solid occluding fill sit underneath it. */
+export function mesh(fn, nu = 10, nv = 8, o = {}) {
+  const res = o.res || 30;
+  const lines = [];
+  for (let i = 0; i <= nu; i++) {
+    const u = i / nu;
+    lines.push(poly(Array.from({ length: res + 1 }, (_, j) => P(...fn(u, j / res))), false));
+  }
+  for (let j = 0; j <= nv; j++) {
+    const v = j / nv;
+    lines.push(poly(Array.from({ length: res + 1 }, (_, i) => P(...fn(i / res, v))), false));
+  }
+  const paths = lines.map(d => `<path d="${d}"/>`).join('');
+  if (!o.clip) return `<g class="${o.cls || 'con'}">${paths}</g>`;
+  const id = `mclip${++clipN}`;
+  return `<defs><clipPath id="${id}"><path d="${o.clip}"/></clipPath></defs>
+    <g class="${o.cls || 'con'}" clip-path="url(#${id})">${paths}</g>`;
+}
+
+/** A lofted body of revolution-ish surface from an explicit profile of
+ *  [t, halfWidth, halfDepth] rows. A profile is far easier to reason about — and
+ *  to adjust by eye — than any formula that happens to fit a torso. */
+export function loft(cx, cz, y0, y1, prof, e = 2) {
+  return (u, v) => {
+    let i = 0;
+    while (i < prof.length - 2 && prof[i + 1][0] < v) i++;
+    const [t0, w0, d0] = prof[i], [t1, w1, d1] = prof[i + 1];
+    const k = t1 === t0 ? 0 : (v - t0) / (t1 - t0);
+    const hw = w0 + (w1 - w0) * k, hd = d0 + (d1 - d0) * k;
+    const a = u * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+    /* e = 2 is an ellipse; higher exponents square the section off, which is how
+       a torso reads flatter across the back than a body of revolution can. */
+    const sx = Math.sign(ca) * Math.pow(Math.abs(ca), 2 / e);
+    const sz = Math.sign(sa) * Math.pow(Math.abs(sa), 2 / e);
+    return [cx + hw * sx, y0 + (y1 - y0) * v, cz + hd * sz];
+  };
+}
+
+/** Every projected point of a surface — the raw material for a silhouette. */
+export const surfacePts = (fn, nu = 44, nv = 26) => {
+  const out = [];
+  for (let i = 0; i < nu; i++) for (let j = 0; j <= nv; j++) out.push(P(...fn(i / nu, j / nv)));
+  return out;
+};
+
+/** Convex hull of projected points, which for a convex body IS its silhouette.
+ *  Solving it numerically beats deriving the outline of each surface by hand,
+ *  and it is what the occluding fill and the heavy outline are drawn from. */
+export function hull(pts) {
+  const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const chain = src => {
+    const h = [];
+    for (const q of src) {
+      while (h.length >= 2 && cross(h[h.length - 2], h[h.length - 1], q) <= 0) h.pop();
+      h.push(q);
+    }
+    return h;
+  };
+  const lower = chain(p), upper = chain(p.slice().reverse());
+  return lower.slice(0, -1).concat(upper.slice(0, -1));
+}
+
+/** Outline of an open panel surface — round its four parametric edges. */
+export function panelSil(fn, n = 30) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(P(...fn(i / n, 0)));
+  for (let i = 1; i <= n; i++) pts.push(P(...fn(1, i / n)));
+  for (let i = 1; i <= n; i++) pts.push(P(...fn(1 - i / n, 1)));
+  for (let i = 1; i < n; i++) pts.push(P(...fn(0, 1 - i / n)));
+  return poly(pts);
 }
 
 /* --- screen content ------------------------------------------------------- */
@@ -231,7 +406,7 @@ export const PROPS = [
 
   /* ---- back of the desk -------------------------------------------------- */
   { id: 'plant', cl: 'general', z: 600, art: () => {
-      const cx = 1880, cz = 600;
+      const cx = 1900, cz = 620;
       /* a leaf drawn as a closed blade with a midrib, not a single stroke —
          one curve reads as a wire, two plus a rib reads as a leaf */
       const leaf = (a, len, sp, w) => {
@@ -252,10 +427,13 @@ export const PROPS = [
     } },
 
   { id: 'lamp', cl: 'general', z: 560, art: () => {
-      const cx = 150, cz = 560;
+      const cx = 100, cz = 600;
       /* articulated arm: two links, three pivots, a tension spring on the
          lower link — the things that make a task lamp read as a mechanism */
-      const j0 = [cx, 34, cz], j1 = [cx + 26, 300, cz], j2 = [cx + 210, 404, cz];
+      /* the arm reaches forward as well as up, so the shade ends up over the
+         sketchpad — which is what a task lamp is actually pointed at */
+      const SZ = cz - 120;
+      const j0 = [cx, 34, cz], j1 = [cx + 26, 300, cz], j2 = [cx + 190, 404, SZ];
       const link = (a, b, w) => {
         const A = P(...a), B = P(...b), dx = B[0] - A[0], dy = B[1] - A[1], m = Math.hypot(dx, dy);
         const nx = -dy / m * w, ny = dx / m * w;
@@ -269,7 +447,7 @@ export const PROPS = [
         }
         return poly(out, false);
       };
-      const shade = [P(cx + 178, 420, cz), P(cx + 300, 420, cz), P(cx + 272, 336, cz), P(cx + 214, 336, cz)];
+      const shade = [P(cx + 178, 420, SZ), P(cx + 300, 420, SZ), P(cx + 272, 336, SZ), P(cx + 214, 336, SZ)];
       return `${cyl(cx, cz, 78, 22, 0, { nohidden: true })}
         ${centre(cx, cz, -30, 60)}
         ${vents(cx - 60, 22, cz - 40, 120, 80, 3)}
@@ -278,35 +456,39 @@ export const PROPS = [
         <path class="con" d="${spring()}"/>
         ${screw(...j0, 11)}${screw(...j1, 10)}${screw(...j2, 9)}
         <path class="solid" d="${poly(shade)}"/><path class="ol" d="${poly(shade)}"/>
-        <path class="vis" d="${line2(P(cx + 186, 404, cz), P(cx + 292, 404, cz))}"/>
-        <path class="col" style="--c:#e8c24a" d="${poly([shade[3], shade[2], P(cx + 272, 332, cz), P(cx + 214, 332, cz)])}"/>
-        <path class="hid" fill="none" d="M${f(P(cx, 12, cz)[0])} ${f(P(cx, 12, cz)[1])} C${f(P(cx - 90, 8, cz + 60)[0])} ${f(P(cx - 90, 8, cz + 60)[1])} ${f(P(cx - 40, 6, cz + 150)[0])} ${f(P(cx - 40, 6, cz + 150)[1])} ${f(P(cx + 60, 4, cz + 160)[0])} ${f(P(cx + 60, 4, cz + 160)[1])}"/>`;
+        <path class="vis" d="${line2(P(cx + 186, 404, SZ), P(cx + 292, 404, SZ))}"/>
+        <path class="col" style="--c:#e8c24a" d="${poly([shade[3], shade[2], P(cx + 272, 332, SZ), P(cx + 214, 332, SZ)])}"/>
+        ${cable([cx, 12, cz], [cx + 80, 4, cz + 100], 0.35, 'hid')}`;
     } },
 
-  { id: 'speaker', cl: 'general', z: 596, art: () => `
-      ${box(372, 0, 596, 130, 150, 110)}
-      <path class="vis" d="${poly(circle2(P(437, 92, 596), 44))}"/>
-      <path class="vis" d="${poly(circle2(P(437, 92, 596), 36))}"/>
-      <path class="con" d="${poly(circle2(P(437, 92, 596), 15))}"/>
-      ${grille(437, 92, 596, 40, 2)}
-      ${screw(384, 140, 596, 5)}${screw(490, 140, 596, 5)}${screw(384, 14, 596, 5)}${screw(490, 14, 596, 5)}
-      <path class="vis" d="${poly(circle2(P(437, 26, 596), 13))}"/>
-      <path class="cen" d="${line2(P(437, 26, 596), P(437, 40, 596))}"/>
-      <path class="con" d="${poly(circle2(P(437, 92, 596), 44), false)}"/>` },
+  { id: 'speaker', cl: 'general', z: 600, art: () => {
+      const x = 420, Z = 600, cx = x + 65;
+      return `
+      ${box(x, 0, Z, 130, 150, 110)}
+      <path class="vis" d="${poly(circle2(P(cx, 92, Z), 44))}"/>
+      <path class="vis" d="${poly(circle2(P(cx, 92, Z), 36))}"/>
+      <path class="con" d="${poly(circle2(P(cx, 92, Z), 15))}"/>
+      ${grille(cx, 92, Z, 40, 2)}
+      ${screw(x + 12, 140, Z, 5)}${screw(x + 118, 140, Z, 5)}${screw(x + 12, 14, Z, 5)}${screw(x + 118, 14, Z, 5)}
+      <path class="vis" d="${poly(circle2(P(cx, 26, Z), 13))}"/>
+      <path class="cen" d="${line2(P(cx, 26, Z), P(cx, 40, Z))}"/>
+      <path class="con" d="${poly(circle2(P(cx, 92, Z), 44), false)}"/>`;
+    } },
 
   { id: 'monitor', cl: 'risk', z: 560, art: () => {
       const X = 600, Y = 146, Z = 560, W = 560, H = 340, D = 26;
       return `
       ${centre(880, 560, -40, 640)}
-      <!-- base: cable channel, rubber feet, tilt scale -->
-      ${box(760, 0, 520, 240, 16, 150)}
-      ${vents(770, 16, 528, 220, 130, 4)}
-      ${screw(790, 8, 520)}${screw(970, 8, 520)}
+      <!-- base: cable channel, rubber feet, tilt scale. Sits at z 560 so the
+           whole mid band in front of it is free for the paper pile. -->
+      ${box(760, 0, 560, 240, 16, 150)}
+      ${vents(770, 16, 568, 220, 130, 4)}
+      ${screw(790, 8, 560)}${screw(970, 8, 560)}
       <!-- stand column with the hinge slot and height scale -->
-      ${box(846, 16, 580, 68, 130, 40)}
-      <path class="con" d="${line2(P(852, 60, 580), P(908, 60, 580))}"/>
-      <path class="con" d="${line2(P(852, 90, 580), P(908, 90, 580))}"/>
-      <path class="hid" d="${poly([P(864, 118, 580), P(896, 118, 580), P(896, 146, 580), P(864, 146, 580)])}"/>
+      ${box(846, 16, 620, 68, 130, 40)}
+      <path class="con" d="${line2(P(852, 60, 620), P(908, 60, 620))}"/>
+      <path class="con" d="${line2(P(852, 90, 620), P(908, 90, 620))}"/>
+      <path class="hid" d="${poly([P(864, 118, 620), P(896, 118, 620), P(896, 146, 620), P(864, 146, 620)])}"/>
       <!-- panel: bezel, chin, screen -->
       ${box(X, Y, Z, W, H, D)}
       <path class="vis" d="${rrectXY(X + 22, Y + 46, Z, W - 44, H - 76, 6)}"/>
@@ -317,10 +499,10 @@ export const PROPS = [
       ${screw(X + W - 40, Y + 22, Z, 5)}
       <!-- rear vents and the cable leaving the back -->
       ${vents(X + 40, Y + H, Z, W - 80, D, 5)}
-      <path class="vis" fill="none" d="M${f(P(880, Y, Z + D)[0])} ${f(P(880, Y, Z + D)[1])} C${f(P(880, 60, Z + 120)[0])} ${f(P(880, 60, Z + 120)[1])} ${f(P(1010, 30, Z + 150)[0])} ${f(P(1010, 30, Z + 150)[1])} ${f(P(1040, 0, Z + 110)[0])} ${f(P(1040, 0, Z + 110)[1])}"/>`;
+      ${cable([880, Y, Z + D], [1040, 4, Z + 110], 0.3)}`;
     } },
 
-  { id: 'stickies-bezel', cl: 'risk', z: 558, art: () => {
+  { id: 'stickies-bezel', cl: 'risk', z: 558, on: 'monitor', art: () => {
       const S = [[566, 396, '#e8c24a'], [560, 300, '#d98f6a']];
       return S.map(([x, y, c]) => {
         const b = [P(x, y, 558), P(x + 58, y, 558), P(x + 58, y + 58, 558), P(x, y + 58, 558)];
@@ -328,27 +510,30 @@ export const PROPS = [
       }).join('');
     } },
 
-  { id: 'riser', cl: 'work', z: 500, art: () => box(1260, 0, 500, 420, 88, 240) },
+  { id: 'riser', cl: 'work', z: 480, art: () => box(1300, 0, 480, 420, 88, 220) },
 
-  { id: 'laptop', cl: 'work', z: 520, art: () => {
-      const X = 1290, Y = 88, Z = 660, W = 360, H = 232;
-      /* deck: keys, trackpad, hinge barrel, port cutouts on the left edge */
+  { id: 'laptop', cl: 'work', z: 520, on: 'riser', art: () => {
+      /* deck sits on the riser (1300, z 480, 420 x 220); screen hinges at its
+         back edge, keys behind the trackpad — which is the way round a laptop
+         actually is, and was previously reversed. */
+      const DX = 1316, DZ = 480, DW = 388, DD = 220;
+      const X = DX + 14, Y = 88, Z = DZ + 210, W = 360, H = 232;
       const keys = [];
       for (let r = 0; r < 4; r++) for (let c = 0; c < 12; c++)
-        keys.push(`<path d="${poly([P(X + 16 + c * 27, 84, 520 + 24 + r * 26), P(X + 38 + c * 27, 84, 520 + 24 + r * 26), P(X + 38 + c * 27, 84, 520 + 44 + r * 26), P(X + 16 + c * 27, 84, 520 + 44 + r * 26)])}"/>`);
+        keys.push(`<path d="${poly([P(X + 16 + c * 27, 84, DZ + 100 + r * 26), P(X + 38 + c * 27, 84, DZ + 100 + r * 26), P(X + 38 + c * 27, 84, DZ + 120 + r * 26), P(X + 16 + c * 27, 84, DZ + 120 + r * 26)])}"/>`);
       return `
       ${panel(X, Y, Z, W, H, 12, { content: cards })}
       <path class="con" d="${poly(circle2(P(X + W / 2, Y + H - 12, Z), 5))}"/>
-      ${sheet(1276, 74, 500, 388, 240, 10)}
+      ${sheet(DX, 74, DZ, DW, DD, 10)}
       <g class="con">${keys.join('')}</g>
-      <path class="vis" d="${poly([P(X + 110, 84, 520 + 140), P(X + 250, 84, 520 + 140), P(X + 250, 84, 520 + 220), P(X + 110, 84, 520 + 220)])}"/>
+      <path class="vis" d="${poly([P(X + 110, 84, DZ + 15), P(X + 250, 84, DZ + 15), P(X + 250, 84, DZ + 85), P(X + 110, 84, DZ + 85)])}"/>
       <path class="vis" d="${poly([P(X - 8, 30, Z - 6), P(X + W + 8, 30, Z - 6), P(X + W + 8, 54, Z - 6), P(X - 8, 54, Z - 6)])}"/>
       ${screw(X - 2, 42, Z - 6, 6)}${screw(X + W + 2, 42, Z - 6, 6)}
-      <path class="hid" d="${line2(P(1276, 74, 640), P(1664, 74, 640))}"/>`;
+      <path class="hid" d="${line2(P(DX, 74, DZ + 92), P(DX + DW, 74, DZ + 92))}"/>`;
     } },
 
   { id: 'pens', cl: 'design', z: 470, art: () => {
-      const cx = 262, cz = 470;
+      const cx = 130, cz = 420;
       const pens = PENS.map((c, i) =>
         `<path class="col vis" style="--c:${c}" d="${poly([P(cx - 30 + i * 18, 96, cz - 6 + i * 5), P(cx - 22 + i * 18, 96, cz - 6 + i * 5), P(cx - 22 + i * 18, 190 + i * 14, cz - 6 + i * 5), P(cx - 30 + i * 18, 190 + i * 14, cz - 6 + i * 5)])}"/>`).join('');
       return `${pens}${cyl(cx, cz, 46, 104, 0, { inner: 7 })}`;
@@ -356,8 +541,8 @@ export const PROPS = [
 
   /* ---- middle of the desk ------------------------------------------------ */
   { id: 'headphones', cl: 'general', z: 420, art: () => {
-      const cx = 1140, cz = 420;
-      return `${sheet(1076, 0, 380, 128, 88, 6, { light: true })}
+      const cx = 1254, cz = 424;
+      return `${sheet(1190, 0, 380, 128, 88, 6, { light: true })}
         <path class="ol" fill="none" d="M${f(P(cx - 62, 10, cz)[0])} ${f(P(cx - 62, 10, cz)[1])} C${f(P(cx - 62, 132, cz)[0])} ${f(P(cx - 62, 132, cz)[1])} ${f(P(cx + 62, 132, cz)[0])} ${f(P(cx + 62, 132, cz)[1])} ${f(P(cx + 62, 10, cz)[0])} ${f(P(cx + 62, 10, cz)[1])}"/>
         <path class="vis" d="${poly(circle2(P(cx - 62, 30, cz), 26))}"/>
         <path class="vis" d="${poly(circle2(P(cx + 62, 30, cz), 26))}"/>`;
@@ -365,9 +550,9 @@ export const PROPS = [
 
   { id: 'papers', cl: 'risk', z: 372, art: () => {
       /* three sheets, each a few degrees off — used often, not messy */
-      const s = [[430, 368, 0], [446, 380, 6], [438, 374, -5]];
+      const s = [[650, 345, 0], [666, 357, 6], [658, 351, -5]];
       return s.map(([x, z, r], i) => {
-        const w = 300, dp = 210, rad = r * Math.PI / 180, y = 2 + i * 2.6;
+        const w = 290, dp = 190, rad = r * Math.PI / 180, y = 2 + i * 2.6;
         const c = [x + w / 2, z + dp / 2];
         const rot = (px, pz) => { const dx = px - c[0], dz = pz - c[1]; return [c[0] + dx * Math.cos(rad) - dz * Math.sin(rad), c[1] + dx * Math.sin(rad) + dz * Math.cos(rad)]; };
         const q = [[x, z], [x + w, z], [x + w, z + dp], [x, z + dp]].map(([px, pz]) => { const [rx, rz] = rot(px, pz); return P(rx, y, rz); });
@@ -387,30 +572,37 @@ export const PROPS = [
       }).join('');
     } },
 
-  { id: 'mug', cl: 'general', z: 330, art: () => `
-      ${centre(760, 330, -26, 150)}
-      ${cyl(760, 330, 46, 96, 0, { inner: 7, fill: '#4a2f1e' })}
-      <path class="ol" fill="none" d="M${f(P(806, 68, 330)[0])} ${f(P(806, 68, 330)[1])} C${f(P(880, 76, 330)[0])} ${f(P(880, 76, 330)[1])} ${f(P(880, 22, 330)[0])} ${f(P(880, 22, 330)[1])} ${f(P(806, 28, 330)[0])} ${f(P(806, 28, 330)[1])}"/>` },
+  { id: 'mug', cl: 'general', z: 420, art: () => {
+      const cx = 1020, cz = 420, r = 46;
+      const hx = cx + r, ho = cx + r + 74;          // handle springs off the right side
+      return `
+      ${centre(cx, cz, -26, 150)}
+      ${cyl(cx, cz, r, 96, 0, { inner: 7, fill: '#4a2f1e' })}
+      <path class="ol" fill="none" d="M${f(P(hx, 68, cz)[0])} ${f(P(hx, 68, cz)[1])} C${f(P(ho, 76, cz)[0])} ${f(P(ho, 76, cz)[1])} ${f(P(ho, 22, cz)[0])} ${f(P(ho, 22, cz)[1])} ${f(P(hx, 28, cz)[0])} ${f(P(hx, 28, cz)[1])}"/>`;
+    } },
 
-  { id: 'ipad', cl: 'design', z: 330, art: () => `
-      ${panel(1430, 46, 330, 250, 180, 10, { content: (x, y, z, w, h) => `<path class="con" d="${line2(P(x + w * .1, y + h * .5, z), P(x + w * .9, y + h * .5, z))}"/><path class="con" d="${line2(P(x + w * .1, y + h * .72, z), P(x + w * .62, y + h * .72, z))}"/>` })}
-      <path class="vis" fill="none" d="${line2(P(1555, 46, 330), P(1555, 0, 358))}"/>
-      <path class="vis" fill="none" d="${line2(P(1490, 46, 330), P(1490, 0, 358))}"/>` },
+  { id: 'ipad', cl: 'design', z: 460, art: () => `
+      ${panel(1760, 46, 460, 250, 180, 10, { content: (x, y, z, w, h) => `<path class="con" d="${line2(P(x + w * .1, y + h * .5, z), P(x + w * .9, y + h * .5, z))}"/><path class="con" d="${line2(P(x + w * .1, y + h * .72, z), P(x + w * .62, y + h * .72, z))}"/>` })}
+      <path class="vis" fill="none" d="${line2(P(1885, 46, 460), P(1885, 0, 488))}"/>
+      <path class="vis" fill="none" d="${line2(P(1820, 46, 460), P(1820, 0, 488))}"/>` },
 
-  { id: 'bottle', cl: 'general', z: 300, art: () => `
-      ${centre(1790, 300, -26, 330)}
-      ${cyl(1790, 300, 44, 190, 0)}
-      <path class="con" d="${poly(ringXZ(1790, 26, 300, 44), false)}"/>
-      <path class="con" d="${poly(ringXZ(1790, 150, 300, 44), false)}"/>
-      ${cyl(1790, 300, 34, 24, 190, { nohidden: true })}
-      ${cyl(1790, 300, 30, 40, 214, { nohidden: true })}
-      ${knurl(1790, 300, 30, 216, 36, 30)}
-      <path class="col" style="--c:#8fa9b8" d="${poly(ringXZ(1790, 188, 300, 40))}"/>
-      <path class="hid" d="${line2(P(1746, 60, 300), P(1834, 60, 300))}"/>` },
+  { id: 'bottle', cl: 'general', z: 400, art: () => {
+      const cx = 1880, cz = 400, r = 44;
+      return `
+      ${centre(cx, cz, -26, 330)}
+      ${cyl(cx, cz, r, 190, 0)}
+      <path class="con" d="${poly(ringXZ(cx, 26, cz, r), false)}"/>
+      <path class="con" d="${poly(ringXZ(cx, 150, cz, r), false)}"/>
+      ${cyl(cx, cz, 34, 24, 190, { nohidden: true })}
+      ${cyl(cx, cz, 30, 40, 214, { nohidden: true })}
+      ${knurl(cx, cz, 30, 216, 36, 30)}
+      <path class="col" style="--c:#8fa9b8" d="${poly(ringXZ(cx, 188, cz, 40))}"/>
+      <path class="hid" d="${line2(P(cx - r, 60, cz), P(cx + r, 60, cz))}"/>`;
+    } },
 
   /* ---- front of the desk ------------------------------------------------- */
   { id: 'sketchpad', cl: 'design', z: 230, art: () => {
-      const x = 240, z = 230, w = 400, dp = 260, y = 8;
+      const x = 200, z = 300, w = 400, dp = 260, y = 8;
       /* an actual wireframe sketched on the page: header bar, nav, a hero
          block, two cards and a footer — the thing she'd actually be drawing */
       const r = (a, b, c, d2) => poly([P(x + w * a, y, z + dp * b), P(x + w * c, y, z + dp * b),
@@ -437,8 +629,8 @@ export const PROPS = [
         <path class="col vis" style="--c:#c0563f" d="${poly([P(x + 384, 12, z + 244), P(x + 396, 12, z + 246), P(x + 394, 20, z + 250), P(x + 382, 20, z + 248)])}"/>`;
     } },
 
-  { id: 'palette', cl: 'travel', z: 40, art: () => {
-      const x = 1980, z = 40, W = 236, D = 104, Hb = 15;
+  { id: 'palette', cl: 'travel', z: 330, art: () => {
+      const x = 1400, z = 330, W = 236, D = 104, Hb = 15;
       const pans = [];
       for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) {
         const px = x + 12 + c * 36, pz = z + 10 + r * 44;
@@ -458,7 +650,7 @@ export const PROPS = [
          timeline in shot 3 */
       const cols = ['#b5764a', '#356f74', '#8a3f5a'];
       return cols.map((c, i) => {
-        const x = 150 + i * 8, y = i * 26, z = 40 + i * 6, w = 300 - i * 12, dp = 210 - i * 8;
+        const x = 60 + i * 8, y = i * 26, z = 40 + i * 6, w = 300 - i * 12, dp = 210 - i * 8;
         const pages = `<g class="con">${[6, 11, 16].map(o =>
           `<path d="${line2(P(x + 4, y + o, z + dp), P(x + w - 4, y + o, z + dp))}"/>`).join('')}</g>`;
         const elastic = i === 2
@@ -470,27 +662,47 @@ export const PROPS = [
       }).join('');
     } },
 
-  { id: 'keyboard', cl: 'risk', z: 150, art: () => {
-      const x = 640, z = 150, w = 620, dp = 210;
-      const keys = [];
-      for (let r = 0; r < 4; r++) for (let c = 0; c < 13; c++) {
-        const kx = x + 18 + c * 45, kz = z + 22 + r * 44;
-        keys.push(`<path class="con" d="${poly([P(kx, 26, kz), P(kx + 36, 26, kz), P(kx + 36, 26, kz + 34), P(kx, 26, kz + 34)])}"/>`);
-      }
-      return `${box(x, 0, z, w, 24, dp, { nohidden: true })}${keys.join('')}`;
+  { id: 'keyboard', cl: 'risk', z: 190, art: () => {
+      const x = 720, z = 190, u = 19, pitch = 19, y = 26;
+      const KW = 18.5 * u, KD = 6 * pitch;          // 351.5 x 114 — a real tenkeyless
+      const W = KW + 13, DP = KD + 15;
+      /* ANSI tenkeyless. Negative entries are gaps, and they are what produce the
+         function-row breaks, the offset navigation block and the arrow cluster. */
+      const ROWS = [
+        [1, -1, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -0.5, 1, 1, 1],
+        [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, -0.5, 1, 1, 1],
+        [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25],
+        [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -1.5, 1],
+        [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, -0.5, 1, 1, 1]
+      ];
+      const caps = keyMap(x + 6, y, z + 7, ROWS, u, pitch)
+        .map(d => `<path d="${d}"/>`).join('');
+      /* lock indicators, top right of the case */
+      const leds = [0, 1, 2].map(i =>
+        `<path d="${poly(circle2(P(x + W - 46 + i * 15, y, z + 5), 3.5), 10)}"/>`).join('');
+      return `${box(x, 0, z, W, y, DP, { nohidden: true })}
+        <path class="con" d="${rrectXZ(x + 4, y, z + 4, W - 8, DP - 8, 4)}"/>
+        <g class="con">${caps}${leds}</g>
+        <path class="hid" d="${line2(P(x + 20, 0, z + DP), P(x + 20, 8, z + DP))}"/>
+        <path class="hid" d="${line2(P(x + W - 20, 0, z + DP), P(x + W - 20, 8, z + DP))}"/>
+        ${cable([x + W - 24, 14, z + DP], [1000, 4, 556], 0.3)}`;
     } },
 
   { id: 'mouse', cl: 'general', z: 170, art: () => {
-      const cx = 1330, cz = 170;
+      const cx = 1320, cz = 260;
       return `${cyl(cx, cz, 46, 30, 0, { nohidden: true })}
         <path class="vis" d="${line2(P(cx, 30, cz - 46), P(cx, 30, cz + 46))}"/>`;
     } },
 
-  { id: 'phone', cl: 'general', z: 60, art: () => `
-      ${sheet(1470, 0, 60, 150, 300, 12, { col: '#141c22' })}` },
+  /* 76 x 158 — a phone, not the tea tray it used to be */
+  { id: 'phone', cl: 'general', z: 20, art: () => `
+      ${sheet(1290, 0, 20, 76, 158, 12, { col: '#141c22' })}` },
 
-  { id: 'tickets', cl: 'travel', z: 34, art: () => {
-      const t = [[1640, 30, 4], [1676, 52, -7], [1710, 40, 9]];
+  /* passes lying on the map is a real thing a desk does — declared, so the
+     layout checker treats it as intent rather than an accident of draw order */
+  { id: 'tickets', cl: 'travel', z: 100, on: 'map', art: () => {
+      const t = [[1660, 100, 4], [1696, 122, -7], [1730, 110, 9]];
       return t.map(([x, z, r], i) => {
         const w = 250, dp = 110, rad = r * Math.PI / 180, y = 2 + i * 2.4, c = [x + w / 2, z + dp / 2];
         const q = [[x, z], [x + w, z], [x + w, z + dp], [x, z + dp]].map(([px, pz]) => {
@@ -514,8 +726,8 @@ export const PROPS = [
       }).join('');
     } },
 
-  { id: 'map', cl: 'travel', z: 40, art: () => {
-      const x = 1840, z = 40, w = 460, dp = 300, y = 4;
+  { id: 'map', cl: 'travel', z: 60, art: () => {
+      const x = 1620, z = 60, w = 380, dp = 260, y = 4;
       const at = (u, v) => P(x + w * u, y, z + dp * v);
       const flat = [P(x, y, z), P(x + w * .62, y, z), P(x + w * .62, y, z + dp), P(x, y, z + dp)];
       const fold = [P(x + w * .62, y, z), P(x + w * .86, 74, z + 20), P(x + w * .86, 74, z + dp - 20), P(x + w * .62, y, z + dp)];
@@ -562,8 +774,9 @@ export const PROPS = [
         <path class="con" d="${line2(P(x + w * .74, 38, z + 20), P(x + w * .74, 38, z + dp - 20))}"/>`;
     } },
 
-  { id: 'binoculars', cl: 'travel', z: 120, art: () => {
-      const y = 62, L = 150, r = 40, rF = 46, cz = 120;
+  { id: 'binoculars', cl: 'travel', z: 90, art: () => {
+      const y = 62, L = 150, r = 40, rF = 46, cz = 90;
+      const cxL = 1428, cxR = 1556, mid = (cxL + cxR) / 2;
       const barrel = cx => {
         const n0 = P(cx, y, cz), n1 = P(cx, y, cz + L);
         const dx = n1[0] - n0[0], dy = n1[1] - n0[1], m = Math.hypot(dx, dy);
@@ -579,19 +792,19 @@ export const PROPS = [
       };
       /* hinge bridge, focus wheel on its axis, dioptre ring, strap lugs */
       const focus = (() => {
-        const c = P(1547, y + 30, cz + 78), r = 26;
+        const c = P(mid, y + 30, cz + 78), r = 26;
         return `<path class="solid" d="${poly(circle2(c, r))}"/><path class="vis" d="${poly(circle2(c, r))}"/>
-          ${knurl(1547, cz + 78, 26, y + 12, 36, 22)}
+          ${knurl(mid, cz + 78, 26, y + 12, 36, 22)}
           <path class="cen" d="${line2([c[0] - r * 1.7, c[1]], [c[0] + r * 1.7, c[1]])}"/>`;
       })();
       const lug = cx => `<path class="vis" d="${poly([P(cx - 8, y + 34, cz + 24), P(cx + 8, y + 34, cz + 24), P(cx + 8, y + 46, cz + 24), P(cx - 8, y + 46, cz + 24)])}"/>`;
-      return `${box(1516, y - 16, cz + 40, 62, 32, 62, { nohidden: true })}
-        ${barrel(1478)}${barrel(1610)}
+      return `${box(mid - 31, y - 16, cz + 40, 62, 32, 62, { nohidden: true })}
+        ${barrel(cxL)}${barrel(cxR)}
         ${focus}
-        ${lug(1436)}${lug(1652)}
-        <path class="con" d="${poly(circle2(P(1610, y, cz + 6), 18))}"/>
-        <path class="cen" d="${line2(P(1478, y, cz - 40), P(1478, y, cz + L + 30))}"/>
-        <path class="cen" d="${line2(P(1610, y, cz - 40), P(1610, y, cz + L + 30))}"/>`;
+        ${lug(cxL - 42)}${lug(cxR + 42)}
+        <path class="con" d="${poly(circle2(P(cxR, y, cz + 6), 18))}"/>
+        <path class="cen" d="${line2(P(cxL, y, cz - 40), P(cxL, y, cz + L + 30))}"/>
+        <path class="cen" d="${line2(P(cxR, y, cz - 40), P(cxR, y, cz + L + 30))}"/>`;
     } }
 ];
 
@@ -603,74 +816,138 @@ export const FOREGROUND = () => {
      from this camera; the choice is only what it overlaps. */
   const z = -330, cx = 880;
 
-  /* ---- the operator, back three-quarter ----------------------------------
-     Built the way a figure is constructed rather than as a circle on a blob:
-     an ovoid cranium (wider and higher at the back of the skull), a neck that
-     actually enters the collar, a yoke seam across the shoulders, and the
-     hair as a mass with a low bun — which is what reads from behind. */
-  const ov = (ccx, ccy, rx, ry, n = 64) =>
-    Array.from({ length: n }, (_, i) => {
-      const t = i / n * Math.PI * 2;
-      return P(ccx + rx * Math.cos(t), ccy + ry * Math.sin(t) + (Math.sin(t) > 0 ? ry * 0.10 : 0), z);
-    });
+  /* Every part of her is a meshed surface rather than an outline. A head or a
+     pair of shoulders described only by a silhouette reads flat no matter how
+     much detail sits around it, and that flatness was the single biggest gap
+     between this drawing and the reference sheets. The quad wireframe is what
+     makes a curved thing read as built.
 
-  const shoulders = [P(cx - 274, -200, z), P(cx - 246, 120, z), P(cx - 176, 240, z),
-                     P(cx - 96, 292, z), P(cx - 44, 306, z), P(cx + 44, 306, z),
-                     P(cx + 96, 292, z), P(cx + 176, 240, z), P(cx + 246, 120, z),
-                     P(cx + 274, -200, z)];
-  const yoke = `<path class="con" d="M${f(P(cx - 236, 128, z)[0])} ${f(P(cx - 236, 128, z)[1])} Q${f(P(cx, 214, z)[0])} ${f(P(cx, 214, z)[1])} ${f(P(cx + 236, 128, z)[0])} ${f(P(cx + 236, 128, z)[1])}"/>`;
-  const collar = [P(cx - 92, 288, z), P(cx - 52, 330, z), P(cx + 52, 330, z), P(cx + 92, 288, z)];
-  const neck = [P(cx - 44, 296, z), P(cx + 44, 296, z), P(cx + 38, 376, z), P(cx - 38, 376, z)];
-  const head = ov(cx, 452, 92, 104);
-  const hair = [P(cx - 96, 402, z), P(cx - 112, 486, z), P(cx - 74, 556, z), P(cx, 574, z),
-                P(cx + 74, 556, z), P(cx + 112, 486, z), P(cx + 96, 402, z),
-                P(cx + 62, 452, z), P(cx, 470, z), P(cx - 62, 452, z)];
-  const bun = circle2(P(cx, 392, z), 54);
-  const strands = [-70, -36, 0, 36, 70].map(dx =>
-    `<path class="con" d="M${f(P(cx + dx * 0.5, 566, z)[0])} ${f(P(cx + dx * 0.5, 566, z)[1])} Q${f(P(cx + dx * 1.3, 500, z)[0])} ${f(P(cx + dx * 1.3, 500, z)[1])} ${f(P(cx + dx * 1.05, 428, z)[0])} ${f(P(cx + dx * 1.05, 428, z)[1])}"/>`).join('');
-  const skullCon = `<path class="cen" d="${line2(P(cx - 120, 452, z), P(cx + 120, 452, z))}"/>`;
+     Her back is toward us, so -z is the near side throughout. */
 
-  /* ---- task chair, seen from behind -------------------------------------- */
-  const frame = [P(cx - 262, -430, z - 30), P(cx + 262, -430, z - 30), P(cx + 262, 40, z - 30),
-                 P(cx + 214, 104, z - 30), P(cx - 214, 104, z - 30), P(cx - 262, 40, z - 30)];
-  const mesh = [];
-  for (let i = 1; i < 9; i++) {
-    const yy = -430 + (534 * i / 9);
-    const half = 262 - Math.max(0, (yy - 40)) * 0.75;
-    mesh.push(`<path d="${line2(P(cx - half, yy, z - 30), P(cx + half, yy, z - 30))}"/>`);
-  }
-  for (let i = 1; i < 8; i++) {
-    const xx = cx - 262 + (524 * i / 8);
-    mesh.push(`<path d="${line2(P(xx, -430, z - 30), P(xx, 60, z - 30))}"/>`);
-  }
-  /* lumbar bar and its adjuster, the giveaway that it is an office chair */
-  const lumbar = [P(cx - 236, -196, z - 26), P(cx + 236, -196, z - 26), P(cx + 236, -132, z - 26), P(cx - 236, -132, z - 26)];
+  /* ---- hoodie -----------------------------------------------------------
+     Half-widths are real: 450mm across the shoulders. The profile stays broad
+     at the top rather than tapering, so the loft ends in a shoulder plateau —
+     an earlier version closed to a point and the whole torso read as a vase.
+     The squared-off section (e = 2.7) is what makes a back look like a back. */
+  const TORSO = [[0, 196, 96], [0.35, 212, 104], [0.70, 224, 110], [1, 220, 102]];
+  const torso = loft(cx, z, -250, 256, TORSO, 2.7);
+  const torsoSil = poly(hull(surfacePts(torso)));
 
+  /* arms, angling out and down from the shoulder — without them the silhouette
+     has no idea where a person ends */
+  const armFn = s => (u, v) => {
+    const r = 78 - 26 * v, a = u * Math.PI * 2;
+    return [cx + s * (192 + 62 * v) + r * Math.cos(a), 240 - 330 * v,
+            z + 8 - 16 * v + r * 0.88 * Math.sin(a)];
+  };
+  const armSil = s => poly(hull(surfacePts(armFn(s))));
+
+  /* ---- from behind you see hair, not skull, so the head IS the hair mass:
+     a spheroid carrying more volume at the back of the crown, lumped just
+     enough to read as hair rather than as a helmet --------------------- */
+  const head = (u, v) => {
+    const a = u * Math.PI * 2, p = v * Math.PI;
+    const back = 1 + 0.17 * Math.max(0, -Math.sin(a));
+    const r = 88 * (1 + 0.035 * Math.sin(6 * a) * Math.sin(2 * p));
+    return [cx + r * 0.95 * Math.sin(p) * Math.cos(a),
+            448 + r * 1.12 * Math.cos(p),
+            z + r * back * Math.sin(p) * Math.sin(a)];
+  };
+  const headSil = poly(hull(surfacePts(head)));
+
+  /* ---- the fluffy ponytail, gathered high at the back of the crown. The
+     lumpiness is deterministic — a mass, not a billiard ball. */
+  const pony = (u, v) => {
+    const a = u * Math.PI * 2, p = v * Math.PI;
+    const r = 74 * (1 + 0.16 * Math.sin(5 * a) * Math.sin(3 * p)
+                      + 0.11 * Math.cos(7 * a + 1.2) * Math.sin(p));
+    return [cx + r * 1.05 * Math.sin(p) * Math.cos(a),
+            596 + r * 0.94 * Math.cos(p),
+            z - 46 + r * 0.85 * Math.sin(p) * Math.sin(a)];
+  };
+  const ponySil = poly(hull(surfacePts(pony)));
+
+  /* strands sweeping up into the gather — what says "tied" rather than "loose" */
+  const strands = [-64, -30, 4, 38, 70].map(dx => {
+    const A = P(cx + dx, 392, z - 20), B = P(cx + dx * 1.5, 470, z - 30), C = P(cx + dx * 0.5, 528, z - 44);
+    return `<path d="M${f(A[0])} ${f(A[1])} Q${f(B[0])} ${f(B[1])} ${f(C[0])} ${f(C[1])}"/>`;
+  }).join('');
+
+  const neck = [P(cx - 46, 292, z), P(cx + 46, 292, z), P(cx + 40, 374, z), P(cx - 40, 374, z)];
+  const hood = [P(cx - 104, 268, z - 30), P(cx - 62, 330, z - 40), P(cx + 62, 330, z - 40), P(cx + 104, 268, z - 30)];
+
+  /* ---- task chair: a curved mesh back that wraps toward the viewer at its
+     edges, on a frame, with armrests and the lumbar bar ------------------ */
+  /* ---- task chair -------------------------------------------------------
+     Real heights, measured from the desk top: a mid-back task chair tops out
+     around 950mm off the floor, which against a 720mm desk puts its top edge
+     at +230 — just under her shoulders, so she reads as sitting *in* it. The
+     back wraps toward the viewer at its edges. */
+  const CZ = z - 40;
+  const back = (u, v) => {
+    const s = u * 2 - 1;
+    /* 400mm across, topping out at +170 — narrower than her 450mm shoulders and
+       lower than their 256, so she reads as sitting in the chair rather than
+       being hidden by it */
+    const hw = 202 + 12 * Math.sin(Math.PI * v) - 24 * Math.pow(v, 4);
+    return [cx + s * hw, -170 + 340 * v, CZ - 44 * s * s];
+  };
+  const backSil = panelSil(back);
+
+  const chairArm = s => {
+    const ax = cx + s * 262, pad = rrectXZ(ax - 32, -60, CZ - 180, 64, 186, 14);
+    return `${box(ax - 13, -220, CZ - 60, 26, 162, 34, { nohidden: true })}
+      <path class="solid" d="${pad}"/><path class="ol" d="${pad}"/>`;
+  };
+
+  const lumbar = [P(cx - 210, -140, CZ - 44), P(cx + 210, -140, CZ - 44),
+                  P(cx + 210, -76, CZ - 44), P(cx - 210, -76, CZ - 44)];
+
+  /* Draw order is depth order, and the chair is NEARER the camera than she is —
+     she is sitting against it. So her body goes down first and the chair back
+     paints over her lower torso, which is exactly what you see from behind a
+     seated person. Reversed, the chair vanished behind her. */
   return `<g id="fg">
-    ${centre(cx, z, 300, 620)}
-    <path class="solid" d="${poly(shoulders)}"/><path class="ol" d="${poly(shoulders)}"/>
-    ${yoke}
+    ${centre(cx, z, 300, 700)}
+
+    <path class="solid" d="${armSil(-1)}"/>
+    ${mesh(armFn(-1), 8, 6, { clip: armSil(-1) })}
+    <path class="ol" d="${armSil(-1)}"/>
+    <path class="solid" d="${armSil(1)}"/>
+    ${mesh(armFn(1), 8, 6, { clip: armSil(1) })}
+    <path class="ol" d="${armSil(1)}"/>
+
+    <path class="solid" d="${torsoSil}"/>
+    ${mesh(torso, 12, 8, { clip: torsoSil })}
+    <path class="ol" d="${torsoSil}"/>
+    <path class="solid" d="${poly(hood)}"/><path class="vis" d="${poly(hood, false)}"/>
     <path class="solid" d="${poly(neck)}"/><path class="vis" d="${poly(neck)}"/>
-    <path class="solid" d="${poly(collar)}"/><path class="vis" d="${poly(collar, false)}"/>
-    <path class="solid" d="${poly(head)}"/><path class="ol" d="${poly(head)}"/>
-    ${skullCon}
-    <path class="solid" d="${poly(hair)}"/><path class="ol" d="${poly(hair)}"/>
-    ${strands}
-    <path class="solid" d="${poly(bun)}"/><path class="ol" d="${poly(bun)}"/>
-    <path class="con" d="${poly(circle2(P(cx, 392, z), 32))}"/>
-    <path class="solid" d="${poly(frame)}"/><path class="ol" d="${poly(frame)}"/>
-    <g class="con">${mesh.join('')}</g>
+
+    <path class="solid" d="${headSil}"/>
+    ${mesh(head, 12, 9, { clip: headSil })}
+    <path class="ol" d="${headSil}"/>
+    <g class="con">${strands}</g>
+
+    <path class="solid" d="${ponySil}"/>
+    ${mesh(pony, 11, 8, { clip: ponySil })}
+    <path class="ol" d="${ponySil}"/>
+
+    ${chairArm(-1)}${chairArm(1)}
+    <path class="solid" d="${backSil}"/>
+    ${mesh(back, 9, 7, { clip: backSil })}
+    <path class="ol" d="${backSil}"/>
     <path class="solid" d="${poly(lumbar)}"/><path class="vis" d="${poly(lumbar)}"/>
-    ${screw(cx - 236, -164, z - 26, 9)}${screw(cx + 236, -164, z - 26, 9)}
-    <path class="cen" d="${line2(P(cx, -450, z - 30), P(cx, 120, z - 30))}"/>
+    ${screw(cx - 210, -108, CZ - 44, 9)}${screw(cx + 210, -108, CZ - 44, 9)}
+    <path class="cen" d="${line2(P(cx, -200, CZ), P(cx, 260, CZ))}"/>
   </g>`;
 };
 
 /* --- room shell ----------------------------------------------------------- */
 export const ROOM = () => {
+  const { x1: DX, z1: DZ } = DESK;
   const wall = [P(-400, -200, 740), P(2600, -200, 740), P(2600, 900, 740), P(-400, 900, 740)];
-  const top  = [P(0, 0, 0), P(2050, 0, 0), P(2050, 0, 720), P(0, 0, 720)];
-  const front = [P(0, 0, 0), P(2050, 0, 0), P(2050, -60, 0), P(0, -60, 0)];
+  const top  = [P(0, 0, 0), P(DX, 0, 0), P(DX, 0, DZ), P(0, 0, DZ)];
+  const front = [P(0, 0, 0), P(DX, 0, 0), P(DX, -60, 0), P(0, -60, 0)];
   return `
     <path id="wall" d="${poly(wall)}"/>
     <path class="con" d="${line2(P(-400, 0, 740), P(2600, 0, 740))}"/>
@@ -682,15 +959,36 @@ export const ROOM = () => {
 
 /* --- assemble ------------------------------------------------------------- */
 export function buildScene() {
-  /* far to near, so nearer objects occlude what sits behind them */
-  const ordered = [...PROPS].sort((a, b) => b.z - a.z);
+  /* Far to near, so nearer objects occlude what sits behind them. */
+  const sorted = [...PROPS].sort((a, b) => b.z - a.z);
+
+  /* Then honour `on:` — a prop resting on another is drawn straight after its
+     host whatever its depth, because the host is precisely the thing that would
+     otherwise paint over it. Boarding passes lie on the map at a greater z than
+     the map itself, so depth order alone would bury them. Keeping this separate
+     is what lets `z` stay an honest position instead of a draw-order fudge. */
+  const ordered = [];
+  const place = p => {
+    if (ordered.includes(p)) return;
+    ordered.push(p);
+    for (const q of sorted) if (q.on === p.id) place(q);
+  };
+  for (const p of sorted) if (!p.on) place(p);
+  for (const p of sorted) place(p);            // any prop whose host went missing
   const layers = {
     wall:  ordered.filter(p => p.z >= 700),
     back:  ordered.filter(p => p.z < 700 && p.z >= 400),
     front: ordered.filter(p => p.z < 400)
   };
-  const g = list => list.map(p =>
-    `<g class="obj" id="p-${p.id}" data-cl="${p.cl}">${p.art()}</g>`).join('\n');
+  /* data-foot rides along on every group: the layout checker reads it, and the
+     camera will use the same numbers to cull and to size annotation on zoom. */
+  const g = list => list.map(p => {
+    probeStart(p.id);
+    const art = p.art();
+    const b = probeEnd();
+    const foot = b ? `${Math.round(b.x0)} ${Math.round(b.z0)} ${Math.round(b.x1)} ${Math.round(b.z1)} ${Math.round(b.y1)}` : '';
+    return `<g class="obj" id="p-${p.id}" data-cl="${p.cl}" data-foot="${foot}">${art}</g>`;
+  }).join('\n');
 
   return `<g id="L-room">${ROOM()}</g>
 <g id="L-wall">${g(layers.wall)}</g>
