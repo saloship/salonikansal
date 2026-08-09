@@ -336,14 +336,72 @@ export function panelSil(fn, n = 30) {
 
 /* --- screen content ------------------------------------------------------- */
 
-/* the control matrix — this is what the loose sheets resolve into in shot 4 */
-const matrix = (cols, rows, filled = []) => (x, y, z, w, h) => {
-  const cw = w / cols, ch = h / rows, g = [];
-  for (let c = 1; c < cols; c++) g.push(line2(P(x + c * cw, y, z), P(x + c * cw, y + h, z)));
-  for (let r = 1; r < rows; r++) g.push(line2(P(x, y + r * ch, z), P(x + w, y + r * ch, z)));
-  const cells = filled.map(([c, r]) =>
-    `<path class="col" style="--c:#3d6f92" d="${poly([P(x + c * cw, y + r * ch, z), P(x + (c + 1) * cw, y + r * ch, z), P(x + (c + 1) * cw, y + (r + 1) * ch, z), P(x + c * cw, y + (r + 1) * ch, z)])}"/>`).join('');
-  return cells + `<g class="con">${g.map(p => `<path d="${p}"/>`).join('')}</g>`;
+/* Rows in the control table. The paper pile carries the same count, because in
+   shot 4 the loose workpapers resolve into this table and a path morph needs
+   both variants built on matching geometry. */
+export const CTRL_ROWS = 6;
+
+/* The controls dashboard: KPI cards, a coverage trend, and the control table
+   itself — ID / control / owner / tick. This is what she actually does, and it
+   is the thing the workpapers become. An earlier version was an abstract 7x5
+   grid, which read as a spreadsheet-shaped nothing. */
+const dashboard = (x, y, z, w, h) => {
+  const R = (a, b, ww, hh) => poly([P(x + a, y + b, z), P(x + a + ww, y + b, z),
+                                    P(x + a + ww, y + b + hh, z), P(x + a, y + b + hh, z)]);
+  const L = (a, b, a2, b2) => line2(P(x + a, y + b, z), P(x + a2, y + b2, z));
+  const vis = [], con = [], col = [];
+
+  /* window chrome: app title left, view tabs right */
+  const hy = h - 24;
+  vis.push(L(0, hy, w, hy));
+  con.push(L(9, hy + 11, w * 0.26, hy + 11));
+  for (let i = 0; i < 3; i++) con.push(R(w - 150 + i * 48, hy + 6, 36, 12));
+
+  /* three KPI cards — a figure over a label */
+  const uy = h * 0.58, uh = h * 0.28, cw = (w * 0.50 - 16) / 3;
+  for (let i = 0; i < 3; i++) {
+    const a = i * (cw + 8);
+    vis.push(R(a, uy, cw, uh));
+    con.push(L(a + 8, uy + uh - 14, a + cw * 0.46, uy + uh - 14));
+    vis.push(L(a + 8, uy + uh * 0.34, a + cw * 0.66, uy + uh * 0.34));
+  }
+
+  /* coverage trend, right of the cards: axes, bars, and a mean line */
+  const bx = w * 0.54, bw = w - bx, BARS = [0.40, 0.63, 0.52, 0.81, 0.69, 0.93, 0.60];
+  con.push(L(bx, uy, bx + bw, uy));
+  con.push(L(bx, uy, bx, uy + uh));
+  const step = (bw - 8) / BARS.length;
+  BARS.forEach((v, i) => {
+    const a = bx + 5 + i * step, bar = R(a, uy + 1, step * 0.58, (uh - 8) * v);
+    col.push(bar); vis.push(bar);
+  });
+  con.push(L(bx, uy + (uh - 8) * 0.66, bx + bw, uy + (uh - 8) * 0.66));
+
+  /* the control table */
+  const ty = h * 0.05, th = h * 0.46, rh = th / CTRL_ROWS;
+  const cols = [w * 0.13, w * 0.63, w * 0.85];
+  vis.push(L(0, ty + th, w, ty + th));                       // header rule
+  for (let r = 1; r < CTRL_ROWS; r++) con.push(L(0, ty + r * rh, w, ty + r * rh));
+  for (const c of cols) con.push(L(c, ty, c, ty + th));
+  /* one finding highlighted, and a tick or a cross against each control */
+  col.push(R(0, ty + rh * 2, w, rh));
+  for (let r = 0; r < CTRL_ROWS; r++) {
+    const b = ty + r * rh + rh * 0.3;
+    con.push(L(8, b, w * 0.11, b));                          // the id
+    con.push(L(w * 0.15, b, w * 0.15 + w * 0.40, b));        // the control name
+    con.push(L(w * 0.65, b, w * 0.65 + w * 0.12, b));        // the owner
+    if (r === 2) {                                            // the exception
+      con.push(L(w * 0.88, b - rh * 0.14, w * 0.94, b + rh * 0.16));
+      con.push(L(w * 0.94, b - rh * 0.14, w * 0.88, b + rh * 0.16));
+    } else {
+      con.push(L(w * 0.88, b, w * 0.90, b - rh * 0.16));
+      con.push(L(w * 0.90, b - rh * 0.16, w * 0.95, b + rh * 0.2));
+    }
+  }
+
+  return `${col.map(d => `<path class="col" style="--c:#3d6f92" d="${d}"/>`).join('')}
+    ${vis.map(d => `<path class="vis" d="${d}"/>`).join('')}
+    <g class="con">${con.map(d => `<path d="${d}"/>`).join('')}</g>`;
 };
 
 /* stacked cards — the projects on the laptop in shot 5 */
@@ -493,7 +551,7 @@ export const PROPS = [
       ${box(X, Y, Z, W, H, D)}
       <path class="vis" d="${rrectXY(X + 22, Y + 46, Z, W - 44, H - 76, 6)}"/>
       <path class="col vis" style="--c:#3d6f92" d="${rrectXY(X + 26, Y + 50, Z, W - 52, H - 84, 4)}"/>
-      ${matrix(7, 5, [[1, 1], [3, 2], [5, 0], [2, 4], [6, 3]])(X + 26, Y + 50, Z, W - 52, H - 84)}
+      ${dashboard(X + 26, Y + 50, Z, W - 52, H - 84)}
       <!-- chin: power LED and its centre mark, brand rule -->
       <path class="con" d="${line2(P(X + 240, Y + 22, Z), P(X + 320, Y + 22, Z))}"/>
       ${screw(X + W - 40, Y + 22, Z, 5)}

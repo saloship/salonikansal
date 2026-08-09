@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>M2b · hand-authored vs baked line art</title>
+<style>
+  :root{--ink:#151414;--paper:#f4f6f9;--line:#e9e8e2;--nav:#1b3a5c}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);background:#fff}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:26px;margin:0 0 6px}
+  p.lede{color:#55534e;margin:0 0 28px;max-width:62ch}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}}
+  figure{margin:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper)}
+  figcaption{padding:10px 14px;border-top:1px solid var(--line);background:#fff;font-size:13px}
+  figcaption b{display:block;font-size:14px;margin-bottom:2px}
+  svg{display:block;width:100%;height:auto;background:var(--paper)}
+  .n{font-variant-numeric:tabular-nums;color:#8a8780}
+
+  /* the same drawing language both sides, so the comparison is about geometry */
+  .ol{fill:none;stroke:var(--nav);stroke-width:2.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .vis{fill:none;stroke:var(--nav);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .hid{fill:none;stroke:var(--nav);stroke-width:1.1;stroke-dasharray:7 5;opacity:.55;vector-effect:non-scaling-stroke}
+  .con{fill:none;stroke:var(--nav);stroke-width:1;opacity:.6;vector-effect:non-scaling-stroke}
+  .cen{fill:none;stroke:var(--nav);stroke-width:1;stroke-dasharray:22 5 3 5;opacity:.5;vector-effect:non-scaling-stroke}
+  .solid{fill:var(--paper);stroke:none}
+  .col{fill:none}
+  #baked path{fill:none;stroke:var(--nav);stroke-width:1.5;stroke-linejoin:round;
+               vector-effect:non-scaling-stroke}
+  .toggles{margin:22px 0 0;font-size:14px;display:flex;gap:20px;flex-wrap:wrap}
+  label{display:flex;gap:7px;align-items:center;cursor:pointer}
+  body.no-fill .solid{fill:none}
+</style>
+
+<div class="wrap">
+  <h1>Same keyboard, two pipelines</h1>
+  <p class="lede">Both at 351&times;114&nbsp;mm, both in the scene's cabinet projection, both drawn with the
+  identical line-weight hierarchy. The left is hand-authored SVG; the right is modelled in Blender and
+  rendered through Freestyle with geometric hidden-line removal. The right one registers into the
+  scene's own coordinate space via a single transform, because the model is sheared by the projection
+  before an orthographic render &mdash; so a bake can sit in the real drawing unchanged.</p>
+
+  <div class="grid">
+    <figure>
+      <svg id="hand" viewBox="592 958 326 112" aria-label="hand-authored keyboard"></svg>
+      <figcaption><b>Hand-authored</b><span class="n" id="nHand"></span></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="592 958 326 112" aria-label="baked keyboard">
+        <!-- registration: baked SVG px -> scene viewBox units -->
+        <g id="baked" transform="translate(584.3 914.6) scale(0.18804)"></g>
+      </svg>
+      <figcaption><b>Modelled + baked</b><span class="n" id="nBaked"></span></figcaption>
+    </figure>
+  </div>
+
+  <div class="toggles">
+    <label><input type="checkbox" id="tFill"> drop the fake occlusion fills (hand-authored side)</label>
+  </div>
+</div>
+
+<script type="module">
+import { PROPS, GRID_DEFS } from './assets/scene/desk.mjs';
+
+/* left: just the keyboard prop out of the real scene */
+const kbd = PROPS.find(p => p.id === 'keyboard');
+const hand = document.getElementById('hand');
+hand.innerHTML = `<g class="obj">${kbd.art()}</g>`;
+document.getElementById('nHand').textContent =
+  hand.querySelectorAll('path').length + ' paths';
+
+/* right: the baked strokes, dropped into the scene's coordinate space */
+const res = await fetch('./assets/bake/keyboard.svg');
+const doc = new DOMParser().parseFromString(await res.text(), 'image/svg+xml');
+const baked = document.getElementById('baked');
+for (const p of doc.querySelectorAll('path')) baked.appendChild(p.cloneNode(false));
+document.getElementById('nBaked').textContent =
+  baked.querySelectorAll('path').length + ' paths · true hidden-line removal';
+
+document.getElementById('tFill').addEventListener('change', e =>
+  document.body.classList.toggle('no-fill', e.target.checked));
+</script>
