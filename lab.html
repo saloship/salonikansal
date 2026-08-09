@@ -23,7 +23,7 @@
   --w-ol:2.1; --w-vis:1.25; --w-hid:1.0; --w-con:0.9;
   --bp-ground:#122a45; --bp-ink:#e3edf8; --bp-con:#e3edf8;
   --bp-grid:rgba(227,237,248,.085); --bp-grid-b:rgba(227,237,248,.15);
-  --bp-fill:#122a45; --bp-wall:#17324f;
+  --bp-fill:#122a45; --bp-wall:#17324f; --bp-case:#0d2038;
   /* ILLUMINATION. On a portrait screen a deep zoom into a wide drawing is
      awkward, so lighting an object in place has to carry what the zoom carries on
      desktop. It also gives the copy panel and the drawing a SHARED LIGHT SOURCE,
@@ -121,6 +121,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.38}
 .art .solid{fill:var(--bp-fill);stroke:none}
 .art #wall{fill:var(--bp-wall);stroke:none}
+/* the case reads as a box because its planes take different light: back wall lightest,
+   side walls and ceiling darker as they turn away from the viewer */
+.art .casewall{fill:var(--bp-case);stroke:none}
+/* the halo sets its own per-ring opacity inline, so it needs to escape .con's */
+.art .halo{fill:none;opacity:1;stroke-width:1.6}
 .art *{vector-effect:non-scaling-stroke}
 .art .colstroke{stroke:var(--bp-con)}
 

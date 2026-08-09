@@ -1126,9 +1126,40 @@ export const FOREGROUND = () => {
 export const FLOOR = -700;
 
 /* --- room shell ----------------------------------------------------------- */
+/* THE CASE — the room as a real box rather than a border drawn on top.
+   Side walls, ceiling and floor are actual planes, so the whole thing reads as looking
+   INTO a lit vitrine. The x bounds are chosen so each side wall's back edge lands just
+   outside the desk in projection: a plane of constant x runs from its front corner up
+   and right to its back corner, so only a narrow band of it falls inside the frame,
+   which is exactly the sliver her reference shows. */
+export const CASE = { x0: -260, x1: 2620, zf: -940, zb: 740, yc: 900 };
+
 export const ROOM = () => {
   const { x1: DX, z1: DZ } = DESK;
-  const wall = [P(-400, FLOOR, 740), P(2600, FLOOR, 740), P(2600, 900, 740), P(-400, 900, 740)];
+  const C = CASE;
+  const wall = [P(C.x0, FLOOR, C.zb), P(C.x1, FLOOR, C.zb),
+                P(C.x1, C.yc, C.zb), P(C.x0, C.yc, C.zb)];
+
+  /* concentric arcs on the back wall. A circle on a plane of constant z is
+     fronto-parallel under this projection, so it stays a circle — only its radius
+     scales. Centred low and behind the chair, the way a wall light would fall. */
+  const halo = [380, 560, 760, 980, 1220].map((r, i) =>
+    `<path class="con halo" d="${poly(circle2(P(880, 560, C.zb), r * SC), false)}" ` +
+    `style="opacity:${(0.4 - i * 0.06).toFixed(2)}"/>`).join('');
+
+  /* one warm mark, off to the side. A drawing this cold needs somewhere for the eye
+     to rest that is not information. */
+  const dot = `<path class="col vis" style="--c:#e0846c" d="${poly(circle2(P(1900, 470, C.zb), 13), false)}"/>`;
+
+  /* No ceiling plane. The camera sits above eye level looking DOWN at the desk, so a
+     ceiling is behind it — drawn as a filled quad it projected across most of the frame
+     and buried the back wall and the arcs with it. */
+  const plane = pts => `<path class="casewall" d="${poly(pts)}"/>`;
+  const groundPlane = plane([P(C.x0, FLOOR, C.zb), P(C.x1, FLOOR, C.zb),
+                             P(C.x1, FLOOR, C.zf), P(C.x0, FLOOR, C.zf)]);
+  const sideWall = x => plane([P(x, FLOOR, C.zb), P(x, C.yc, C.zb),
+                               P(x, C.yc, C.zf), P(x, FLOOR, C.zf)])
+    + `<path class="vis" d="${line2(P(x, FLOOR, C.zb), P(x, C.yc, C.zb))}"/>`;
   const top   = [P(0, 0, 0), P(DX, 0, 0), P(DX, 0, DZ), P(0, 0, DZ)];
   const front = [P(0, 0, 0), P(DX, 0, 0), P(DX, -60, 0), P(0, -60, 0)];
   const side  = [P(DX, 0, 0), P(DX, 0, DZ), P(DX, -60, DZ), P(DX, -60, 0)];
@@ -1140,8 +1171,11 @@ export const ROOM = () => {
 
   return `
     <path id="wall" d="${poly(wall)}"/>
-    <path class="con" d="${line2(P(-400, 0, 740), P(2600, 0, 740))}"/>
-    <path class="con" d="${line2(P(-400, FLOOR, 740), P(2600, FLOOR, 740))}"/>
+    ${halo}${dot}
+    ${groundPlane}
+    ${sideWall(C.x0)}${sideWall(C.x1)}
+    <path class="con" d="${line2(P(C.x0, 0, C.zb), P(C.x1, 0, C.zb))}"/>
+    <path class="con" d="${line2(P(C.x0, FLOOR, C.zb), P(C.x1, FLOOR, C.zb))}"/>
     ${leg(74, DZ - 132)}${leg(DX - 132, DZ - 132)}
     ${leg(74, 74)}${leg(DX - 132, 74)}
     <path class="solid" d="${poly(top)}"/><path class="ol" d="${poly(top)}"/>

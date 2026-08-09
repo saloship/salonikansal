@@ -89,7 +89,9 @@ export const SHOTS = [
    portrait gets its own viewBox and no camera transform whatsoever.
    That is deliberate rather than a limitation: on a phone the camera does not move at
    all, and the story is told purely by which objects light up. */
-export const MOBILE_VIEW = [10, 262, 1720, 1748];
+/* Widened to take in the case: the side walls sit just outside the desk, so the frame has
+   to be a little wider than the furniture or the vitrine is cropped away entirely. */
+export const MOBILE_VIEW = [-96, 150, 1930, 1960];
 
 /* Portrait is not the desktop list rescaled — that only ever gives you a wide
    drawing with its subject somewhere off to the side. Tighter crops, and the
