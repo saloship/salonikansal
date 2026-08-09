@@ -100,6 +100,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
              color:var(--card-ink);opacity:.55;margin-top:6px}
 .deep .drole{font-size:12px;color:var(--card-ink);opacity:.75;margin-top:1px}
 .deep .dlearn{font-size:12.5px;font-style:italic;color:var(--card-ink-2);margin-top:3px}
+/* the three ridge lessons — what trekking taught her, which is the only thing that
+   turns the travel section from a hobby into an argument about her judgement */
+.lessons{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.lessons li{font-size:13.5px;line-height:1.45;color:var(--card-ink);padding-left:15px;
+            position:relative}
+.lessons li::before{content:"—";position:absolute;left:0;opacity:.45}
 
 /* ---- the drawing language ---------------------------------------------- */
 .art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
@@ -197,7 +203,43 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 #hud{position:fixed;left:18px;bottom:16px;z-index:5;font-family:var(--mono);font-size:10.5px;
      letter-spacing:.05em;color:var(--bp-ink);opacity:.5}
 #bar{position:fixed;left:0;top:0;height:3px;background:var(--sun);z-index:6;width:0}
-@media (max-width:760px){#rail{display:none}}
+#rail button{gap:0}
+.rl{display:none}
+#rail button:hover .rl,#rail button[aria-current="true"] .rl{display:inline;
+    font-family:var(--mono);font-size:10px;letter-spacing:.08em;white-space:nowrap;padding:0 8px}
+#rail button:hover,#rail button[aria-current="true"]{width:auto;min-width:26px;
+    padding:0 2px 0 0;justify-content:flex-start}
+#rail button:hover .rn,#rail button[aria-current="true"] .rn{padding-left:8px}
+
+/* Footer — v1's last line landed back on "control and chaos", closing the loop the
+   hero opens. It sits after the final section rather than fixed, so it reads as an end. */
+#foot{position:relative;z-index:2;text-align:center;padding:34px 20px 44px;
+      font-size:12.5px;color:var(--bp-ink);opacity:.45}
+
+/* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
+   to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
+#mobar,#msheet{display:none}
+@media (max-width:760px){
+  #rail{display:none}
+  #mobar{display:flex;position:fixed;left:10px;right:10px;bottom:10px;z-index:7;gap:8px}
+  #mobar button{flex:1;border:1px solid rgba(227,237,248,.3);border-radius:3px;cursor:pointer;
+                font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:12px 8px;
+                background:rgba(18,42,69,.92);color:var(--bp-ink);backdrop-filter:blur(6px)}
+  #mobar .mb-s{background:var(--bp-ink);color:var(--navy);border-color:var(--bp-ink)}
+  #mobar .mb-j{flex:0 0 46px;font-size:14px}
+  #msheet{display:block;position:fixed;inset:auto 10px 10px;z-index:8;
+          background:var(--paper);border:1px solid var(--rule);padding:16px;
+          transform:translateY(130%);transition:transform 420ms cubic-bezier(.16,1,.3,1)}
+  #msheet.open{transform:translateY(0)}
+  #msheet .mt{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+              color:var(--card-ink);opacity:.6;margin-bottom:6px}
+  #msheet button{display:block;width:100%;text-align:left;border:0;background:transparent;
+                 padding:11px 2px;font:inherit;font-size:15px;color:var(--card-ink);cursor:pointer;
+                 border-bottom:1px solid var(--rule-2)}
+  #msheet .mx{position:absolute;right:10px;top:8px;width:32px;font-size:22px;
+              border-bottom:0;text-align:center;padding:0}
+  #foot{padding-bottom:86px}
+}
 </style>
 </head>
 <body>
@@ -209,14 +251,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   <div id="copy"></div>
 </div>
 
-<nav id="rail" aria-label="shots"></nav>
+<nav id="rail" aria-label="Sections"></nav>
+<nav id="mobar" aria-label="Quick links"></nav>
+<div id="msheet" aria-label="Jump to a section"></div>
+<footer id="foot"></footer>
 <div id="hud"></div>
 
 <script type="module">
 import { mountScene } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
-import { SECTIONS } from './assets/scene/content.js';
+import { SECTIONS, KEYWORDS, NAV, FOOTER } from './assets/scene/content.js';
 
 const pad = n => String(n).padStart(2, '0');
 const external = h => /^(https?:|mailto:)/.test(h);
@@ -243,6 +288,7 @@ const deepHTML = d => `<div class="deep">
     ${i.r ? `<dd class="drole">${i.r}</dd>` : ''}
     <dd>${i.v}</dd>
     ${i.learned ? `<dd class="dlearn">Learned: ${i.learned}</dd>` : ''}`).join('')}</dl>
+  ${d.lessons ? `<ul class="lessons">${d.lessons.map(l => `<li>${l}</li>`).join('')}</ul>` : ''}
   ${d.note ? `<p class="dnote">${d.note}</p>` : ''}
   ${d.link ? `<p class="dnote"><a href="${d.link.href}">${d.link.label} →</a></p>` : ''}
 </div>`;
@@ -273,14 +319,31 @@ document.getElementById('copy').innerHTML = SHOTS.map(s => {
    steps are ON the monitor, readable once the camera arrives, rather than trimmed
    to a summary in the panel. */
 const cam = mountScene(document.getElementById('stage'), {
-  sheet: sheetFurniture(2400, 1500),
+  sheet: sheetFurniture(2400, 1500, { words: KEYWORDS }),
   copy: { monitor: SECTIONS.method.deep }
 });
 window.__cam = cam;   // so the camera can be driven and inspected from the console
 
 /* rail */
 const rail = document.getElementById('rail');
-rail.innerHTML = SHOTS.map(s => `<button data-n="${s.n}" title="${s.title}">${s.n}</button>`).join('');
+/* Labels in her voice, not my shot names. "Things I've made" told a reader what was in
+   the site before they scrolled; "Work" is the name I gave the section while building. */
+rail.innerHTML = SHOTS.map(s =>
+  `<button data-n="${s.n}" title="${NAV[s.id] || s.title}">` +
+  `<span class="rn">${s.n}</span><span class="rl">${NAV[s.id] || s.title}</span></button>`).join('');
+
+/* Mobile navigation, which did not exist — the rail is hidden under 760px, so a phone
+   had no way to reach anything. v1 had a persistent bar plus a named jump sheet. */
+document.getElementById('mobar').innerHTML =
+  `<button class="mb-g" data-n="5">${NAV.work}</button>` +
+  `<button class="mb-s" data-n="8">${NAV.connect}</button>` +
+  `<button class="mb-j" id="mjump" aria-label="Jump to a section">☰</button>`;
+document.getElementById('msheet').innerHTML =
+  `<button class="mx" id="mx" aria-label="Close">×</button><div class="mt">Jump to</div>` +
+  SHOTS.filter(s => s.id !== 'statement')
+       .map(s => `<button data-n="${s.n}">${NAV[s.id] || s.title}</button>`).join('');
+
+document.getElementById('foot').textContent = FOOTER;
 rail.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (b) cam.goTo(+b.dataset.n);
@@ -291,6 +354,22 @@ document.getElementById('copy').addEventListener('click', e => {
   const b = e.target.closest('[data-goto]');
   if (b) cam.goTo(+b.dataset.goto);
 });
+
+/* mobile bar and jump sheet */
+const msheet = document.getElementById('msheet');
+document.getElementById('mobar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'mjump') msheet.classList.toggle('open');
+  else cam.goTo(+b.dataset.n);
+});
+msheet.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  msheet.classList.remove('open');
+  if (b.dataset.n) cam.goTo(+b.dataset.n);
+});
+addEventListener('scroll', () => msheet.classList.remove('open'), { passive: true });
 
 const bar = document.getElementById('bar');
 const hud = document.getElementById('hud');

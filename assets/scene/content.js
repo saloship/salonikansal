@@ -160,6 +160,13 @@ export const SECTIONS = {
         { k: 'Jibhi', v: 'Mar 2024' },
         { k: 'Kheerganga trek', v: 'Kasol' }
       ],
+      /* v1 had these on the ridge illustration, and they are the only lines that turn
+         trekking into transferable judgement — without them the section is a hobby. */
+      lessons: [
+        'How to find footholds when there’s no clear path forward.',
+        'How to trust your instincts when the data runs out.',
+        'How to know when to pivot, and when to commit.'
+      ],
       note: 'Also on the map: Jaipur’s palaces, Kerala’s tea country in Munnar, and every emerald lake I could hike to.',
       link: { label: 'Read the full diaries', href: 'diaries/' }
     }
@@ -182,7 +189,19 @@ export const SECTIONS = {
   }
 };
 
-/* The keywords that ran as a marquee in v1. Here they belong in the title block's
-   NOTES field, because on a drawing that is exactly what they are: the schedule of
-   what this thing is made of. */
+/* v1 ran these as a marquee across the hero. They get their own SCHEDULE block on the
+   drawing sheet, which is the one layer that sits outside the camera and is therefore
+   on screen at every zoom — the marquee's actual job was to be permanently present.
+   On a drawing, a schedule of parts is exactly what this is. */
 export const KEYWORDS = ['IT AUDIT', 'ISO 27001', 'ITGC · ITAC', 'PRODUCT', 'DESIGN', 'TREKKING'];
+
+/* v1's nav labels, in her voice. The shot titles ("Work", "Beyond") are the names I
+   gave the sections while building; hers are what a reader should see. */
+export const NAV = {
+  hero: 'Home', me: 'Me', journey: 'Journey', method: 'How I work',
+  work: 'Things I’ve made', statement: 'Statement',
+  beyond: 'Life & stories', connect: 'Say hello'
+};
+
+/* The hero opens on "control and chaos" and v1's last line landed on it again. */
+export const FOOTER = 'Made by Saloni Kansal · with ♥, somewhere between control and chaos';

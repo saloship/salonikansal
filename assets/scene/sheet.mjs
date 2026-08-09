@@ -157,6 +157,20 @@ export function notes(x, y) {
   </g>`;
 }
 
+/* --- schedule -------------------------------------------------------------
+   v1 ran her keywords as a marquee across the hero. This is their equivalent: the
+   sheet furniture is the one layer outside the camera group, so it is legible at
+   every zoom, which is the job the marquee was doing. A schedule is also what a
+   drawing calls a list of what something is made of, so it earns its place. */
+export function schedule(x, y, words, w = 620) {
+  const rule = `<path class="sh-line" d="${L(x, y + 8, x + w, y + 8)}"/>`;
+  return `<g class="sheetblk">
+    <text class="sh-k" x="${f(x)}" y="${f(y)}">SCHEDULE</text>
+    ${rule}
+    <text class="sh-v" x="${f(x)}" y="${f(y + 34)}">${words.join('  ·  ')}</text>
+  </g>`;
+}
+
 /* --- border, frame and zone markers --------------------------------------- */
 export function frame(W, H, m = 26, inner = 20) {
   const zx = 6, zy = 4, x0 = m + inner, y0 = m + inner;
@@ -223,7 +237,7 @@ export function cuttingPlane(x1, y1, x2, y2, letter) {
 }
 
 /** Whole sheet, assembled. */
-export function sheetFurniture(W, H) {
+export function sheetFurniture(W, H, { words = null } = {}) {
   const m = 26, inner = 20, x0 = m + inner, y0 = m + inner;
   const tbW = 520, tbH = 132;
   const tbX = W - x0 - tbW, tbY = H - y0 - tbH;
@@ -232,5 +246,6 @@ export function sheetFurniture(W, H) {
     ${titleBlock(tbX, tbY, tbW, tbH)}
     ${bom(tbX, tbY - 34, tbW)}
     ${revisions(W - x0 - 460, y0 + 14, 460)}
-    ${notes(x0 + 18, y0 + 34)}`;
+    ${notes(x0 + 18, y0 + 34)}
+    ${words ? schedule(x0 + 18, H - y0 - 46, words) : ''}`;
 }
