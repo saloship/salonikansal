@@ -166,12 +166,12 @@ import { sheetFurniture, balloon, detailCallout, BOM } from './assets/scene/shee
 const BAL = {
   monitor:    { at: [660, 420, 560], to: [420, 244] },
   papers:     { at: [520, 10, 420],  to: [232, 690] },
-  sketchpad:  { at: [200, 10, 240],  to: [128, 862] },
+  sketchpad:  { at: [330, 10, 330],  to: [128, 862] },
   laptop:     { at: [1400, 200, 660],to: [1214, 198] },
   map:        { at: [1980, 6, 160],  to: [1330, 1124] },
   binoculars: { at: [1610, 62, 200], to: [1064, 1010] },
   palette:    { at: [2060, 16, 90],  to: [1580, 1186] },
-  notebooks:  { at: [380, 30, 130],  to: [120, 1012] },
+  notebooks:  { at: [230, 30, 110],  to: [120, 1012] },
   whiteboard: { at: [1100, 620, 739],to: [762, 150] }
 };
 
@@ -186,7 +186,7 @@ const frameAt = (cw, world) => {
 const SHOTS = [
   { n:1, t:'Hero',       r:[0, 0, 2400, 1500],                lit:[] },
   { n:2, t:'Three hats', r:frameAt(2160, [1000, 240, 340]),      lit:['papers','sketchpad','ipad','map','binoculars','palette'] },
-  { n:3, t:'Journey',    r:frameAt(1000, [420, 60, 150]),        lit:['notebooks'] },
+  { n:3, t:'Journey',    r:frameAt(1000, [330, 40, 130]),        lit:['notebooks'] },
   { n:4, t:'Method',     r:frameAt(980,  [880, 320, 560]),       lit:['monitor','papers','stickies-bezel'] },
   { n:5, t:'Work',       r:frameAt(820,  [1470, 190, 640]),      lit:['laptop'] },
   { n:6, t:'Statement',  r:[-140, -100, 2680, 1675],          lit:[] },

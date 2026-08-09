@@ -371,11 +371,19 @@ export const PROPS = [
         const c = [x + w / 2, z + dp / 2];
         const rot = (px, pz) => { const dx = px - c[0], dz = pz - c[1]; return [c[0] + dx * Math.cos(rad) - dz * Math.sin(rad), c[1] + dx * Math.sin(rad) + dz * Math.cos(rad)]; };
         const q = [[x, z], [x + w, z], [x + w, z + dp], [x, z + dp]].map(([px, pz]) => { const [rx, rz] = rot(px, pz); return P(rx, y, rz); });
-        return `<path class="solid" d="${poly(q)}"/><path class="${i === 2 ? 'ol' : 'vis'}" d="${poly(q)}"/>` +
-          (i === 2 ? `<g class="con">${[0.3, 0.45, 0.6, 0.75].map(t => {
-            const [ax, az] = rot(x + 26, z + dp * t), [bx, bz] = rot(x + w - 26, z + dp * t);
-            return `<path d="${line2(P(ax, y, az), P(bx, y, bz))}"/>`;
-          }).join('')}</g>` : '');
+        if (i !== 2) return `<path class="solid" d="${poly(q)}"/><path class="vis" d="${poly(q)}"/>`;
+        /* top sheet carries the actual workpaper: a ruled control table with a
+           header rule, a tick column and a highlighted finding row */
+        const at = (u, v) => { const [px, pz] = rot(x + w * u, z + dp * v); return P(px, y, pz); };
+        const rows = [0.22, 0.34, 0.46, 0.58, 0.70, 0.82];
+        const grid = rows.map(t => `<path d="${line2(at(0.07, t), at(0.93, t))}"/>`).join('')
+          + [0.20, 0.33].map(u => `<path d="${line2(at(u, 0.14), at(u, 0.90))}"/>`).join('');
+        const ticks = rows.slice(0, 5).map((t, k) =>
+          `<path d="${line2(at(0.10, t + 0.04), at(0.13, t + 0.07))}"/><path d="${line2(at(0.13, t + 0.07), at(0.18, t - 0.02))}"/>`).join('');
+        return `<path class="solid" d="${poly(q)}"/><path class="ol" d="${poly(q)}"/>
+          <path class="vis" d="${line2(at(0.07, 0.14), at(0.93, 0.14))}"/>
+          <g class="con">${grid}${ticks}</g>
+          <path class="col" style="--c:#e8c24a" d="${poly([at(0.07, 0.58), at(0.93, 0.58), at(0.93, 0.70), at(0.07, 0.70)])}"/>`;
       }).join('');
     } },
 
@@ -401,12 +409,32 @@ export const PROPS = [
       <path class="hid" d="${line2(P(1746, 60, 300), P(1834, 60, 300))}"/>` },
 
   /* ---- front of the desk ------------------------------------------------- */
-  { id: 'sketchpad', cl: 'design', z: 140, art: () => {
-      const x = 110, z = 140, w = 400, dp = 260;
-      const wire = `<g class="con">${[[.12, .18, .88, .18], [.12, .30, .55, .30], [.62, .30, .88, .30], [.12, .44, .88, .44], [.12, .58, .48, .58], [.12, .72, .88, .72]]
-        .map(([a, b, c, d2]) => line2(P(x + w * a, 8, z + dp * b), P(x + w * c, 8, z + dp * d2))).map(p => `<path d="${p}"/>`).join('')}</g>`;
+  { id: 'sketchpad', cl: 'design', z: 230, art: () => {
+      const x = 240, z = 230, w = 400, dp = 260, y = 8;
+      /* an actual wireframe sketched on the page: header bar, nav, a hero
+         block, two cards and a footer — the thing she'd actually be drawing */
+      const r = (a, b, c, d2) => poly([P(x + w * a, y, z + dp * b), P(x + w * c, y, z + dp * b),
+                                        P(x + w * c, y, z + dp * d2), P(x + w * a, y, z + dp * d2)]);
+      const wire = `<g class="con">
+        <path d="${r(.10, .10, .90, .20)}"/>
+        ${[.62, .70, .78, .86].map(t => `<path d="${line2(P(x + w * t, y, z + dp * .15), P(x + w * (t + .05), y, z + dp * .15))}"/>`).join('')}
+        <path d="${r(.10, .26, .56, .50)}"/>
+        <path d="${line2(P(x + w * .60, y, z + dp * .30), P(x + w * .90, y, z + dp * .30))}"/>
+        <path d="${line2(P(x + w * .60, y, z + dp * .38), P(x + w * .82, y, z + dp * .38))}"/>
+        <path d="${line2(P(x + w * .60, y, z + dp * .46), P(x + w * .88, y, z + dp * .46))}"/>
+        <path d="${r(.10, .58, .46, .82)}"/>
+        <path d="${r(.54, .58, .90, .82)}"/>
+        <path d="${line2(P(x + w * .10, y, z + dp * .90), P(x + w * .90, y, z + dp * .90))}"/>
+        <path d="${line2(P(x + w * .10, y, z + dp * .26), P(x + w * .56, y, z + dp * .50))}"/>
+        <path d="${line2(P(x + w * .56, y, z + dp * .26), P(x + w * .10, y, z + dp * .50))}"/>
+      </g>`;
+      /* pencil lying across the corner of the pad */
+      const pencil = poly([P(x + 260, 12, z + 210), P(x + 396, 12, z + 246), P(x + 394, 20, z + 250), P(x + 258, 20, z + 214)]);
       return `${sheet(x, 0, z, w, dp, 8, { col: '#5b86a8' })}${wire}
-        <g class="con">${Array.from({ length: 7 }, (_, i) => `<path d="${poly(circle2(P(x - 8, 8, z + 24 + i * 36), 7))}"/>`).join('')}</g>`;
+        <g class="con">${Array.from({ length: 8 }, (_, i) => `<path d="${poly(circle2(P(x - 10, 10, z + 20 + i * 32), 8))}"/>`).join('')}</g>
+        <path class="hid" d="${line2(P(x, 0, z), P(x, 8, z))}"/>
+        <path class="solid" d="${pencil}"/><path class="vis" d="${pencil}"/>
+        <path class="col vis" style="--c:#c0563f" d="${poly([P(x + 384, 12, z + 244), P(x + 396, 12, z + 246), P(x + 394, 20, z + 250), P(x + 382, 20, z + 248)])}"/>`;
     } },
 
   { id: 'palette', cl: 'travel', z: 40, art: () => {
@@ -424,10 +452,22 @@ export const PROPS = [
         ${pans.join('')}`;
     } },
 
-  { id: 'notebooks', cl: 'journey', z: 60, art: () => {
+  { id: 'notebooks', cl: 'journey', z: 40, art: () => {
+      /* three books: visible page block on the near edge, an elastic closure
+         on the top one, and a dated spine label — the reason they read as a
+         timeline in shot 3 */
       const cols = ['#b5764a', '#356f74', '#8a3f5a'];
-      return cols.map((c, i) =>
-        `${sheet(300 + i * 8, i * 26, 60 + i * 6, 300 - i * 12, 210 - i * 8, 24, { col: c })}`).join('');
+      return cols.map((c, i) => {
+        const x = 150 + i * 8, y = i * 26, z = 40 + i * 6, w = 300 - i * 12, dp = 210 - i * 8;
+        const pages = `<g class="con">${[6, 11, 16].map(o =>
+          `<path d="${line2(P(x + 4, y + o, z + dp), P(x + w - 4, y + o, z + dp))}"/>`).join('')}</g>`;
+        const elastic = i === 2
+          ? `<path class="vis" d="${line2(P(x + w * .74, y + 24, z), P(x + w * .74, y + 24, z + dp))}"/>
+             <path class="vis" d="${line2(P(x + w * .74, y, z + dp / 2), P(x + w * .74, y + 24, z + dp / 2))}"/>` : '';
+        const label = `<path class="con" d="${poly([P(x + 18, y + 24, z + 26), P(x + 118, y + 24, z + 26), P(x + 118, y + 24, z + 74), P(x + 18, y + 24, z + 74)])}"/>
+          <path class="con" d="${line2(P(x + 28, y + 24, z + 50), P(x + 106, y + 24, z + 50))}"/>`;
+        return `${sheet(x, y, z, w, dp, 24, { col: c })}${pages}${label}${elastic}`;
+      }).join('');
     } },
 
   { id: 'keyboard', cl: 'risk', z: 150, art: () => {
@@ -499,20 +539,38 @@ export const PROPS = [
 
 /* --- chair and the seated figure, foreground ------------------------------ */
 export const FOREGROUND = () => {
-  const z = -330, cx = 620;
+  /* Seated on the monitor's centre line, which is both where a person
+     actually sits and what keeps her clear of the left-hand cluster that
+     shot 3 zooms into. A seated head unavoidably overlaps the desk surface
+     from this camera; the choice is only what it overlaps. */
+  const z = -330, cx = 880;
 
-  /* ---- the operator, back three-quarter --------------------------------- */
-  const shoulders = [P(cx - 268, -200, z), P(cx - 226, 170, z), P(cx - 120, 286, z),
-                     P(cx - 44, 316, z), P(cx + 44, 316, z), P(cx + 120, 286, z),
-                     P(cx + 226, 170, z), P(cx + 268, -200, z)];
-  const neck = [P(cx - 46, 300, z), P(cx + 46, 300, z), P(cx + 40, 372, z), P(cx - 40, 372, z)];
-  const head = circle2(P(cx, 442, z), 94);
-  /* hair as a mass that sits ON the skull rather than replacing it */
-  const hair = [P(cx - 98, 430, z), P(cx - 104, 500, z), P(cx - 62, 548, z), P(cx, 560, z),
-                P(cx + 62, 548, z), P(cx + 104, 500, z), P(cx + 98, 430, z),
-                P(cx + 76, 476, z), P(cx + 30, 496, z), P(cx - 30, 496, z), P(cx - 76, 476, z)];
-  const strands = [-64, -32, 0, 32, 64].map(dx =>
-    `<path class="con" d="M${f(P(cx + dx, 546, z)[0])} ${f(P(cx + dx, 546, z)[1])} Q${f(P(cx + dx * 1.5, 490, z)[0])} ${f(P(cx + dx * 1.5, 490, z)[1])} ${f(P(cx + dx * 1.35, 440, z)[0])} ${f(P(cx + dx * 1.35, 440, z)[1])}"/>`).join('');
+  /* ---- the operator, back three-quarter ----------------------------------
+     Built the way a figure is constructed rather than as a circle on a blob:
+     an ovoid cranium (wider and higher at the back of the skull), a neck that
+     actually enters the collar, a yoke seam across the shoulders, and the
+     hair as a mass with a low bun — which is what reads from behind. */
+  const ov = (ccx, ccy, rx, ry, n = 64) =>
+    Array.from({ length: n }, (_, i) => {
+      const t = i / n * Math.PI * 2;
+      return P(ccx + rx * Math.cos(t), ccy + ry * Math.sin(t) + (Math.sin(t) > 0 ? ry * 0.10 : 0), z);
+    });
+
+  const shoulders = [P(cx - 274, -200, z), P(cx - 246, 120, z), P(cx - 176, 240, z),
+                     P(cx - 96, 292, z), P(cx - 44, 306, z), P(cx + 44, 306, z),
+                     P(cx + 96, 292, z), P(cx + 176, 240, z), P(cx + 246, 120, z),
+                     P(cx + 274, -200, z)];
+  const yoke = `<path class="con" d="M${f(P(cx - 236, 128, z)[0])} ${f(P(cx - 236, 128, z)[1])} Q${f(P(cx, 214, z)[0])} ${f(P(cx, 214, z)[1])} ${f(P(cx + 236, 128, z)[0])} ${f(P(cx + 236, 128, z)[1])}"/>`;
+  const collar = [P(cx - 92, 288, z), P(cx - 52, 330, z), P(cx + 52, 330, z), P(cx + 92, 288, z)];
+  const neck = [P(cx - 44, 296, z), P(cx + 44, 296, z), P(cx + 38, 376, z), P(cx - 38, 376, z)];
+  const head = ov(cx, 452, 92, 104);
+  const hair = [P(cx - 96, 402, z), P(cx - 112, 486, z), P(cx - 74, 556, z), P(cx, 574, z),
+                P(cx + 74, 556, z), P(cx + 112, 486, z), P(cx + 96, 402, z),
+                P(cx + 62, 452, z), P(cx, 470, z), P(cx - 62, 452, z)];
+  const bun = circle2(P(cx, 392, z), 54);
+  const strands = [-70, -36, 0, 36, 70].map(dx =>
+    `<path class="con" d="M${f(P(cx + dx * 0.5, 566, z)[0])} ${f(P(cx + dx * 0.5, 566, z)[1])} Q${f(P(cx + dx * 1.3, 500, z)[0])} ${f(P(cx + dx * 1.3, 500, z)[1])} ${f(P(cx + dx * 1.05, 428, z)[0])} ${f(P(cx + dx * 1.05, 428, z)[1])}"/>`).join('');
+  const skullCon = `<path class="cen" d="${line2(P(cx - 120, 452, z), P(cx + 120, 452, z))}"/>`;
 
   /* ---- task chair, seen from behind -------------------------------------- */
   const frame = [P(cx - 262, -430, z - 30), P(cx + 262, -430, z - 30), P(cx + 262, 40, z - 30),
@@ -531,13 +589,17 @@ export const FOREGROUND = () => {
   const lumbar = [P(cx - 236, -196, z - 26), P(cx + 236, -196, z - 26), P(cx + 236, -132, z - 26), P(cx - 236, -132, z - 26)];
 
   return `<g id="fg">
-    ${centre(cx, z, 320, 600)}
+    ${centre(cx, z, 300, 620)}
     <path class="solid" d="${poly(shoulders)}"/><path class="ol" d="${poly(shoulders)}"/>
-    <path class="con" d="${line2(P(cx - 190, 120, z), P(cx + 190, 120, z))}"/>
+    ${yoke}
     <path class="solid" d="${poly(neck)}"/><path class="vis" d="${poly(neck)}"/>
+    <path class="solid" d="${poly(collar)}"/><path class="vis" d="${poly(collar, false)}"/>
     <path class="solid" d="${poly(head)}"/><path class="ol" d="${poly(head)}"/>
+    ${skullCon}
     <path class="solid" d="${poly(hair)}"/><path class="ol" d="${poly(hair)}"/>
     ${strands}
+    <path class="solid" d="${poly(bun)}"/><path class="ol" d="${poly(bun)}"/>
+    <path class="con" d="${poly(circle2(P(cx, 392, z), 32))}"/>
     <path class="solid" d="${poly(frame)}"/><path class="ol" d="${poly(frame)}"/>
     <g class="con">${mesh.join('')}</g>
     <path class="solid" d="${poly(lumbar)}"/><path class="vis" d="${poly(lumbar)}"/>
