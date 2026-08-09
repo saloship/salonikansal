@@ -497,25 +497,69 @@ export const PROPS = [
           const dx = px - c[0], dz = pz - c[1];
           return P(c[0] + dx * Math.cos(rad) - dz * Math.sin(rad), y, c[1] + dx * Math.sin(rad) + dz * Math.cos(rad));
         });
-        return `<path class="solid" d="${poly(q)}"/><path class="col vis" style="--c:#d8a24a" d="${poly(q)}"/>`;
+        /* boarding pass: perforated stub, barcode, detail rules */
+        const at = (u, v) => {
+          const px = x + w * u, pz = z + dp * v, dx = px - c[0], dz = pz - c[1];
+          return P(c[0] + dx * Math.cos(rad) - dz * Math.sin(rad), y, c[1] + dx * Math.sin(rad) + dz * Math.cos(rad));
+        };
+        const bars = Array.from({ length: 11 }, (_, k) =>
+          `<path d="${line2(at(0.70 + k * 0.021, 0.24), at(0.70 + k * 0.021, 0.76))}"/>`).join('');
+        return `<path class="solid" d="${poly(q)}"/><path class="col vis" style="--c:#d8a24a" d="${poly(q)}"/>
+          <path class="hid" d="${line2(at(0.64, 0.02), at(0.64, 0.98))}"/>
+          <g class="con">${bars}
+            <path d="${line2(at(0.06, 0.30), at(0.40, 0.30))}"/>
+            <path d="${line2(at(0.06, 0.50), at(0.54, 0.50))}"/>
+            <path d="${line2(at(0.06, 0.70), at(0.32, 0.70))}"/>
+          </g>`;
       }).join('');
     } },
 
   { id: 'map', cl: 'travel', z: 40, art: () => {
-      const x = 1840, z = 40, w = 460, dp = 300;
-      /* part-open: two panels still folded up on the right */
-      const flat = [P(x, 4, z), P(x + w * .62, 4, z), P(x + w * .62, 4, z + dp), P(x, 4, z + dp)];
-      const fold = [P(x + w * .62, 4, z), P(x + w * .86, 74, z + 20), P(x + w * .86, 74, z + dp - 20), P(x + w * .62, 4, z + dp)];
+      const x = 1840, z = 40, w = 460, dp = 300, y = 4;
+      const at = (u, v) => P(x + w * u, y, z + dp * v);
+      const flat = [P(x, y, z), P(x + w * .62, y, z), P(x + w * .62, y, z + dp), P(x, y, z + dp)];
+      const fold = [P(x + w * .62, y, z), P(x + w * .86, 74, z + 20), P(x + w * .86, 74, z + dp - 20), P(x + w * .62, y, z + dp)];
+      /* contours: the lines that morph into the ridgeline in shot 7 */
       const contour = t => {
-        const pts = Array.from({ length: 18 }, (_, i) => {
-          const u = i / 17;
-          return P(x + 30 + u * (w * .56), 5, z + 40 + dp * .62 * (0.5 + 0.34 * Math.sin(u * 5.4 + t * 1.7)) - t * 26);
+        const pts = Array.from({ length: 26 }, (_, i) => {
+          const u = i / 25;
+          return P(x + 24 + u * (w * .54), y + 1, z + 34 + dp * .62 * (0.5 + 0.34 * Math.sin(u * 5.4 + t * 1.7)) - t * 24);
         });
         return `<path class="colstroke con" d="${poly(pts, false)}"/>`;
       };
+      /* fold creases — a map that has been opened is never flat */
+      const creases = [0.33, 0.66].map(v => `<path class="hid" d="${line2(at(0.02, v), at(0.60, v))}"/>`).join('')
+        + [0.21, 0.41].map(u => `<path class="hid" d="${line2(at(u, 0.03), at(u, 0.97))}"/>`).join('');
+      /* route with waypoints, a compass rose and a scale bar */
+      const route = poly([at(0.10, 0.82), at(0.22, 0.62), at(0.30, 0.66), at(0.42, 0.40), at(0.52, 0.24)], false);
+      const pins = [[0.10, 0.82], [0.30, 0.66], [0.52, 0.24]].map(([u, v]) =>
+        `<path class="col" style="--c:#c0563f" d="${poly(circle2(at(u, v), 7), 12)}"/>
+         <path class="vis" d="${poly(circle2(at(u, v), 7), 12)}"/>`).join('');
+      const rose = (() => {
+        const c = at(0.50, 0.86), r = 26;
+        return `<path class="vis" d="${poly(circle2(c, r))}"/>
+          <path class="cen" d="${line2([c[0] - r * 1.5, c[1]], [c[0] + r * 1.5, c[1]])}"/>
+          <path class="cen" d="${line2([c[0], c[1] - r * 1.5], [c[0], c[1] + r * 1.5])}"/>
+          <path class="ol" d="${poly([[c[0], c[1] - r], [c[0] + r * .3, c[1]], [c[0], c[1] + r * .3], [c[0] - r * .3, c[1]]])}"/>`;
+      })();
+      const scaleBar = (() => {
+        const a = at(0.06, 0.94), b = at(0.26, 0.94);
+        const seg = [0, 1, 2, 3].map(i => {
+          const t0 = i / 4, t1 = (i + 1) / 4;
+          const p0 = [a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0];
+          const p1 = [a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1];
+          return `<path class="${i % 2 ? 'solid' : 'vis'}" d="${poly([p0, p1, [p1[0], p1[1] - 7], [p0[0], p0[1] - 7]])}"/>
+                  <path class="vis" d="${poly([p0, p1, [p1[0], p1[1] - 7], [p0[0], p0[1] - 7]])}"/>`;
+        }).join('');
+        return seg;
+      })();
       return `<path class="solid" d="${poly(flat)}"/><path class="ol col" style="--c:#5d8a58" d="${poly(flat)}"/>
         <g style="--c:#4f7d4a">${[0, 1, 2, 3].map(contour).join('')}</g>
-        <path class="solid" d="${poly(fold)}"/><path class="vis" d="${poly(fold)}"/>`;
+        ${creases}
+        <path class="colstroke vis" style="--c:#c0563f" d="${route}"/>${pins}
+        ${rose}${scaleBar}
+        <path class="solid" d="${poly(fold)}"/><path class="ol" d="${poly(fold)}"/>
+        <path class="con" d="${line2(P(x + w * .74, 38, z + 20), P(x + w * .74, 38, z + dp - 20))}"/>`;
     } },
 
   { id: 'binoculars', cl: 'travel', z: 120, art: () => {
@@ -533,7 +577,21 @@ export const PROPS = [
           <path class="vis" d="${poly(circle2(n0, r - 10))}"/>
           <path class="col vis" style="--c:#2f4f5c" d="${poly(circle2(n0, r - 17))}"/>`;
       };
-      return `${box(1516, y - 16, cz + 40, 62, 32, 62, { nohidden: true })}${barrel(1478)}${barrel(1610)}`;
+      /* hinge bridge, focus wheel on its axis, dioptre ring, strap lugs */
+      const focus = (() => {
+        const c = P(1547, y + 30, cz + 78), r = 26;
+        return `<path class="solid" d="${poly(circle2(c, r))}"/><path class="vis" d="${poly(circle2(c, r))}"/>
+          ${knurl(1547, cz + 78, 26, y + 12, 36, 22)}
+          <path class="cen" d="${line2([c[0] - r * 1.7, c[1]], [c[0] + r * 1.7, c[1]])}"/>`;
+      })();
+      const lug = cx => `<path class="vis" d="${poly([P(cx - 8, y + 34, cz + 24), P(cx + 8, y + 34, cz + 24), P(cx + 8, y + 46, cz + 24), P(cx - 8, y + 46, cz + 24)])}"/>`;
+      return `${box(1516, y - 16, cz + 40, 62, 32, 62, { nohidden: true })}
+        ${barrel(1478)}${barrel(1610)}
+        ${focus}
+        ${lug(1436)}${lug(1652)}
+        <path class="con" d="${poly(circle2(P(1610, y, cz + 6), 18))}"/>
+        <path class="cen" d="${line2(P(1478, y, cz - 40), P(1478, y, cz + L + 30))}"/>
+        <path class="cen" d="${line2(P(1610, y, cz - 40), P(1610, y, cz + L + 30))}"/>`;
     } }
 ];
 
