@@ -1059,6 +1059,25 @@ export const FOREGROUND = () => {
   const lumbar = [P(cx - 210, -140, CZ - 44), P(cx + 210, -140, CZ - 44),
                   P(cx + 210, -76, CZ - 44), P(cx - 210, -76, CZ - 44)];
 
+  /* ---- seat, gas column and five-star base ------------------------------
+     The portrait view shows the chair whole, so it needs everything below the
+     backrest that the desktop crop happily cut off. Five arms at 72 degrees with one
+     pointing at the viewer, because that is what a task chair looks like from behind
+     and an even count would hide the middle one behind the column. */
+  const seat = rrectXZ(cx - 235, -300, CZ - 250, 470, 460, 40);
+  const column = cyl(cx, CZ - 20, 36, 250, FLOOR + 70, { nohidden: true })
+               + cyl(cx, CZ - 20, 52, 74, FLOOR + 60, { nohidden: true });
+
+  const star = Array.from({ length: 5 }, (_, i) => {
+    const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+    const ux = Math.cos(a), uz = Math.sin(a), px = -uz, pz = ux;
+    const r0 = 54, r1 = 320, w0 = 26, w1 = 15, y = FLOOR + 34;
+    const at = (r, w) => P(cx + ux * r + px * w, y, CZ - 20 + uz * r + pz * w);
+    const quad = poly([at(r0, w0), at(r1, w1), at(r1, -w1), at(r0, -w0)]);
+    return `<path class="solid" d="${quad}"/><path class="ol" d="${quad}"/>` +
+           cyl(cx + ux * r1, CZ - 20 + uz * r1, 27, 34, FLOOR, { nohidden: true });
+  }).join('');
+
   /* Draw order is depth order, and the chair is NEARER the camera than she is —
      she is sitting against it. So her body goes down first and the chair back
      paints over her lower torso, which is exactly what you see from behind a
@@ -1088,6 +1107,9 @@ export const FOREGROUND = () => {
     ${mesh(pony, 11, 8, { clip: ponySil })}
     <path class="ol" d="${ponySil}"/>
 
+    ${star}
+    ${column}
+    <path class="solid" d="${seat}"/><path class="ol" d="${seat}"/>
     ${chairArm(-1)}${chairArm(1)}
     <path class="solid" d="${backSil}"/>
     ${mesh(back, 9, 7, { clip: backSil })}
@@ -1098,19 +1120,33 @@ export const FOREGROUND = () => {
   </g>`;
 };
 
+/* Floor height. Everything below the desk top exists because the portrait view shows
+   the whole piece of furniture — legs, chair column, castors — where the desktop crop
+   only ever needed a table edge. */
+export const FLOOR = -700;
+
 /* --- room shell ----------------------------------------------------------- */
 export const ROOM = () => {
   const { x1: DX, z1: DZ } = DESK;
-  const wall = [P(-400, -200, 740), P(2600, -200, 740), P(2600, 900, 740), P(-400, 900, 740)];
-  const top  = [P(0, 0, 0), P(DX, 0, 0), P(DX, 0, DZ), P(0, 0, DZ)];
+  const wall = [P(-400, FLOOR, 740), P(2600, FLOOR, 740), P(2600, 900, 740), P(-400, 900, 740)];
+  const top   = [P(0, 0, 0), P(DX, 0, 0), P(DX, 0, DZ), P(0, 0, DZ)];
   const front = [P(0, 0, 0), P(DX, 0, 0), P(DX, -60, 0), P(0, -60, 0)];
+  const side  = [P(DX, 0, 0), P(DX, 0, DZ), P(DX, -60, DZ), P(DX, -60, 0)];
+
+  /* 58mm square legs, inset from the corners. Back pair first so the desk top occludes
+     them — draw order is depth order. Two dashed lines used to stand in for these,
+     which was enough for a tight crop and nothing like enough for a full view. */
+  const leg = (x, z) => box(x, FLOOR, z, 58, -60 - FLOOR, 58, { nohidden: true });
+
   return `
     <path id="wall" d="${poly(wall)}"/>
     <path class="con" d="${line2(P(-400, 0, 740), P(2600, 0, 740))}"/>
+    <path class="con" d="${line2(P(-400, FLOOR, 740), P(2600, FLOOR, 740))}"/>
+    ${leg(74, DZ - 132)}${leg(DX - 132, DZ - 132)}
+    ${leg(74, 74)}${leg(DX - 132, 74)}
     <path class="solid" d="${poly(top)}"/><path class="ol" d="${poly(top)}"/>
     <path class="solid" d="${poly(front)}"/><path class="ol" d="${poly(front)}"/>
-    <path class="hid" d="${line2(P(0, -60, 0), P(0, -560, 0))}"/>
-    <path class="hid" d="${line2(P(2050, -60, 0), P(2050, -560, 0))}"/>`;
+    <path class="solid" d="${poly(side)}"/><path class="vis" d="${poly(side)}"/>`;
 };
 
 /* --- assemble ------------------------------------------------------------- */

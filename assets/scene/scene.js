@@ -21,7 +21,7 @@
    =========================================================================== */
 
 import { buildScene, GRID_DEFS, P, VIEWBOX } from './desk.mjs';
-import { SHOTS, SHOTS_MOBILE, MORPHS, LAYERS, SHEET_W, ASPECT } from './shots.js';
+import { SHOTS, SHOTS_MOBILE, MORPHS, LAYERS, MOBILE_VIEW, SHEET_W, ASPECT } from './shots.js';
 
 /* Numeric interpolation between two `d` strings. Valid only when both have
    identical command structure — which desk.mjs guarantees by generating both
@@ -47,9 +47,8 @@ const smooth = t => t * t * (3 - 2 * t);
 
 export function mountScene(svg, { sheet = '', overlay = '', copy = null,
                                   sections = '#copy section', hold = 0.62 } = {}) {
-  svg.setAttribute('viewBox', VIEWBOX);
   svg.innerHTML = `${GRID_DEFS}
-    <rect class="gridbg" x="0" y="0" width="${SHEET_W}" height="${SHEET_H}" fill="url(#bp50)"/>
+    <rect class="gridbg" x="-800" y="-800" width="4400" height="4000" fill="url(#bp50)"/>
     <g id="camg"><g class="art" id="scene">${buildScene({ copy })}</g>${overlay}</g>
     <g class="sheet" id="furniture">${sheet}</g>`;
 
@@ -116,7 +115,21 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
      branch with the card straight over the drawing. One breakpoint, so the stacked
      layout, the portrait shot list and the glow all switch together. */
   function pickList() {
-    return matchMedia('(max-width: 900px)').matches ? SHOTS_MOBILE : SHOTS;
+    return isPortrait() ? SHOTS_MOBILE : SHOTS;
+  }
+
+  function isPortrait() { return matchMedia('(max-width: 900px)').matches; }
+
+  /* Portrait frames the whole room from its own viewBox and never transforms the camera;
+     landscape keeps the 16:10 sheet and flies across it. */
+  function applyViewport() {
+    const p = isPortrait();
+    svg.setAttribute('viewBox', p ? MOBILE_VIEW.join(' ') : VIEWBOX);
+    if (p) {
+      camg.style.transform = '';
+      for (const L of layers) L.el.style.transform = '';
+    }
+    return p;
   }
 
   /** Camera rect at fractional shot position p. */
@@ -132,12 +145,15 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
 
   function render(p) {
     const [x, y, w] = camAt(p);
-    const k = SHEET_W / w;
-    camg.style.transform = `scale(${k}) translate(${-x}px, ${-y}px)`;
+    const fixed = isPortrait();
 
-    const dx = (x + w / 2 - SHEET_W / 2) * PARALLAX;
-    const dy = (y + w / ASPECT / 2 - SHEET_H / 2) * PARALLAX * 0.5;
-    for (const L of layers) L.el.style.transform = `translate(${dx * L.w}px, ${dy * L.w}px)`;
+    if (!fixed) {
+      const k = SHEET_W / w;
+      camg.style.transform = `scale(${k}) translate(${-x}px, ${-y}px)`;
+      const dx = (x + w / 2 - SHEET_W / 2) * PARALLAX;
+      const dy = (y + w / ASPECT / 2 - SHEET_H / 2) * PARALLAX * 0.5;
+      for (const L of layers) L.el.style.transform = `translate(${dx * L.w}px, ${dy * L.w}px)`;
+    }
 
     /* colour belongs to the nearest shot; the CSS transition does the crossfade */
     const near = Math.round(p);
@@ -163,13 +179,18 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     }
 
     /* cull: a generous margin, because a half-visible object popping is worse
-       than drawing a few you cannot see */
-    const h = w / ASPECT, m = w * 0.15;
-    for (const o of objs) {
-      if (!o.box) continue;
-      const out = o.box[2] < x - m || o.box[0] > x + w + m
-               || o.box[3] < y - m || o.box[1] > y + h + m;
-      if (out === o.shown) { o.shown = !out; o.el.style.display = out ? 'none' : ''; }
+       than drawing a few you cannot see. Portrait shows the whole room at once, so
+       there is nothing off camera to cull and everything stays drawn. */
+    if (fixed) {
+      for (const o of objs) if (!o.shown) { o.shown = true; o.el.style.display = ''; }
+    } else {
+      const h = w / ASPECT, m = w * 0.15;
+      for (const o of objs) {
+        if (!o.box) continue;
+        const out = o.box[2] < x - m || o.box[0] > x + w + m
+                 || o.box[3] < y - m || o.box[1] > y + h + m;
+        if (out === o.shown) { o.shown = !out; o.el.style.display = out ? 'none' : ''; }
+      }
     }
     return near;
   }
@@ -237,6 +258,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
   addEventListener('resize', () => {
     const next = pickList();
     if (next !== list) { list = next; lastLit = -1; }
+    applyViewport();
     measure();
     schedule();
   }, { passive: true });
@@ -248,6 +270,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
   }
   addEventListener('load', () => { measure(); schedule(); });
 
+  applyViewport();
   measure();
   schedule();
 

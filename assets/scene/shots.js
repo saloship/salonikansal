@@ -82,6 +82,15 @@ export const SHOTS = [
   }
 ];
 
+/* PORTRAIT IS A FIXED FRAME.
+   The whole piece of furniture — wall to floor, desk legs, chair castors — measures
+   about 1700 x 1740 in sheet units, which is very nearly square and therefore right for
+   a phone. A transform cannot change the frame's ASPECT, only its scale and offset, so
+   portrait gets its own viewBox and no camera transform whatsoever.
+   That is deliberate rather than a limitation: on a phone the camera does not move at
+   all, and the story is told purely by which objects light up. */
+export const MOBILE_VIEW = [10, 262, 1720, 1748];
+
 /* Portrait is not the desktop list rescaled — that only ever gives you a wide
    drawing with its subject somewhere off to the side. Tighter crops, and the
    wide shots pull in to where the desk actually reads. */
