@@ -41,9 +41,12 @@ export const SHOTS = [
     beat: 'The notebook stack and the dated tickets read as a timeline.'
   },
   {
-    n: 4, id: 'method', title: 'Method', r: frameAt(980, [880, 320, 560]),
+    /* Framed to hold the monitor AND the paper pile. Centred on the screen alone,
+       the papers fell off the bottom edge — and they are the subject of the morph,
+       so the one thing the shot exists to show was happening out of frame. */
+    n: 4, id: 'method', title: 'Method', r: frameAt(880, [885, 165, 560]),
     lit: ['monitor', 'papers', 'stickies-bezel'],
-    beat: 'Hero morph: the loose workpapers resolve into the control table on screen.'
+    beat: 'Hero morph: the loose workpapers square up and resolve into the control table on screen.'
   },
   {
     n: 5, id: 'work', title: 'Work', r: frameAt(820, [1510, 200, 690]),
@@ -81,6 +84,21 @@ export const SHOTS_MOBILE = SHOTS.map(s => {
                  connect: [1000, 180, 400] };
   return { ...s, r: frameAt(tight[s.id], look[s.id]) };
 });
+
+/* The morph schedule. `in` is the 0-based shot the morph completes on; `out` is
+   where it releases, if it ever does.
+                                          0 hero  1 me  2 journey  3 method
+                                          4 work  5 statement  6 beyond  7 connect
+
+   The workpapers releasing at the Statement is the whole argument of this site
+   made visible: the grid you just watched assemble comes apart again, because
+   systems are predictable and humans are not. */
+export const MORPHS = [
+  { sel: '#p-papers', in: 3, out: 5,
+    beat: 'loose workpapers square up arriving at Method, and let go again at the Statement' },
+  { sel: '#p-map', in: 6,
+    beat: 'the map contours stand up into a ridgeline' }
+];
 
 /* Layer depth weights for parallax. The camera pans and the layers slide against
    each other by a fraction of that pan — which is what sells 2.5D, and costs

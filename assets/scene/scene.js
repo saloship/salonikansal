@@ -21,7 +21,21 @@
    =========================================================================== */
 
 import { buildScene, GRID_DEFS, P, VIEWBOX } from './desk.mjs';
-import { SHOTS, SHOTS_MOBILE, LAYERS, SHEET_W, ASPECT } from './shots.js';
+import { SHOTS, SHOTS_MOBILE, MORPHS, LAYERS, SHEET_W, ASPECT } from './shots.js';
+
+/* Numeric interpolation between two `d` strings. Valid only when both have
+   identical command structure — which desk.mjs guarantees by generating both
+   states from one function, and tools/check-morphs.mjs enforces at build time.
+   That guarantee is the entire reason this is ten lines and not a dependency. */
+const NUM = /-?\d*\.?\d+(?:e[-+]?\d+)?/gi;
+export function lerpPath(d0, d1, t) {
+  const b = d1.match(NUM);
+  let i = 0;
+  return d0.replace(NUM, a => {
+    const v = +a + (+b[i++] - +a) * t;
+    return Math.round(v * 100) / 100;
+  });
+}
 
 const SHEET_H = SHEET_W / ASPECT;
 const PARALLAX = 0.055;
@@ -63,8 +77,24 @@ export function mountScene(svg, { sheet = '', overlay = '' } = {}) {
     return { el, id: el.id.replace(/^p-/, ''), box, shown: true, lit: false };
   });
 
+  /* morph targets, resolved once */
+  const morphs = MORPHS.map(m => ({
+    ...m,
+    paths: [...svg.querySelectorAll(`${m.sel} [data-d0]`)]
+      .map(el => ({ el, d0: el.dataset.d0, d1: el.dataset.d1 })),
+    last: -1
+  })).filter(m => m.paths.length);
+
   let list = pickList();
   let lastLit = -1;
+
+  /** Morph progress: ramps in over the last three-quarters of the approach so the
+   *  change lands exactly as the camera settles, then holds until `out`. */
+  function morphT(m, p) {
+    const up = smooth(clamp01((p - (m.in - 0.75)) / 0.75));
+    if (m.out === undefined) return up;
+    return up * (1 - smooth(clamp01((p - (m.out - 0.75)) / 0.75)));
+  }
 
   function pickList() {
     return matchMedia('(max-width: 760px)').matches ? SHOTS_MOBILE : SHOTS;
@@ -102,6 +132,17 @@ export function mountScene(svg, { sheet = '', overlay = '' } = {}) {
       svg.dataset.shot = list[near]?.id || '';
     }
 
+    /* morphs. The endpoints are set from the stored strings rather than
+       interpolated, so a held state is exact and costs one attribute write. */
+    for (const m of morphs) {
+      const t = morphT(m, p);
+      if (Math.abs(t - m.last) < 0.004) continue;
+      m.last = t;
+      if (t <= 0.001) { for (const q of m.paths) q.el.setAttribute('d', q.d0); continue; }
+      if (t >= 0.999) { for (const q of m.paths) q.el.setAttribute('d', q.d1); continue; }
+      for (const q of m.paths) q.el.setAttribute('d', lerpPath(q.d0, q.d1, t));
+    }
+
     /* cull: a generous margin, because a half-visible object popping is worse
        than drawing a few you cannot see */
     const h = w / ASPECT, m = w * 0.15;
@@ -131,6 +172,18 @@ export function mountScene(svg, { sheet = '', overlay = '' } = {}) {
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
+  /* A backgrounded tab stops servicing requestAnimationFrame. If a frame was in
+     flight when that happened, `raf` stays truthy for ever and every later scroll
+     is swallowed by the guard — the camera silently stops following the page.
+     Clearing the flag on the way back is the whole fix. */
+  addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      schedule();
+    }
+  });
+
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', () => {
     const next = pickList();
@@ -141,6 +194,10 @@ export function mountScene(svg, { sheet = '', overlay = '' } = {}) {
   schedule();
 
   return {
+    /* Force a synchronous render from the current scroll position. Needed after a
+       layout change that moves the sections, and it is the only way to drive the
+       camera when requestAnimationFrame is not being serviced. */
+    update() { target = window.scrollY; tick(); },
     shots: () => list,
     goTo(n) { scrollTo({ top: (n - 1) * window.innerHeight, behavior: reduceMo ? 'auto' : 'smooth' }); },
     onShot(fn) { onShot = fn; schedule(); },

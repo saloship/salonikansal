@@ -144,6 +144,7 @@ document.getElementById('copy').innerHTML = SHOTS.map(s => {
 const cam = mountScene(document.getElementById('stage'), {
   sheet: sheetFurniture(2400, 1500)
 });
+window.__cam = cam;   // so the camera can be driven and inspected from the console
 
 /* rail */
 const rail = document.getElementById('rail');

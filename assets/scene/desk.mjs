@@ -612,27 +612,48 @@ export const PROPS = [
     } },
 
   { id: 'papers', cl: 'risk', z: 372, art: () => {
-      /* three sheets, each a few degrees off — used often, not messy */
-      const s = [[650, 345, 0], [666, 357, 6], [658, 351, -5]];
-      return s.map(([x, z, r], i) => {
-        const w = 290, dp = 190, rad = r * Math.PI / 180, y = 2 + i * 2.6;
-        const c = [x + w / 2, z + dp / 2];
-        const rot = (px, pz) => { const dx = px - c[0], dz = pz - c[1]; return [c[0] + dx * Math.cos(rad) - dz * Math.sin(rad), c[1] + dx * Math.sin(rad) + dz * Math.cos(rad)]; };
-        const q = [[x, z], [x + w, z], [x + w, z + dp], [x, z + dp]].map(([px, pz]) => { const [rx, rz] = rot(px, pz); return P(rx, y, rz); });
-        if (i !== 2) return `<path class="solid" d="${poly(q)}"/><path class="vis" d="${poly(q)}"/>`;
-        /* top sheet carries the actual workpaper: a ruled control table with a
-           header rule, a tick column and a highlighted finding row */
+      /* SHOT 4'S HERO MORPH. Three sheets a few degrees off — used often, not
+         messy — that square up as the camera arrives.
+
+         Both states are produced by the SAME function with different arguments,
+         so their path structure matches by construction. That is what lets the
+         interpolator be ten lines of numeric lerp instead of a morph library, and
+         check-morphs.mjs enforces the match at build time regardless. */
+      const w = 290, dp = 190;
+      const LOOSE = [[650, 345, 0], [666, 357, 6], [658, 351, -5]];
+      const TIDY  = [[652, 349, 0], [656, 351, 0], [660, 353, 0]];
+
+      /* one sheet -> an ordered list of [class, d, extraAttrs] */
+      const sheet = ([x, z, r], i) => {
+        const rad = r * Math.PI / 180, y = 2 + i * 2.6, c = [x + w / 2, z + dp / 2];
+        const rot = (px, pz) => {
+          const dx = px - c[0], dz = pz - c[1];
+          return [c[0] + dx * Math.cos(rad) - dz * Math.sin(rad),
+                  c[1] + dx * Math.sin(rad) + dz * Math.cos(rad)];
+        };
         const at = (u, v) => { const [px, pz] = rot(x + w * u, z + dp * v); return P(px, y, pz); };
+        const q = poly([at(0, 0), at(1, 0), at(1, 1), at(0, 1)]);
+        if (i !== 2) return [['solid', q, ''], ['vis', q, '']];
+
+        /* the top sheet carries the actual workpaper: a ruled control table with
+           a header rule, a tick column and one highlighted finding */
         const rows = [0.22, 0.34, 0.46, 0.58, 0.70, 0.82];
-        const grid = rows.map(t => `<path d="${line2(at(0.07, t), at(0.93, t))}"/>`).join('')
-          + [0.20, 0.33].map(u => `<path d="${line2(at(u, 0.14), at(u, 0.90))}"/>`).join('');
-        const ticks = rows.slice(0, 5).map((t, k) =>
-          `<path d="${line2(at(0.10, t + 0.04), at(0.13, t + 0.07))}"/><path d="${line2(at(0.13, t + 0.07), at(0.18, t - 0.02))}"/>`).join('');
-        return `<path class="solid" d="${poly(q)}"/><path class="ol" d="${poly(q)}"/>
-          <path class="vis" d="${line2(at(0.07, 0.14), at(0.93, 0.14))}"/>
-          <g class="con">${grid}${ticks}</g>
-          <path class="col" style="--c:#e8c24a" d="${poly([at(0.07, 0.58), at(0.93, 0.58), at(0.93, 0.70), at(0.07, 0.70)])}"/>`;
-      }).join('');
+        const out = [['solid', q, ''], ['ol', q, ''],
+                     ['vis', line2(at(0.07, 0.14), at(0.93, 0.14)), '']];
+        for (const t of rows) out.push(['con', line2(at(0.07, t), at(0.93, t)), '']);
+        for (const u of [0.20, 0.33]) out.push(['con', line2(at(u, 0.14), at(u, 0.90)), '']);
+        for (const t of rows.slice(0, 5)) {
+          out.push(['con', line2(at(0.10, t + 0.04), at(0.13, t + 0.07)), '']);
+          out.push(['con', line2(at(0.13, t + 0.07), at(0.18, t - 0.02)), '']);
+        }
+        out.push(['col', poly([at(0.07, 0.58), at(0.93, 0.58), at(0.93, 0.70), at(0.07, 0.70)]),
+                  ' style="--c:#e8c24a"']);
+        return out;
+      };
+
+      const A = LOOSE.flatMap(sheet), B = TIDY.flatMap(sheet);
+      return A.map(([cls, d, extra], k) =>
+        `<path class="${cls}"${extra} data-d0="${d}" data-d1="${B[k][1]}" d="${d}"/>`).join('');
     } },
 
   { id: 'mug', cl: 'general', z: 420, art: () => {
@@ -794,14 +815,27 @@ export const PROPS = [
       const at = (u, v) => P(x + w * u, y, z + dp * v);
       const flat = [P(x, y, z), P(x + w * .62, y, z), P(x + w * .62, y, z + dp), P(x, y, z + dp)];
       const fold = [P(x + w * .62, y, z), P(x + w * .86, 74, z + 20), P(x + w * .86, 74, z + dp - 20), P(x + w * .62, y, z + dp)];
-      /* contours: the lines that morph into the ridgeline in shot 7 */
-      const contour = t => {
+      /* SHOT 7'S HERO MORPH. Four contour lines lying flat on the map that stand
+         up into a ridgeline — a system of measurements becoming a mountain.
+         Both states come out of one generator at the same point count, so the
+         structure matches by construction. */
+      const cline = (t, ridge) => {
         const pts = Array.from({ length: 26 }, (_, i) => {
-          const u = i / 25;
-          return P(x + 24 + u * (w * .54), y + 1, z + 34 + dp * .62 * (0.5 + 0.34 * Math.sin(u * 5.4 + t * 1.7)) - t * 24);
+          const u = i / 25, px = x + 24 + u * (w * .54);
+          if (!ridge) {
+            return P(px, y + 1,
+                     z + 34 + dp * .62 * (0.5 + 0.34 * Math.sin(u * 5.4 + t * 1.7)) - t * 24);
+          }
+          /* overall mass times a run of peaks; further ridges sit lower and
+             further back, which is how layered hills actually read */
+          const mass = Math.sin(u * Math.PI);
+          const teeth = 0.52 + 0.48 * Math.sin(u * 9.2 + t * 1.9);
+          return P(px, y + 34 + 250 * mass * teeth * (1 - t * 0.17), z + 150 + t * 34);
         });
-        return `<path class="colstroke con" d="${poly(pts, false)}"/>`;
+        return poly(pts, false);
       };
+      const contour = t =>
+        `<path class="colstroke con" data-d0="${cline(t, false)}" data-d1="${cline(t, true)}" d="${cline(t, false)}"/>`;
       /* fold creases — a map that has been opened is never flat */
       const creases = [0.33, 0.66].map(v => `<path class="hid" d="${line2(at(0.02, v), at(0.60, v))}"/>`).join('')
         + [0.21, 0.41].map(u => `<path class="hid" d="${line2(at(u, 0.03), at(u, 0.97))}"/>`).join('');
