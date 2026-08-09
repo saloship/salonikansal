@@ -567,19 +567,20 @@ export const PROPS = [
 
   { id: 'monitor', cl: 'risk', z: 560, art: (ctx = {}) => {
       const X = 600, Y = 146, Z = 560, W = 560, H = 340, D = 26;
-      /* If copy is supplied the screen shows the actual document, at full length.
-         The abstract dashboard is the fallback for the check tools, which build the
-         scene without any copy. */
+      /* The screen carries BOTH states and cross-fades between them: the dashboard
+         is what is normally up on her monitor, and the document only comes forward
+         at the Method shot. A monitor permanently displaying a table of contents
+         would be a slide, not a desk. CSS does the swap off `data-shot`, so nothing
+         is rebuilt and the camera never stalls. */
       const doc = ctx.copy && ctx.copy.monitor;
-      const body = doc
-        ? screenText(X + 26, Y + 50, Z, W - 52, H - 84, [
+      const body = `<g class="scr-dash">${dashboard(X + 26, Y + 50, Z, W - 52, H - 84)}</g>`
+        + (doc ? `<g class="scr-doc">${screenText(X + 26, Y + 50, Z, W - 52, H - 84, [
             { t: doc.title.toUpperCase(), size: 15, cls: 'scr-h', gap: 4 },
             ...doc.items.flatMap(i => [
               { t: i.k, size: 12, cls: 'scr-k', gap: 7 },
               { t: i.v, size: 10, cls: 'scr-v', indent: 26 }
             ])
-          ])
-        : dashboard(X + 26, Y + 50, Z, W - 52, H - 84);
+          ])}</g>` : '');
       return `
       ${centre(880, 560, -40, 640)}
       <!-- base: cable channel, rubber feet, tilt scale. Sits at z 560 so the
@@ -1124,7 +1125,10 @@ export function buildScene(ctx = {}) {
     const art = p.art(ctx);
     const b = probeEnd();
     const foot = b ? `${Math.round(b.x0)} ${Math.round(b.z0)} ${Math.round(b.x1)} ${Math.round(b.z1)} ${Math.round(b.y1)}` : '';
-    return `<g class="obj" id="p-${p.id}" data-cl="${p.cl}" data-foot="${foot}">${art}</g>`;
+    /* the art sits in an inner group so hover can lift it without moving the outer
+       group, which is what the camera, the culling and the hit target key off */
+    return `<g class="obj" id="p-${p.id}" data-cl="${p.cl}" data-foot="${foot}">` +
+           `<g class="ob">${art}</g></g>`;
   }).join('\n');
 
   return `<g id="L-room">${ROOM()}</g>

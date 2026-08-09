@@ -119,6 +119,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art .scr-k{font-weight:500}
 .obj.lit .scr{fill:#173254;opacity:1}
 .obj.lit .scr-v{opacity:.78}
+
+/* the monitor's two screen states — dashboard normally, the document at Method */
+.scr-dash,.scr-doc{transition:opacity 550ms ease}
+.scr-doc{opacity:0;pointer-events:none}
+#stage[data-shot="method"] .scr-dash{opacity:0}
+#stage[data-shot="method"] .scr-doc{opacity:1}
 .art .col{fill:none;transition:fill 600ms ease}
 .art .colstroke{transition:stroke 600ms ease,opacity 600ms ease}
 .obj.lit .col{fill:var(--c)}
@@ -142,6 +148,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   #copy .card{box-shadow:0 24px 56px -20px rgba(0,0,0,.62),
                          0 0 0 1px rgba(120,224,240,.16),
                          0 0 48px -8px rgba(120,224,240,.18)}
+}
+
+/* HOVER — the desk should feel touchable rather than printed.
+   The lift is a transition rather than a keyframe loop on purpose: an infinite bob
+   cut off by mouse-out snaps back, whereas a transition eases out from wherever it
+   got to. The curve is the same expressive one the dialog spec calls for. */
+.hit{fill:transparent;stroke:none;pointer-events:all;cursor:pointer}
+.obj .ob{transition:transform 440ms cubic-bezier(.16,1,.3,1);
+         transform-box:fill-box;transform-origin:50% 100%}
+.obj:hover .ob{transform:translateY(-11px) scale(1.014) rotate(-.35deg)}
+@media (prefers-reduced-motion:reduce){
+  .obj .ob{transition:none}
+  .obj:hover .ob{transform:none}
 }
 
 /* layers get their own transform for parallax; will-change keeps them composited */

@@ -73,6 +73,19 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null } = {}) 
         if (py > d) d = py;
       }
       box = [a, b, c, d];
+
+      /* A transparent hit rect, because this drawing is almost all unfilled
+         strokes — hovering a 1.3px line is a game of skill, not an interaction.
+         Appended last so it sits on top WITHIN its own object; objects nearer the
+         camera come later in the document, so their hit areas correctly win over
+         the ones behind them. */
+      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      hit.setAttribute('class', 'hit');
+      hit.setAttribute('x', a.toFixed(1));
+      hit.setAttribute('y', b.toFixed(1));
+      hit.setAttribute('width', Math.max(1, c - a).toFixed(1));
+      hit.setAttribute('height', Math.max(1, d - b).toFixed(1));
+      el.appendChild(hit);
     }
     return { el, id: el.id.replace(/^p-/, ''), box, shown: true, lit: false };
   });
