@@ -24,6 +24,11 @@
   --bp-ground:#122a45; --bp-ink:#e3edf8; --bp-con:#e3edf8;
   --bp-grid:rgba(227,237,248,.085); --bp-grid-b:rgba(227,237,248,.15);
   --bp-fill:#122a45; --bp-wall:#17324f;
+  /* ILLUMINATION. On a portrait screen a deep zoom into a wide drawing is
+     awkward, so lighting an object in place has to carry what the zoom carries on
+     desktop. It also gives the copy panel and the drawing a SHARED LIGHT SOURCE,
+     which is the thing that stops them reading as two separate worlds. */
+  --lit-line:#c4f3fc; --glow-1:rgba(120,224,240,.50); --glow-2:rgba(120,224,240,.24);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -45,8 +50,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    header field carrying the item reference. It is meant to read as one more
    annotation on the blueprint. */
 #copy .card{pointer-events:auto;max-width:47ch;position:relative;
-            background:var(--paper);border:1px solid var(--rule);
-            box-shadow:0 24px 56px -20px rgba(0,0,0,.62);
+            /* 94% rather than solid, so the grid whispers through and the panel
+               reads as part of the sheet instead of floating over it; plus a faint
+               cyan rim so it sits in the SAME LIGHT as the illuminated objects.
+               A first move on the two-worlds problem, not the whole answer. */
+            background:rgba(242,245,249,.94);backdrop-filter:blur(3px);
+            border:1px solid var(--rule);
+            box-shadow:0 24px 56px -20px rgba(0,0,0,.62),
+                       0 0 0 1px rgba(120,224,240,.16),
+                       0 0 48px -8px rgba(120,224,240,.18);
             padding:26px 30px 24px;color:var(--card-ink-2)}
 #copy .card::before{content:"";position:absolute;inset:5px;
                     border:1px solid var(--rule-2);pointer-events:none}
@@ -82,6 +94,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art .colstroke{transition:stroke 600ms ease,opacity 600ms ease}
 .obj.lit .col{fill:var(--c)}
 .obj.lit .colstroke{stroke:var(--c);opacity:1}
+
+/* An illuminated object: its linework goes to a bright cyan-white and blooms, as
+   if the drawing itself were backlit. The object still takes its own real colour —
+   the glow is the LIGHT, the colour is the THING, and they are separate ideas. */
+.art .obj{transition:filter 700ms ease}
+.obj.lit{filter:drop-shadow(0 0 4px var(--glow-1)) drop-shadow(0 0 14px var(--glow-2))}
+.obj.lit .ol,.obj.lit .vis{stroke:var(--lit-line);transition:stroke 700ms ease}
+.obj.lit .con,.obj.lit .cen{stroke:var(--lit-line);opacity:.6}
+.no-glow .obj.lit{filter:none}
 
 /* layers get their own transform for parallax; will-change keeps them composited */
 #L-room,#L-wall,#L-back,#L-front,#L-fg{will-change:transform}
