@@ -88,12 +88,14 @@ export const SHOTS = [
        the screen and sat right over against the far edge, so the panel and the subject were
        separated by a void. At 900 it fills a third and lands about 100px from the panel — near
        enough to read as one composition, not so near that they touch.
-       Panel LEFT at her instruction, so the bias flips to put the stack on the RIGHT of the
-       frame. 0.76 rather than the usual 0.68, tuned by measuring the gap: 0.68 left the
-       notebooks 30px off the card and 0.72 only reached 40px, which still reads as touching.
-       0.76 opens it to a clear but adjacent ~60px. */
+       Panel LEFT at her instruction, so the bias puts the stack on the RIGHT of the frame. 0.66,
+       and the number is a compromise between two forces pulling opposite ways: the gap to the
+       card (0.68 left the books 30px off it, which reads as touching) and the award paperwork now
+       sliding out from under the stack on its right — at 0.76 that paperwork was pushed clean off
+       the frame, so the detail existed and could not be seen. 0.66 keeps ~78px of air AND brings
+       the certificates back into shot. */
     n: 3, id: 'journey', title: 'Journey', side: 'l',
-    r: frameAt(900, [210, 40, 140], 0.76, BY),
+    r: frameAt(900, [210, 40, 140], 0.66, BY),
     lit: ['notebooks'],
     beat: 'The notebook stack and the dated tickets read as a timeline.'
   },

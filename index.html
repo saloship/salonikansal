@@ -175,17 +175,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    fading background over a blurred box still leaves the blur ending on a hard horizontal line
    straight across the drawing. Masking the element fades the blur itself out, so the effect
    arrives gradually and there is no edge to see. */
-#copy section[data-side="b"]::before{content:"";position:absolute;left:0;right:0;bottom:0;
-    /* 38%, down from 66%. Two thirds of the screen washed out is not a light source, it is a
-       fog bank — it dimmed the whole lower desk when all it needs to do is give the words a
-       ground to sit on. This reaches just above the block of text and stops. */
-    height:38%;pointer-events:none;z-index:0;backdrop-filter:blur(3px);
-    background:linear-gradient(to top,rgba(236,230,216,.94),rgba(236,230,216,.8) 58%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 64%,transparent);
-    mask-image:linear-gradient(to top,#000 64%,transparent)}
+/* THE WASH IS BOUND TO THE TEXT, not to a percentage of the viewport. Sized as a fraction of the
+   screen it was both too weak where the words are and too wide overall: the eyebrow line sat up
+   in the part of the gradient that had already faded to nothing, so "LET'S BUILD SOMETHING
+   MEANINGFUL" was unreadable over the binoculars, while the band still reached a third of the way
+   up the desk. Anchored to the card it covers exactly the text it needs to — 44px above the first
+   line, 34 below the last — at any viewport, and can therefore be strong: .97 opacity and 6px of
+   blur across the body of it, fading out only in the last sixth. Full-bleed horizontally so it
+   reads as light on the sheet rather than a slab behind the words. */
 #copy section[data-side="b"] .card{position:relative;z-index:1;width:min(62ch,88vw);
     background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}
-#copy section[data-side="b"] .card::before{display:none}
+#copy section[data-side="b"] .card::before{display:block;content:"";position:absolute;
+    /* right:auto is load-bearing — the generic .card::before sets inset:5px, and a stray
+       right:5px fights the 100vw width and silently collapses the band. */
+    left:calc(50% - 50vw);right:auto;width:100vw;top:-44px;bottom:-34px;
+    z-index:-1;pointer-events:none;border:0;backdrop-filter:blur(6px);
+    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
+    mask-image:linear-gradient(to top,#000 84%,transparent)}
 #copy section[data-side="b"] .tag{justify-content:center;border-bottom:0;margin-bottom:8px}
 #copy section[data-side="b"] .links{justify-content:center;margin-top:20px}
 #copy section[data-side="b"] .card h2{font-size:clamp(26px,3.6vw,44px)}
@@ -389,13 +396,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 #closing{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-end;
          justify-content:center;text-align:center;
          padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px)}
-/* The wash is a band at the bottom, not a filter on the whole 100vh block — same reasoning and
-   same measurements as the connect section above, so the two closing beats read as one idea. */
-#closing::before{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;
-    pointer-events:none;z-index:0;backdrop-filter:blur(3px);
-    background:linear-gradient(to top,rgba(236,230,216,.94),rgba(236,230,216,.8) 58%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 64%,transparent);
-    mask-image:linear-gradient(to top,#000 64%,transparent)}
+/* Bound to its own text, for the same reason and with the same numbers as the connect wash, so
+   the two closing beats are one idea rather than two similar effects. */
+.cl-in::before{content:"";position:absolute;left:calc(50% - 50vw);right:auto;width:100vw;
+    top:-44px;bottom:-34px;z-index:-1;pointer-events:none;backdrop-filter:blur(6px);
+    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
+    mask-image:linear-gradient(to top,#000 84%,transparent)}
 /* 34ch broke the sign-off into five stubby lines. At 48ch it lands in two or three, which is
    what a spoken line should look like. relative/z-index keeps it above the wash band. */
 .cl-in{max-width:min(48ch,88vw);position:relative;z-index:1}
@@ -1105,20 +1112,36 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
             <path d="M1334.62 1075.94 L1424.69 1067.15"/>
             <path d="M1337.62 1065.77 L1386.4 1061.01"/>
           </g></g></g>
-<g class="obj" id="p-notebooks" data-cl="journey" data-foot="60 40 360 250 76"><g class="ob">
+<g class="obj" id="p-notebooks" data-cl="journey" data-foot="60 30 514 284 79"><g class="ob">
+          <path class="solid" d="M263.56 1134.52 L417.64 1134.52 L450.9 1072.74 L296.82 1072.74 Z"/><path class="ol" d="M263.56 1134.52 L417.64 1134.52 L450.9 1072.74 L296.82 1072.74 Z"/>
+          <path class="con" d="M295.7 1095.93 L426.74 1095.93"/><path class="con" d="M289.72 1107.05 L420.76 1107.05"/><path class="con" d="M283.73 1118.17 L414.77 1118.17"/>
     <path class="solid" d="M93.28 1114 L309.28 1114 L362.2 1015.72 L146.2 1015.72 Z"/>
     <path class="ol col" style="--c:#cf9a6d" d="M93.28 1114 L309.28 1114 L362.2 1015.72 L146.2 1015.72 Z"/>
-    <path class="vis" d="M93.28 1131.28 L93.28 1114 L309.28 1114 L309.28 1131.28"/><g class="con"><path d="M149.08 1028.68 L359.32 1028.68"/><path d="M149.08 1025.08 L359.32 1025.08"/><path d="M149.08 1021.48 L359.32 1021.48"/></g><path class="con" d="M112.79 1101.83 L184.79 1101.83 L196.89 1079.37 L124.89 1079.37 Z"/>
-          <path class="con" d="M126.04 1090.6 L182.2 1090.6"/>
+    <path class="vis" d="M93.28 1131.28 L93.28 1114 L309.28 1114 L309.28 1131.28"/><g class="con"><path d="M149.08 1029.4 L359.32 1029.4"/><path d="M149.08 1026.52 L359.32 1026.52"/><path d="M149.08 1023.64 L359.32 1023.64"/><path d="M149.08 1020.76 L359.32 1020.76"/><path d="M149.08 1017.88 L359.32 1017.88"/>
+          <path d="M310.79 1123.43 L360.69 1030.77"/><path d="M310.79 1117.67 L360.69 1025.01"/></g><path class="vis" d="M105.09 1112.13 L155.99 1017.59"/>
+          <path class="con" d="M110.63 1111.19 L160.53 1018.53"/><path class="con" d="M121.43 1101.83 L207.83 1101.83 L222.45 1074.69 L136.05 1074.69 Z"/>
+          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 139.72 1080.95)" font-size="20">2020</text>
+          <text class="scr" transform="matrix(0.72 0 -0.25 0.47 133.17 1093.12)" font-size="10">B.TECH IT</text><path class="vis" d="M236.92 1032.28 L249.88 1032.28 L262.77 1016.37 L249.81 1016.37 Z"/>
     <path class="solid" d="M100.55 1092.47 L307.91 1092.47 L358.82 997.94 L151.46 997.94 Z"/>
     <path class="ol col" style="--c:#5fa8ad" d="M100.55 1092.47 L307.91 1092.47 L358.82 997.94 L151.46 997.94 Z"/>
-    <path class="vis" d="M100.55 1109.75 L100.55 1092.47 L307.91 1092.47 L307.91 1109.75"/><g class="con"><path d="M154.34 1010.9 L355.94 1010.9"/><path d="M154.34 1007.3 L355.94 1007.3"/><path d="M154.34 1003.7 L355.94 1003.7"/></g><path class="con" d="M120.06 1080.3 L192.06 1080.3 L204.16 1057.84 L132.16 1057.84 Z"/>
-          <path class="con" d="M133.31 1069.07 L189.47 1069.07"/>
+    <path class="vis" d="M100.55 1109.75 L100.55 1092.47 L307.91 1092.47 L307.91 1109.75"/><g class="con"><path d="M154.34 1011.62 L355.94 1011.62"/><path d="M154.34 1008.74 L355.94 1008.74"/><path d="M154.34 1005.86 L355.94 1005.86"/><path d="M154.34 1002.98 L355.94 1002.98"/><path d="M154.34 1000.1 L355.94 1000.1"/>
+          <path d="M309.42 1101.9 L357.3 1012.98"/><path d="M309.42 1096.14 L357.3 1007.22"/></g><path class="vis" d="M112.36 1090.6 L161.25 999.81"/>
+          <path class="con" d="M117.9 1089.66 L165.78 1000.74"/><path class="con" d="M128.7 1080.3 L215.1 1080.3 L229.72 1053.16 L143.32 1053.16 Z"/>
+          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 146.99 1059.42)" font-size="20">2022</text>
+          <text class="scr" transform="matrix(0.72 0 -0.25 0.47 140.44 1071.59)" font-size="10">DESIGN</text>
     <path class="solid" d="M107.82 1070.94 L306.54 1070.94 L355.43 980.15 L156.71 980.15 Z"/>
     <path class="ol col" style="--c:#c07a92" d="M107.82 1070.94 L306.54 1070.94 L355.43 980.15 L156.71 980.15 Z"/>
-    <path class="vis" d="M107.82 1088.22 L107.82 1070.94 L306.54 1070.94 L306.54 1088.22"/><g class="con"><path d="M159.59 993.11 L352.55 993.11"/><path d="M159.59 989.51 L352.55 989.51"/><path d="M159.59 985.91 L352.55 985.91"/></g><path class="con" d="M127.34 1058.78 L199.34 1058.78 L211.43 1036.31 L139.43 1036.31 Z"/>
-          <path class="con" d="M140.58 1047.54 L196.74 1047.54"/><path class="vis" d="M254.88 1070.94 L303.76 980.15"/>
-             <path class="vis" d="M279.32 1042.83 L279.32 1025.55"/></g></g>
+    <path class="vis" d="M107.82 1088.22 L107.82 1070.94 L306.54 1070.94 L306.54 1088.22"/><g class="con"><path d="M159.59 993.83 L352.55 993.83"/><path d="M159.59 990.95 L352.55 990.95"/><path d="M159.59 988.07 L352.55 988.07"/><path d="M159.59 985.19 L352.55 985.19"/><path d="M159.59 982.31 L352.55 982.31"/>
+          <path d="M308.06 1080.38 L353.92 995.2"/><path d="M308.06 1074.62 L353.92 989.44"/></g><path class="vis" d="M119.63 1069.07 L166.5 982.02"/>
+          <path class="con" d="M125.18 1068.14 L171.04 982.96"/><path class="con" d="M135.98 1058.78 L222.38 1058.78 L236.99 1031.63 L150.59 1031.63 Z"/>
+          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 154.26 1037.9)" font-size="20">2024</text>
+          <text class="scr" transform="matrix(0.72 0 -0.25 0.47 147.71 1050.06)" font-size="10">TECH RISK</text><path class="vis" d="M240.17 996.71 L252.1 996.71 L264.64 980.8 L252.72 980.8 Z"/><path class="vis" d="M254.88 1070.94 L303.76 980.15"/>
+             <path class="vis" d="M279.32 1042.83 L279.32 1025.55"/>
+          <path class="solid" d="M144.4 1028.32 L291.28 1028.32 L323.54 968.42 L176.66 968.42 Z"/><path class="ol" d="M144.4 1028.32 L291.28 1028.32 L323.54 968.42 L176.66 968.42 Z"/>
+          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 183.57 979.07)" font-size="13">SMART INDIA</text><text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 178.28 988.9)" font-size="13">HACKATHON 2024</text><text class="scr" transform="matrix(0.72 0 -0.25 0.47 172.98 998.73)" font-size="10">FINALIST</text>
+          <path class="vis" d="M285.52 1009.17 L285.94 1008.27 L286.24 1007.38 L286.42 1006.5 L286.46 1005.65 L286.38 1004.82 L286.17 1004.02 L285.84 1003.26 L285.38 1002.55 L284.8 1001.89 L284.11 1001.28 L283.31 1000.73 L282.4 1000.25 L281.4 999.84 L280.31 999.49 L279.13 999.22 L277.89 999.03 L276.58 998.91 L275.22 998.87 L273.82 998.91 L272.39 999.03 L270.94 999.22 L269.47 999.49 L268.01 999.84 L266.56 1000.25 L265.14 1000.73 L263.75 1001.28 L262.4 1001.89 L261.11 1002.55 L259.88 1003.26 L258.73 1004.02 L257.67 1004.82 L256.69 1005.65 L255.81 1006.5 L255.04 1007.38 L254.38 1008.27 L253.84 1009.17 L253.42 1010.07 L253.12 1010.96 L252.94 1011.83 L252.9 1012.69 L252.98 1013.52 L253.19 1014.32 L253.52 1015.07 L253.98 1015.79 L254.56 1016.45 L255.25 1017.06 L256.05 1017.6 L256.96 1018.08 L257.96 1018.5 L259.05 1018.84 L260.23 1019.11 L261.47 1019.31 L262.78 1019.42 L264.14 1019.46 L265.54 1019.42 L266.97 1019.31 L268.42 1019.11 L269.89 1018.84 L271.35 1018.5 L272.8 1018.08 L274.22 1017.6 L275.61 1017.06 L276.96 1016.45 L278.25 1015.79 L279.48 1015.07 L280.63 1014.32 L281.69 1013.52 L282.67 1012.69 L283.55 1011.83 L284.32 1010.96 L284.98 1010.07 Z"/>
+          <path class="con" d="M280.48 1009.17 L280.77 1008.56 L280.97 1007.95 L281.09 1007.35 L281.12 1006.77 L281.07 1006.2 L280.92 1005.66 L280.69 1005.14 L280.38 1004.66 L279.99 1004.2 L279.52 1003.79 L278.97 1003.42 L278.35 1003.09 L277.67 1002.81 L276.93 1002.57 L276.13 1002.39 L275.28 1002.25 L274.39 1002.17 L273.46 1002.15 L272.5 1002.17 L271.53 1002.25 L270.54 1002.39 L269.54 1002.57 L268.54 1002.81 L267.55 1003.09 L266.58 1003.42 L265.63 1003.79 L264.72 1004.2 L263.84 1004.66 L263 1005.14 L262.22 1005.66 L261.49 1006.2 L260.82 1006.77 L260.23 1007.35 L259.7 1007.95 L259.25 1008.56 L258.88 1009.17 L258.59 1009.78 L258.39 1010.39 L258.27 1010.98 L258.24 1011.57 L258.29 1012.13 L258.44 1012.68 L258.67 1013.19 L258.98 1013.68 L259.37 1014.13 L259.84 1014.55 L260.39 1014.92 L261.01 1015.25 L261.69 1015.53 L262.43 1015.76 L263.23 1015.95 L264.08 1016.08 L264.97 1016.16 L265.9 1016.19 L266.86 1016.16 L267.83 1016.08 L268.82 1015.95 L269.82 1015.76 L270.82 1015.53 L271.81 1015.25 L272.78 1014.92 L273.73 1014.55 L274.64 1014.13 L275.52 1013.68 L276.36 1013.19 L277.14 1012.68 L277.87 1012.13 L278.54 1011.57 L279.13 1010.98 L279.66 1010.39 L280.11 1009.78 Z"/>
+          <g class="con"><path d="M280.48 1009.17 L285.52 1009.17"/><path d="M280.92 1005.66 L286.17 1004.02"/><path d="M278.35 1003.09 L282.4 1000.25"/><path d="M273.46 1002.15 L275.22 998.87"/><path d="M267.55 1003.09 L266.56 1000.25"/><path d="M262.22 1005.66 L258.73 1004.02"/><path d="M258.88 1009.17 L253.84 1009.17"/><path d="M258.44 1012.68 L253.19 1014.32"/><path d="M261.01 1015.25 L256.96 1018.08"/><path d="M265.9 1016.19 L264.14 1019.46"/><path d="M271.81 1015.25 L272.8 1018.08"/><path d="M277.14 1012.68 L280.63 1014.32"/></g></g></g>
 <g class="obj" id="p-phone" data-cl="general" data-foot="1290 20 1366 178 9"><g class="ob">
       <path class="solid" d="M983.2 1134.16 L1019.2 1134.16 Q1028.56 1134.16 1031.84 1128.08 L1065.1 1066.3 Q1068.38 1060.22 1059.02 1060.22 L1023.02 1060.22 Q1013.66 1060.22 1010.38 1066.3 L977.12 1128.08 Q973.84 1134.16 983.2 1134.16 Z"/>
       <path class="ol" d="M983.2 1134.16 L1019.2 1134.16 Q1028.56 1134.16 1031.84 1128.08 L1065.1 1066.3 Q1068.38 1060.22 1059.02 1060.22 L1023.02 1060.22 Q1013.66 1060.22 1010.38 1066.3 L977.12 1128.08 Q973.84 1134.16 983.2 1134.16 Z"/>

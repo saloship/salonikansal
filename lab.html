@@ -139,17 +139,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    fading background over a blurred box still leaves the blur ending on a hard horizontal line
    straight across the drawing. Masking the element fades the blur itself out, so the effect
    arrives gradually and there is no edge to see. */
-#copy section[data-side="b"]::before{content:"";position:absolute;left:0;right:0;bottom:0;
-    /* 38%, down from 66%. Two thirds of the screen washed out is not a light source, it is a
-       fog bank — it dimmed the whole lower desk when all it needs to do is give the words a
-       ground to sit on. This reaches just above the block of text and stops. */
-    height:38%;pointer-events:none;z-index:0;backdrop-filter:blur(3px);
-    background:linear-gradient(to top,rgba(236,230,216,.94),rgba(236,230,216,.8) 58%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 64%,transparent);
-    mask-image:linear-gradient(to top,#000 64%,transparent)}
+/* THE WASH IS BOUND TO THE TEXT, not to a percentage of the viewport. Sized as a fraction of the
+   screen it was both too weak where the words are and too wide overall: the eyebrow line sat up
+   in the part of the gradient that had already faded to nothing, so "LET'S BUILD SOMETHING
+   MEANINGFUL" was unreadable over the binoculars, while the band still reached a third of the way
+   up the desk. Anchored to the card it covers exactly the text it needs to — 44px above the first
+   line, 34 below the last — at any viewport, and can therefore be strong: .97 opacity and 6px of
+   blur across the body of it, fading out only in the last sixth. Full-bleed horizontally so it
+   reads as light on the sheet rather than a slab behind the words. */
 #copy section[data-side="b"] .card{position:relative;z-index:1;width:min(62ch,88vw);
     background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}
-#copy section[data-side="b"] .card::before{display:none}
+#copy section[data-side="b"] .card::before{display:block;content:"";position:absolute;
+    /* right:auto is load-bearing — the generic .card::before sets inset:5px, and a stray
+       right:5px fights the 100vw width and silently collapses the band. */
+    left:calc(50% - 50vw);right:auto;width:100vw;top:-44px;bottom:-34px;
+    z-index:-1;pointer-events:none;border:0;backdrop-filter:blur(6px);
+    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
+    mask-image:linear-gradient(to top,#000 84%,transparent)}
 #copy section[data-side="b"] .tag{justify-content:center;border-bottom:0;margin-bottom:8px}
 #copy section[data-side="b"] .links{justify-content:center;margin-top:20px}
 #copy section[data-side="b"] .card h2{font-size:clamp(26px,3.6vw,44px)}
@@ -353,13 +360,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 #closing{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-end;
          justify-content:center;text-align:center;
          padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px)}
-/* The wash is a band at the bottom, not a filter on the whole 100vh block — same reasoning and
-   same measurements as the connect section above, so the two closing beats read as one idea. */
-#closing::before{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;
-    pointer-events:none;z-index:0;backdrop-filter:blur(3px);
-    background:linear-gradient(to top,rgba(236,230,216,.94),rgba(236,230,216,.8) 58%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 64%,transparent);
-    mask-image:linear-gradient(to top,#000 64%,transparent)}
+/* Bound to its own text, for the same reason and with the same numbers as the connect wash, so
+   the two closing beats are one idea rather than two similar effects. */
+.cl-in::before{content:"";position:absolute;left:calc(50% - 50vw);right:auto;width:100vw;
+    top:-44px;bottom:-34px;z-index:-1;pointer-events:none;backdrop-filter:blur(6px);
+    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
+    mask-image:linear-gradient(to top,#000 84%,transparent)}
 /* 34ch broke the sign-off into five stubby lines. At 48ch it lands in two or three, which is
    what a spoken line should look like. relative/z-index keeps it above the wash band. */
 .cl-in{max-width:min(48ch,88vw);position:relative;z-index:1}
