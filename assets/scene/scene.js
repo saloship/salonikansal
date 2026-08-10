@@ -46,7 +46,8 @@ const clamp01 = t => (t < 0 ? 0 : t > 1 ? 1 : t);
 const smooth = t => t * t * (3 - 2 * t);
 
 export function mountScene(svg, { sheet = '', overlay = '', copy = null,
-                                  sections = '#copy section', hold = 0.62 } = {}) {
+                                  sections = '#copy section', hold = 0.62,
+                                  details = [], onDetail = null } = {}) {
   svg.innerHTML = `${GRID_DEFS}
     <rect class="gridbg" x="-800" y="-800" width="4400" height="4000" fill="url(#bp50)"/>
     <g id="camg"><g class="art" id="scene">${buildScene({ copy })}</g>${overlay}</g>
@@ -89,6 +90,30 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     }
     return { el, id: el.id.replace(/^p-/, ''), box, shown: true, lit: false };
   });
+
+  /* Objects that own detail get a drafting-style callout marker and become tappable.
+     Without a marker nothing tells you the drawing is interactive, and an interaction
+     nobody can see is the same as not having one. */
+  const detailSet = new Set(details);
+  for (const o of objs) {
+    if (!detailSet.has(o.id) || !o.box) continue;
+    o.el.classList.add('has-detail');
+    const [x0, y0, x1] = o.box;
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'mark');
+    g.innerHTML =
+      `<circle class="mark-r" cx="${(x1 - 14).toFixed(1)}" cy="${(y0 + 14).toFixed(1)}" r="15"/>` +
+      `<path class="mark-p" d="M${(x1 - 22).toFixed(1)} ${(y0 + 14).toFixed(1)}h16` +
+      `M${(x1 - 14).toFixed(1)} ${(y0 + 6).toFixed(1)}v16"/>`;
+    o.el.appendChild(g);
+  }
+
+  if (onDetail) {
+    svg.addEventListener('click', e => {
+      const g = e.target.closest && e.target.closest('.obj.has-detail');
+      if (g) onDetail(g.id.replace(/^p-/, ''));
+    });
+  }
 
   /* morph targets, resolved once */
   const morphs = MORPHS.map(m => ({

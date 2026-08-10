@@ -225,6 +225,64 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 
 /* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
+/* ---- objects that own detail ------------------------------------------- */
+/* A drafting callout marker. Something has to say the drawing is interactive; an
+   interaction nobody can see is the same as not having one. */
+.art .mark-r{fill:none;stroke:var(--bp-ink);stroke-width:1.4;opacity:.55}
+.art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.6;opacity:.75}
+.obj.has-detail{cursor:pointer}
+.obj.lit .mark-r{opacity:1;fill:var(--sun)}
+.obj.lit .mark-p{stroke:var(--navy);opacity:1}
+@media (prefers-reduced-motion:no-preference){
+  .obj.lit .mark{animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.16)}}
+}
+.mark{transform-box:fill-box;transform-origin:50% 50%}
+
+/* ---- detail view ------------------------------------------------------- */
+/* Built to the motion spec: the panel morphs out of the object that was tapped, the
+   drawing behind it fades and scales DOWN so it reads as pushed back, and the rows
+   unfold on a stagger. Closing reverses it, and a nudge of scroll is enough to trigger
+   that — per the spec, a 20px delta. */
+#det{position:fixed;inset:0;z-index:9;display:grid;place-items:center;
+     padding:max(18px,4vh) max(14px,4vw);background:rgba(9,22,38,.62);
+     backdrop-filter:blur(3px)}
+#det[hidden]{display:none}
+#det-panel{position:relative;width:min(62ch,100%);max-height:88vh;overflow:auto;
+           background:var(--paper);border:1px solid var(--rule);
+           box-shadow:0 40px 90px -30px rgba(0,0,0,.7);padding:26px 28px 24px;
+           color:var(--card-ink-2)}
+#det-panel::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule-2);
+                   pointer-events:none}
+#det-panel > *{position:relative}
+#det-x{position:absolute;right:9px;top:6px;width:34px;height:34px;border:0;
+       background:transparent;font-size:24px;line-height:1;cursor:pointer;
+       color:var(--card-ink);opacity:.55}
+#det-x:hover{opacity:1}
+#det h3{font-family:'Fraunces',Georgia,serif;font-size:clamp(21px,3.4vw,29px);line-height:1.15;
+        font-weight:600;margin:0 0 14px;color:var(--card-ink)}
+#det-body dl{margin:0;display:grid;gap:2px}
+#det-body dt{font-size:14.5px;font-weight:600;color:var(--card-ink);margin-top:15px}
+#det-body dd{margin:2px 0 0;font-size:14px;line-height:1.55;color:var(--card-ink-2)}
+#det-body .dmeta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+                 color:var(--card-ink);opacity:.55;margin-top:16px;font-weight:400}
+#det-body .drole{font-size:12.5px;color:var(--card-ink);opacity:.75}
+#det-body .dlearn{font-style:italic}
+#det-body .dnote{margin-top:16px;padding-top:13px;border-top:1px solid var(--rule-2);
+                 font-size:13.5px}
+#det-body .dnote a{color:var(--card-ink)}
+/* Satellites slide in staggered, but they are VISIBLE BY DEFAULT and animated from
+   script. Gating them on a class hidden behind requestAnimationFrame meant content that
+   only appeared if an animation frame landed — and a frame that never lands is content
+   nobody can read. Fail-safe ordering: readable first, animated second. */
+/* The drawing pushes back while the detail is open. Set from script rather than by a
+   body class, so there is no cascade to lose an argument with.
+   Note there is deliberately NO overflow lock: the spec wants a scroll GESTURE to trigger
+   the close, and locking the scroll means no scroll event ever fires, so the gesture that
+   was supposed to dismiss it did nothing at all. */
+#stage-wrap{transition:transform 520ms cubic-bezier(.16,1,.3,1),opacity 520ms ease}
+@media (prefers-reduced-motion:reduce){#stage-wrap{transition:none}}
+
 /* ---- the stuck typewriter panel (portrait only) ------------------------- */
 #tw{display:none}
 @media (max-width:900px){
@@ -324,6 +382,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   <p id="tw-b"></p>
 </div>
 
+<!-- Detail view. Opens from the object you tapped and pushes the drawing back behind it. -->
+<div id="det" hidden>
+  <div id="det-panel" role="dialog" aria-modal="true" aria-labelledby="det-t">
+    <button id="det-x" aria-label="Close">×</button>
+    <div class="tag"><span class="eyebrow" id="det-e"></span><span class="ref" id="det-r"></span></div>
+    <h3 id="det-t"></h3>
+    <div id="det-body"></div>
+  </div>
+</div>
+
 <nav id="rail" aria-label="Sections"></nav>
 <nav id="mobar" aria-label="Quick links"></nav>
 <div id="msheet" aria-label="Jump to a section"></div>
@@ -399,9 +467,17 @@ document.getElementById('copy').innerHTML = SHOTS.map(s => {
    headlines reads as thin, and thin does not earn anyone's trust — so the six audit
    steps are ON the monitor, readable once the camera arrives, rather than trimmed
    to a summary in the panel. */
+/* object id -> the section whose deep content it owns */
+const DETAIL_OF = Object.fromEntries(
+  Object.entries(SECTIONS)
+    .filter(([, s]) => s.deep && s.deep.on)
+    .map(([id, s]) => [s.deep.on, id]));
+
 const cam = mountScene(document.getElementById('stage'), {
   sheet: sheetFurniture(2400, 1500, { words: KEYWORDS }),
-  copy: { monitor: SECTIONS.method.deep }
+  copy: { monitor: SECTIONS.method.deep },
+  details: Object.keys(DETAIL_OF),
+  onDetail: openDetail
 });
 window.__cam = cam;   // so the camera can be driven and inspected from the console
 
@@ -455,6 +531,127 @@ addEventListener('scroll', () => msheet.classList.remove('open'), { passive: tru
 const bar = document.getElementById('bar');
 const hud = document.getElementById('hud');
 const btns = [...rail.querySelectorAll('button')];
+
+/* ---- detail view --------------------------------------------------------
+   The motion is the spec Saloni supplied: the panel morphs out of the object that was
+   tapped, the drawing behind it scales down and fades so it reads as pushed back, and
+   the rows unfold on a 60ms stagger. Closing reverses it, and a 20px scroll delta is
+   enough to trigger that.
+
+   The morph is a FLIP: measure the object, measure where the panel lands, then animate
+   the panel FROM the transform that would map it onto the object TO its resting place.
+   Which means the panel has to be laid out before it can be animated, so it is shown
+   first and the animation is applied on the same frame. */
+const det = document.getElementById('det');
+const detPanel = document.getElementById('det-panel');
+const detEls = { e: document.getElementById('det-e'), r: document.getElementById('det-r'),
+                 t: document.getElementById('det-t'), b: document.getElementById('det-body') };
+let detOpen = null, detScrollAt = 0;
+
+function detailRows(d) {
+  const row = (cls, tag, html, i) =>
+    `<${tag} class="row ${cls}" style="--d:${60 + i * 60}ms;--from:${i % 2 ? '16px' : '-16px'}">${html}</${tag}>`;
+  let i = 0;
+  const out = d.items.map(it => {
+    const parts = [];
+    if (it.d) parts.push(row('dmeta', 'dt', it.d, i));
+    parts.push(row('', 'dt', it.k, i));
+    if (it.r) parts.push(row('drole', 'dd', it.r, i));
+    parts.push(row('', 'dd', it.v, i));
+    if (it.learned) parts.push(row('dlearn', 'dd', 'Learned: ' + it.learned, i));
+    i++;
+    return parts.join('');
+  }).join('');
+  const extras = (d.lessons ? d.lessons.map(l => row('dlearn', 'dd', '— ' + l, i++)).join('') : '')
+    + (d.note ? row('dnote', 'p', d.note, i++) : '')
+    + (d.link ? row('dnote', 'p', `<a href="${d.link.href}">${d.link.label} →</a>`, i++) : '');
+  return `<dl>${out}</dl>${extras}`;
+}
+
+function openDetail(objId) {
+  const secId = DETAIL_OF[objId];
+  const sec = SECTIONS[secId];
+  if (!sec || !sec.deep) return;
+  const n = SHOTS.findIndex(s => s.id === secId) + 1;
+
+  detEls.e.textContent = sec.panel.eyebrow;
+  detEls.r.textContent = `SK-01 · ${pad(n)}/${pad(SHOTS.length)} · DETAIL`;
+  detEls.t.textContent = sec.deep.title || sec.deep.label;
+  detEls.b.innerHTML = detailRows(sec.deep);
+
+  const hit = document.querySelector(`#p-${objId} .hit`);
+  const from = hit && hit.getBoundingClientRect();
+
+  det.hidden = false;
+  document.body.classList.add('det-open');
+  const sw = document.getElementById('stage-wrap');
+  sw.style.transform = 'scale(.93)';
+  sw.style.opacity = '.4';
+  detOpen = objId;
+  detScrollAt = window.scrollY;
+
+  if (from && from.width && !matchMedia('(prefers-reduced-motion:reduce)').matches) {
+    const to = detPanel.getBoundingClientRect();
+    const sx = Math.max(from.width / to.width, 0.08);
+    const sy = Math.max(from.height / to.height, 0.08);
+    const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+    const dy = (from.top + from.height / 2) - (to.top + to.height / 2);
+    detPanel.animate(
+      [{ transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})`, opacity: 0 },
+       { transform: 'none', opacity: 1 }],
+      { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' });
+
+    /* The satellites unfold from behind the panel, sides alternating. The whole stagger
+       is capped at 330ms regardless of row count: `fill: backwards` holds a row invisible
+       until its delay elapses, and with fifteen rows at a fixed 55ms step the last one
+       would sit blank for nearly a second — a long time to be betting on animations
+       actually running. No forwards fill, so a finished row returns to its own visible
+       style rather than being held by the animation. */
+    const rows = detEls.b.querySelectorAll('.row');
+    const step = rows.length > 1 ? 330 / (rows.length - 1) : 0;
+    rows.forEach((r, i) => r.animate(
+      [{ opacity: 0, transform: `translateX(${i % 2 ? 16 : -16}px)` },
+       { opacity: 1, transform: 'none' }],
+      { duration: 400, delay: 80 + i * step, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' }));
+  }
+  document.getElementById('det-x').focus({ preventScroll: true });
+}
+
+function closeDetail() {
+  if (!detOpen) return;
+  const hit = document.querySelector(`#p-${detOpen} .hit`);
+  const from = hit && hit.getBoundingClientRect();
+  detOpen = null;
+  document.body.classList.remove('det-open');
+  const sw = document.getElementById('stage-wrap');
+  sw.style.transform = '';
+  sw.style.opacity = '';
+
+  const done = () => { det.hidden = true; };
+  if (from && from.width && !matchMedia('(prefers-reduced-motion:reduce)').matches) {
+    const to = detPanel.getBoundingClientRect();
+    const sx = Math.max(from.width / to.width, 0.08);
+    const sy = Math.max(from.height / to.height, 0.08);
+    const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+    const dy = (from.top + from.height / 2) - (to.top + to.height / 2);
+    const a = detPanel.animate(
+      [{ transform: 'none', opacity: 1 },
+       { transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})`, opacity: 0 }],
+      { duration: 380, easing: 'cubic-bezier(.16,1,.3,1)' });
+    a.onfinish = done;
+  } else done();
+}
+
+document.getElementById('det-x').addEventListener('click', closeDetail);
+det.addEventListener('click', e => { if (e.target === det) closeDetail(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+/* a nudge closes it — the spec asks for a 20px delta, not a full page scroll */
+addEventListener('wheel', e => { if (detOpen && Math.abs(e.deltaY) > 20) closeDetail(); },
+                 { passive: true });
+addEventListener('touchmove', () => { if (detOpen) closeDetail(); }, { passive: true });
+addEventListener('scroll', () => {
+  if (detOpen && Math.abs(window.scrollY - detScrollAt) > 20) closeDetail();
+}, { passive: true });
 
 /* ---- the typewriter -----------------------------------------------------
    One stuck panel whose text is replaced by typing rather than by scrolling. A token
