@@ -109,17 +109,19 @@ export function bom(x, y, w, rowH = 30) {
     const ry = y - rowH * (i + 1);
     return `
       <path class="sh-line" d="${L(x, ry, x + w, ry)}"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="${it.id}" data-cl="${it.cl}" role="link" tabindex="0"
-         aria-label="${it.desc} — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="${it.id}" data-cl="${it.cl}" role="link" tabindex="0">
         <path class="bomhit" d="${R(x, ry, w, rowH)}"/>
         <path class="bomlit" d="${R(x + 1, ry + 1, w - 2, rowH - 2)}"/>
-        <text class="sh-v" aria-hidden="true" x="${f(x + cN / 2)}" y="${f(ry + 21)}" text-anchor="middle">${it.n}</text>
-        <text class="sh-v" aria-hidden="true" x="${f(x + cQ / 2 + cN)}" y="${f(ry + 21)}" text-anchor="middle">${it.qty}</text>
+        <text class="sh-v" x="${f(x + cN / 2)}" y="${f(ry + 21)}" text-anchor="middle">${it.n}</text>
+        <text class="sh-v" x="${f(x + cQ / 2 + cN)}" y="${f(ry + 21)}" text-anchor="middle">${it.qty}</text>
         <text class="sh-v" x="${f(x + cN + cQ + 12)}" y="${f(ry + 21)}">${it.desc}</text>
       </g>`;
   }).join('');

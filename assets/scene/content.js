@@ -62,7 +62,11 @@ export const SECTIONS = {
          should have been. A reader cannot tell four months from fourteen years
          without a date, and dates are the load-bearing wall of credibility. */
       head: 'The short version.',
-      body: '2020 B.Tech IT · 2022 UI/UX and product · 2024 tech risk at EY. Each chapter still shows up in how I work.'
+      /* Said out loud rather than tabulated. The facts are identical — 2020, 2022, 2024, the
+         degree, the discipline, the employer — but a row of dates separated by middots is a
+         CV field, and this page is meant to sound like her talking. The dates stay because
+         they are the load-bearing credibility; they just stopped being a data string. */
+      body: 'I started out in IT in 2020, spent 2022 designing interfaces, and landed in tech risk at EY in 2024. All three still show up in how I work.'
     },
     deep: {
       on: 'notebooks', label: 'The long version',
@@ -125,7 +129,11 @@ export const SECTIONS = {
     panel: {
       eyebrow: 'The work',
       head: 'What I do, in the language of the field.',
-      body: 'Real EY engagements, client names anonymised — the headline and the keywords a recruiter is scanning for.'
+      /* Was "the headline and the keywords a recruiter is scanning for" — which is me
+         explaining the page's own strategy to the reader. Nobody talks like that about their
+         own work, and naming the tactic out loud undercuts it. This says the same thing as
+         her: four real engagements, names kept out, ask for the detail. */
+      body: 'Four engagements at EY, with client names kept out of it. These are the short versions — ask me for the long one and I’ll happily talk you through it.'
     },
     deep: {
       on: 'laptop', label: 'Four engagements',
@@ -231,4 +239,19 @@ export const OBJECT_SECTION = {
 };
 
 /* The hero opens on "control and chaos" and v1's last line landed on it again. */
+/* THE ENDING.
+   The page used to stop: the last panel scrolled away and the reader was handed a small grey
+   credit line. v1 does not end that way — it ends warm, and the warmth is the last thing a
+   reader takes with them.
+
+   Both halves are her own words, borrowed from the two ends of her own site: the hero opens
+   with "Living between control and chaos" and the footer signs off "somewhere between control
+   and chaos", so closing on it is the page returning to where it started rather than a new
+   claim bolted on. The second clause is the invitation from her connect section, said once
+   more at full size — because an invitation set in 10px mono is not an invitation.
+
+   Rendered large and bold on the paper ground, after the drawing has done its work. */
+export const CLOSING = 'Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.';
+export const CLOSING_SUB = 'Risk, product, design, or the next trail. Say hi.';
+
 export const FOOTER = 'Made by Saloni Kansal · with ♥, somewhere between control and chaos';

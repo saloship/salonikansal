@@ -46,25 +46,54 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* TRUE BLUEPRINT — reversed print. The drawing is white line on navy, and the
-     copy sits on a piece of sheet laid over it. That is what fixes the contrast:
-     the text now holds the strongest value on the page instead of competing with
-     the linework at the same lightness. */
-  --navy:#122a45; --navy-2:#17324f;
-  --paper:#f2f5f9; --rule:#1b3958; --rule-2:#c6d4e5;
-  --card-ink:#132437; --card-ink-2:#485d76;
-  --sun:#f5c518; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
-  /* lighter lines on a dark ground bloom, so every weight comes down from the
-     values that were right on white — 2.6 outline reads fat here */
-  --w-ol:2.1; --w-vis:1.25; --w-hid:1.0; --w-con:0.9;
-  --bp-ground:#122a45; --bp-ink:#e3edf8; --bp-con:#e3edf8;
-  --bp-grid:rgba(227,237,248,.085); --bp-grid-b:rgba(227,237,248,.15);
-  --bp-fill:#122a45; --bp-wall:#17324f; --bp-case:#0d2038;
-  /* ILLUMINATION. On a portrait screen a deep zoom into a wide drawing is
-     awkward, so lighting an object in place has to carry what the zoom carries on
-     desktop. It also gives the copy panel and the drawing a SHARED LIGHT SOURCE,
-     which is the thing that stops them reading as two separate worlds. */
-  --lit-line:#c4f3fc; --glow-1:rgba(120,224,240,.50); --glow-2:rgba(120,224,240,.24);
+  /* ARCHIVAL PAGE — navy line on warm paper, with brass as the single accent.
+     One ground, everywhere. The previous scheme was a reversed print (white line on
+     navy) and it worked, but it forced the copy onto a separate white card that read
+     as a different world from the drawing. On one warm ground the panel is a lighter
+     leaf of the SAME paper, so the seam that kept showing up simply is not there.
+
+     Brass replaces the yellow. Yellow at full chroma on cream goes acid and pulls
+     harder than the linework it is meant to punctuate; brass is the same idea with
+     the volume down, and it belongs to the drafting-instrument world the page is
+     already borrowing from. Used only for accents — never for body text, where it
+     could not hold 4.5:1 on paper. */
+  --ink:#1e3a5f; --ink-deep:#12294a;
+  --paper:#faf7f0; --rule:#1e3a5f; --rule-2:#ded4c0;
+  --card-ink:#17293f; --card-ink-2:#55606d;
+  --brass:#a97e2f; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  /* UNIFIED LINE WEIGHT. Dark line on paper does not bloom the way light line on navy
+     does, so every weight comes down AND closes up: the outline was 2.1 against a 0.9
+     construction line, more than 2x, which made objects read as bold cartoon outlines
+     with faint scaffolding inside. Held within a third of each other they read as one
+     drawing made with one pen. */
+  --w-ol:1.5; --w-vis:1.15; --w-hid:0.95; --w-con:0.85;
+  --bp-ground:#ece6d8; --bp-ink:#28486e; --bp-con:#28486e;
+  --bp-grid:rgba(30,58,95,.075); --bp-grid-b:rgba(30,58,95,.14);
+  /* --bp-fill MUST equal --bp-ground: it is the occluding fill that hides the linework
+     behind a solid object, so any difference paints a visible silhouette block. */
+  /* Wall EQUALS the ground, which is what "cohesive" has to mean here. Carried over from the
+     dark scheme it was four values off, and on navy that was invisible; on paper the same
+     four values drew a hard rectangular seam across the top of the drawing, with the wall's
+     right edge running down the page like a join between two sheets. The wall is now defined
+     by its linework alone — which is how a drawing defines a plane anyway. */
+  --bp-fill:#ece6d8; --bp-wall:#ece6d8; --bp-case:#e4ddcc;
+  /* ILLUMINATION. On a portrait screen a deep zoom into a wide drawing is awkward, so
+     lighting an object in place has to carry what the zoom carries on desktop.
+     On paper "lit" cannot mean a bright line — there is nothing brighter than the
+     ground. So it means the ink goes to full strength while the rest of the drawing
+     stays a wash, and the bloom is brass rather than cyan: warm light in a vitrine,
+     and the same light the panel is lit by. */
+  --lit-line:#12294a; --glow-1:rgba(169,126,47,.42); --glow-2:rgba(169,126,47,.16);
+  /* Surfaces and shadows, tokenised because the theme flip found the same four literal
+     colours copied into eight rules — every one of which had to be hunted down by hand. */
+  --panel:rgba(250,247,240,.94);          /* the copy panel: a lighter leaf of the ground */
+  --panel-2:rgba(250,247,240,.96);
+  --lift:0 18px 40px -18px rgba(30,58,95,.22);     /* paper lifting off paper, not a hole */
+  --lift-2:0 26px 58px -22px rgba(30,58,95,.26);
+  --mark-hl:rgba(169,126,47,.30);         /* the marker pen under an emphasised word */
+  --chip:rgba(250,247,240,.78); --chip-br:rgba(30,58,95,.26);
+  --scrim:rgba(24,38,58,.42);              /* dims the drawing so the dialog is the page */
+  --halo:rgba(30,58,95,.13); --halo-2:rgba(30,58,95,.085); --halo-3:rgba(30,58,95,.055);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -73,7 +102,12 @@ html{scroll-behavior:smooth}
    which breaks position:sticky on every descendant — it is what un-pinned the desk. The
    circle is drawn as gradients inside a viewport-sized element instead, so nothing is
    oversized and there is no horizontal overflow to suppress in the first place. */
-body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--bp-ink);
+/* --bp-ground, NOT --paper. The page and the drawing have to be the same sheet. With the
+   body on the lighter panel white and the stage on the cream, the drawing sat in a visibly
+   different tone from the page around it and the stage's own edge became a seam — the exact
+   "two worlds" problem, reintroduced by the theme flip in a new place. --paper is one step
+   lighter and belongs to the panels, which is what makes them read as a leaf laid on top. */
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:var(--card-ink);
      line-height:1.6;-webkit-font-smoothing:antialiased}
 
 /* ---- the pinned drawing --------------------------------------------------
@@ -98,9 +132,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
                panel reads as part of the drawing instead of floating over it. This
                part is not light-dependent, so it holds on desktop too — a first
                move on the two-worlds problem, not the whole answer. */
-            background:rgba(242,245,249,.94);backdrop-filter:blur(3px);
+            background:var(--panel);backdrop-filter:blur(3px);
             border:1px solid var(--rule);
-            box-shadow:0 24px 56px -20px rgba(0,0,0,.62);
+            box-shadow:var(--lift);
             padding:26px 30px 24px;color:var(--card-ink-2)}
 #copy .card::before{content:"";position:absolute;inset:5px;
                     border:1px solid var(--rule-2);pointer-events:none}
@@ -119,7 +153,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .card p{font-size:15px;color:var(--card-ink-2)}
 .card .beat{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--card-ink);
             opacity:.5;margin-top:15px;padding-top:12px;border-top:1px solid var(--rule-2)}
-.card em{font-style:normal;background:linear-gradient(transparent 62%,rgba(245,197,24,.55) 62%)}
+.card em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
 
 .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .lnk{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-decoration:none;
@@ -167,9 +201,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.38}
 .art .solid{fill:var(--bp-fill);stroke:none}
 .art #wall{fill:var(--bp-wall);stroke:none}
-/* the case reads as a box because its planes take different light: back wall lightest,
-   side walls and ceiling darker as they turn away from the viewer */
-.art .casewall{fill:var(--bp-case);stroke:none}
+/* THE VITRINE IS A PHONE IDEA, so its planes are filled only where the vitrine exists.
+   The case was built for the portrait hero — a desk inside a lit display case — and on
+   desktop there is no case, just a drawing. Filling its three planes there painted a
+   darker rectangle across the top of the sheet with a hard vertical join running down the
+   page, which looked exactly like two sheets butted together. Invisible on navy at four
+   values apart; unmissable on paper. Portrait re-enables it below. */
+.art .casewall{fill:none;stroke:none}
 /* the halo sets its own per-ring opacity inline, so it needs to escape .con's */
 .art .halo{fill:none;opacity:1;stroke-width:1.6}
 .art *{vector-effect:non-scaling-stroke}
@@ -189,7 +227,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art .scr-k{font-weight:500}
 .art .scr-n{font-style:italic}
 .obj.lit .scr-n{opacity:.72}
-.obj.lit .scr{fill:#173254;opacity:1}
+.obj.lit .scr{fill:var(--ink-deep);opacity:1}
 .obj.lit .scr-v{opacity:.78}
 
 /* the monitor's two screen states — dashboard normally, the document at Method */
@@ -217,9 +255,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   .obj.lit .con,.obj.lit .cen{stroke:var(--lit-line);opacity:.6}
   .no-glow .obj.lit{filter:none}
   /* the panel only borrows the cyan light where there IS cyan light to borrow */
-  #copy .card{box-shadow:0 24px 56px -20px rgba(0,0,0,.62),
-                         0 0 0 1px rgba(120,224,240,.16),
-                         0 0 48px -8px rgba(120,224,240,.18)}
+  #copy .card{box-shadow:var(--lift-2),
+                         0 0 0 1px rgba(169,126,47,.22),
+                         0 0 44px -8px rgba(169,126,47,.20)}
 }
 
 /* HOVER — the desk should feel touchable rather than printed.
@@ -273,14 +311,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 /* ---- fixed chrome: progress rail and a live read-out ------------------- */
 #rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:5;
       display:flex;flex-direction:column;gap:9px}
-#rail button{width:26px;height:26px;border-radius:3px;border:1px solid rgba(227,237,248,.3);
-             background:rgba(18,42,69,.55);font-family:var(--mono);font-size:10px;
+#rail button{width:26px;height:26px;border-radius:3px;border:1px solid var(--chip-br);
+             background:var(--chip);font-family:var(--mono);font-size:10px;
              color:var(--bp-ink);cursor:pointer;display:grid;place-items:center;padding:0}
-#rail button:hover{border-color:rgba(227,237,248,.7)}
-#rail button[aria-current="true"]{background:var(--bp-ink);color:var(--navy);border-color:var(--bp-ink)}
+#rail button:hover{border-color:var(--bp-ink)}
+#rail button[aria-current="true"]{background:var(--bp-ink);color:var(--paper);border-color:var(--bp-ink)}
 #hud{position:fixed;left:18px;bottom:16px;z-index:5;font-family:var(--mono);font-size:10.5px;
      letter-spacing:.05em;color:var(--bp-ink);opacity:.5}
-#bar{position:fixed;left:0;top:0;height:3px;background:var(--sun);z-index:6;width:0}
+#bar{position:fixed;left:0;top:0;height:3px;background:var(--brass);z-index:6;width:0}
 #rail button{gap:0}
 .rl{display:none}
 #rail button:hover .rl,#rail button[aria-current="true"] .rl{display:inline;
@@ -289,12 +327,33 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
     padding:0 2px 0 0;justify-content:flex-start}
 #rail button:hover .rn,#rail button[aria-current="true"] .rn{padding-left:8px}
 
+/* ---- the ending ----------------------------------------------------------
+   The last thing a reader sees, and until now that was a 12px credit line. This is the
+   warm close v1 has: full-size serif, her own words, on the bare paper with no panel
+   around it — the drawing is over, so the page stops pretending to be a drawing and
+   just talks. The rule above it is the only ornament, and it reads as a sheet's lower
+   border rather than a divider. */
+#closing{position:relative;z-index:2;text-align:center;
+         padding:clamp(56px,11vh,110px) clamp(20px,7vw,90px) clamp(30px,5vh,54px)}
+#closing::before{content:"";display:block;width:64px;height:1px;margin:0 auto 34px;
+                 background:var(--bp-ink);opacity:.34}
+.cl-lead{font-family:'Fraunces',Georgia,serif;font-weight:600;
+         font-size:clamp(25px,4.1vw,50px);line-height:1.16;letter-spacing:-.02em;
+         color:var(--card-ink);max-width:23ch;margin:0 auto}
+/* Same marker as the panels use, so the emphasis is the page's own gesture and not a
+   second idea introduced at the last moment. */
+.cl-lead em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
+.cl-sub{margin:20px auto 0;max-width:44ch;font-size:clamp(14px,1.3vw,16.5px);
+        color:var(--card-ink-2)}
+
 /* Footer — v1's last line landed back on "control and chaos", closing the loop the
    hero opens. It sits after the final section rather than fixed, so it reads as an end. */
-/* .45 measured 3.68:1 against the navy — under the 4.5:1 minimum for text this size. At .6
-   it is 5.4:1. It still reads as quiet; it is now also readable, which quiet was costing. */
-#foot{position:relative;z-index:2;text-align:center;padding:34px 20px 44px;
-      font-size:12.5px;color:var(--bp-ink);opacity:.6}
+/* card-ink-2 at FULL opacity: 5.1:1 on the paper ground. I estimated .62 opacity would give
+   4.9 and it measured 3.99 — the contrast arithmetic changed completely when the ground did,
+   and an opacity guess is not a measurement. Using the secondary ink token at opacity 1 means
+   the value is one that has actually been checked, rather than one arrived at by dimming. */
+#foot{position:relative;z-index:2;text-align:center;padding:8px 20px 46px;
+      font-size:12.5px;color:var(--card-ink-2)}
 
 /* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
@@ -308,8 +367,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
      stopped where the drawing stopped, which put a visible horizon halfway down the screen
      — the same seam as the room fill. On the body it runs behind copy and desk alike. */
   body{background-image:
-    repeating-linear-gradient(to right,rgba(227,237,248,.05) 0 1px,transparent 1px 42px),
-    repeating-linear-gradient(to bottom,rgba(227,237,248,.05) 0 1px,transparent 1px 42px);
+    repeating-linear-gradient(to right,var(--bp-grid) 0 1px,transparent 1px 42px),
+    repeating-linear-gradient(to bottom,var(--bp-grid) 0 1px,transparent 1px 42px);
     background-attachment:fixed}
   .gridbg{display:none}
 
@@ -318,10 +377,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
      overflow is what broke the sticky stage. Gradients cannot overflow anything. */
   #halo{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
-      radial-gradient(circle at 50% 46%, transparent 0 40.6%, rgba(227,237,248,.13) 40.6% 41%, transparent 41%),
-      radial-gradient(circle at 50% 46%, transparent 0 52.6%, rgba(227,237,248,.09) 52.6% 53%, transparent 53%),
-      radial-gradient(circle at 50% 46%, transparent 0 64.6%, rgba(227,237,248,.06) 64.6% 65%, transparent 65%),
-      radial-gradient(circle at 50% 46%, rgba(227,237,248,.055) 0%, transparent 58%)}
+      radial-gradient(circle at 50% 46%, transparent 0 40.6%, var(--halo) 40.6% 41%, transparent 41%),
+      radial-gradient(circle at 50% 46%, transparent 0 52.6%, var(--halo-2) 52.6% 53%, transparent 53%),
+      radial-gradient(circle at 50% 46%, transparent 0 64.6%, var(--halo-3) 64.6% 65%, transparent 65%),
+      radial-gradient(circle at 50% 46%, var(--halo-3) 0%, transparent 58%)}
 }
 
 /* ---- objects that own detail ------------------------------------------- */
@@ -332,16 +391,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    the only visual difference between "jump here" and "there is more here". */
 .art .mark-r{fill:none;stroke:var(--bp-ink);stroke-width:1.3;opacity:.34}
 .art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.5;opacity:.5}
-.art .mark-r{stroke-width:3}
-.art .mark-p{stroke-width:4}
+/* Cue strokes come down with everything else — 3 and 4 were sized to survive being a
+   light line on navy, and on paper they read as a heavy sticker on a fine drawing. */
+.art .mark-r{stroke-width:2.1}
+.art .mark-p{stroke-width:2.6}
 .art .mark-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:62px;
              letter-spacing:.1em;opacity:.42}
 .obj.tappable:hover .mark-t{opacity:.85}
-.obj.lit.has-detail .mark-t{opacity:1;fill:var(--sun)}
+.obj.lit.has-detail .mark-t{opacity:1;fill:var(--brass)}
 .obj.tappable{cursor:pointer}
 .obj.tappable:hover .mark-r,.obj.tappable:hover .mark-p{opacity:.9}
-.obj.lit.has-detail .mark-r{opacity:1;fill:var(--sun);stroke:var(--sun)}
-.obj.lit.has-detail .mark-p{stroke:var(--navy);opacity:1}
+.obj.lit.has-detail .mark-r{opacity:1;fill:var(--brass);stroke:var(--brass)}
+.obj.lit.has-detail .mark-p{stroke:var(--paper);opacity:1}
 .mark{transform-box:fill-box;transform-origin:50% 50%}
 @media (prefers-reduced-motion:no-preference){
   .obj.lit.has-detail .mark{animation:pulse 2.4s ease-in-out infinite}
@@ -354,12 +415,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    unfold on a stagger. Closing reverses it, and a nudge of scroll is enough to trigger
    that — per the spec, a 20px delta. */
 #det{position:fixed;inset:0;z-index:9;display:grid;place-items:center;
-     padding:max(18px,4vh) max(14px,4vw);background:rgba(9,22,38,.62);
+     padding:max(18px,4vh) max(14px,4vw);background:var(--scrim);
      backdrop-filter:blur(3px)}
 #det[hidden]{display:none}
 #det-panel{position:relative;width:min(62ch,100%);max-height:88vh;overflow:auto;
            background:var(--paper);border:1px solid var(--rule);
-           box-shadow:0 40px 90px -30px rgba(0,0,0,.7);padding:26px 28px 24px;
+           box-shadow:var(--lift-2);padding:26px 28px 24px;
            color:var(--card-ink-2)}
 #det-panel::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule-2);
                    pointer-events:none}
@@ -404,8 +465,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   /* tighter to the top edge, so the extra desk height comes out of dead space rather
      than out of the copy */
   #tw{display:block;position:fixed;left:14px;right:14px;top:4.5vh;z-index:4;
-      background:rgba(242,245,249,.96);border:1px solid var(--rule);
-      box-shadow:0 22px 48px -18px rgba(0,0,0,.6);padding:16px 18px 15px;
+      background:var(--panel-2);border:1px solid var(--rule);
+      box-shadow:var(--lift);padding:16px 18px 15px;
       color:var(--card-ink-2);min-height:31vh}
   #tw::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule-2)}
   #tw > *{position:relative}
@@ -470,6 +531,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
      continuously behind both the copy and the desk, and the walls survive as edge lines.
      The .solid occlusion fills stay: they are the page navy, so they vanish against it
      while still hiding what is behind each object. */
+  /* Kept as a belt-and-braces: on the archival ground the wall token equals the ground and
+     the case planes are unfilled everywhere, so this is already true — but it states the
+     requirement at the place the requirement was discovered. */
   .art #wall,.art .casewall{fill:none}
 
   /* the drawing-sheet furniture is a landscape conceit — on a phone it only produces
@@ -486,10 +550,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   .tag{gap:10px}
   .ref{font-size:9px}
   #mobar{display:flex;position:fixed;left:10px;right:10px;bottom:10px;z-index:7;gap:8px}
-  #mobar button{flex:1;border:1px solid rgba(227,237,248,.3);border-radius:3px;cursor:pointer;
+  #mobar button{flex:1;border:1px solid var(--chip-br);border-radius:3px;cursor:pointer;
                 font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:12px 8px;
-                background:rgba(18,42,69,.92);color:var(--bp-ink);backdrop-filter:blur(6px)}
-  #mobar .mb-s{background:var(--bp-ink);color:var(--navy);border-color:var(--bp-ink)}
+                background:rgba(250,247,240,.94);color:var(--bp-ink);backdrop-filter:blur(6px)}
+  #mobar .mb-s{background:var(--bp-ink);color:var(--paper);border-color:var(--bp-ink)}
   #mobar .mb-j{flex:0 0 46px;font-size:14px}
   #msheet{display:block;position:fixed;inset:auto 10px 10px;z-index:8;
           background:var(--paper);border:1px solid var(--rule);padding:16px;
@@ -1170,129 +1234,147 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
     <text class="sh-k" x="2012.4" y="1009">DESCRIPTION</text>
     
       <path class="sh-line" d="M1834 1258 L2354 1258"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="monitor" data-cl="risk" role="link" tabindex="0"
-         aria-label="CONTROL MATRIX — DISPLAY — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="monitor" data-cl="risk" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1258 L2354 1258 L2354 1288 L1834 1288 Z"/>
         <path class="bomlit" d="M1835 1259 L2353 1259 L2353 1287 L1835 1287 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1279" text-anchor="middle">1</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1279" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1279" text-anchor="middle">1</text>
+        <text class="sh-v" x="1943.2" y="1279" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1279">CONTROL MATRIX — DISPLAY</text>
       </g>
       <path class="sh-line" d="M1834 1228 L2354 1228"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="papers" data-cl="risk" role="link" tabindex="0"
-         aria-label="WORKPAPERS, LOOSE — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="papers" data-cl="risk" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1228 L2354 1228 L2354 1258 L1834 1258 Z"/>
         <path class="bomlit" d="M1835 1229 L2353 1229 L2353 1257 L1835 1257 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1249" text-anchor="middle">2</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1249" text-anchor="middle">3</text>
+        <text class="sh-v" x="1860" y="1249" text-anchor="middle">2</text>
+        <text class="sh-v" x="1943.2" y="1249" text-anchor="middle">3</text>
         <text class="sh-v" x="2012.4" y="1249">WORKPAPERS, LOOSE</text>
       </g>
       <path class="sh-line" d="M1834 1198 L2354 1198"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="sketchpad" data-cl="design" role="link" tabindex="0"
-         aria-label="SKETCHPAD, OPEN — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="sketchpad" data-cl="design" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1198 L2354 1198 L2354 1228 L1834 1228 Z"/>
         <path class="bomlit" d="M1835 1199 L2353 1199 L2353 1227 L1835 1227 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1219" text-anchor="middle">3</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1219" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1219" text-anchor="middle">3</text>
+        <text class="sh-v" x="1943.2" y="1219" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1219">SKETCHPAD, OPEN</text>
       </g>
       <path class="sh-line" d="M1834 1168 L2354 1168"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="laptop" data-cl="work" role="link" tabindex="0"
-         aria-label="LAPTOP + RISER ASSY — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="laptop" data-cl="work" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1168 L2354 1168 L2354 1198 L1834 1198 Z"/>
         <path class="bomlit" d="M1835 1169 L2353 1169 L2353 1197 L1835 1197 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1189" text-anchor="middle">4</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1189" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1189" text-anchor="middle">4</text>
+        <text class="sh-v" x="1943.2" y="1189" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1189">LAPTOP + RISER ASSY</text>
       </g>
       <path class="sh-line" d="M1834 1138 L2354 1138"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="map" data-cl="travel" role="link" tabindex="0"
-         aria-label="MAP, PART FOLDED — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="map" data-cl="travel" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1138 L2354 1138 L2354 1168 L1834 1168 Z"/>
         <path class="bomlit" d="M1835 1139 L2353 1139 L2353 1167 L1835 1167 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1159" text-anchor="middle">5</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1159" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1159" text-anchor="middle">5</text>
+        <text class="sh-v" x="1943.2" y="1159" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1159">MAP, PART FOLDED</text>
       </g>
       <path class="sh-line" d="M1834 1108 L2354 1108"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="binoculars" data-cl="travel" role="link" tabindex="0"
-         aria-label="BINOCULARS 8×42 — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="binoculars" data-cl="travel" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1108 L2354 1108 L2354 1138 L1834 1138 Z"/>
         <path class="bomlit" d="M1835 1109 L2353 1109 L2353 1137 L1835 1137 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1129" text-anchor="middle">6</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1129" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1129" text-anchor="middle">6</text>
+        <text class="sh-v" x="1943.2" y="1129" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1129">BINOCULARS 8×42</text>
       </g>
       <path class="sh-line" d="M1834 1078 L2354 1078"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="palette" data-cl="travel" role="link" tabindex="0"
-         aria-label="PAINT SET, TRAVEL — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="palette" data-cl="travel" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1078 L2354 1078 L2354 1108 L1834 1108 Z"/>
         <path class="bomlit" d="M1835 1079 L2353 1079 L2353 1107 L1835 1107 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1099" text-anchor="middle">7</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1099" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1099" text-anchor="middle">7</text>
+        <text class="sh-v" x="1943.2" y="1099" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1099">PAINT SET, TRAVEL</text>
       </g>
       <path class="sh-line" d="M1834 1048 L2354 1048"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="notebooks" data-cl="journey" role="link" tabindex="0"
-         aria-label="NOTEBOOKS, DATED — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="notebooks" data-cl="journey" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1048 L2354 1048 L2354 1078 L1834 1078 Z"/>
         <path class="bomlit" d="M1835 1049 L2353 1049 L2353 1077 L1835 1077 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1069" text-anchor="middle">8</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1069" text-anchor="middle">3</text>
+        <text class="sh-v" x="1860" y="1069" text-anchor="middle">8</text>
+        <text class="sh-v" x="1943.2" y="1069" text-anchor="middle">3</text>
         <text class="sh-v" x="2012.4" y="1069">NOTEBOOKS, DATED</text>
       </g>
       <path class="sh-line" d="M1834 1018 L2354 1018"/>
-      <!-- The accessible name must CONTAIN the visible text, or someone driving the page by
-           voice says what they can see and nothing happens. Lower-casing the description here
-           broke that for all nine rows. So the label carries the description verbatim, and the
-           item and quantity figures are hidden from the accessible name — read aloud they are
-           "9 1 whiteboard", which is a table cell, not a destination. -->
-      <g class="bomrow" data-obj="whiteboard" data-cl="risk" role="link" tabindex="0"
-         aria-label="WHITEBOARD — LANDSCAPE MAP — go to this section">
+      <!-- NO aria-label, deliberately. The accessible name must contain the visible text, or
+           someone driving the page by voice says what they can see and nothing happens. Two
+           attempts failed that: lower-casing the description, and then keeping its case but
+           hiding the item and quantity figures — aria-hidden takes text out of the NAME while
+           leaving it visible on screen, so the mismatch survived. With no explicit label the
+           name is computed from the row's own content, so the two are the same string by
+           construction and cannot drift apart again. It reads as "9 1 whiteboard — landscape
+           map", which is exactly what a sighted reader sees in that row. -->
+      <g class="bomrow" data-obj="whiteboard" data-cl="risk" role="link" tabindex="0">
         <path class="bomhit" d="M1834 1018 L2354 1018 L2354 1048 L1834 1048 Z"/>
         <path class="bomlit" d="M1835 1019 L2353 1019 L2353 1047 L1835 1047 Z"/>
-        <text class="sh-v" aria-hidden="true" x="1860" y="1039" text-anchor="middle">9</text>
-        <text class="sh-v" aria-hidden="true" x="1943.2" y="1039" text-anchor="middle">1</text>
+        <text class="sh-v" x="1860" y="1039" text-anchor="middle">9</text>
+        <text class="sh-v" x="1943.2" y="1039" text-anchor="middle">1</text>
         <text class="sh-v" x="2012.4" y="1039">WHITEBOARD — LANDSCAPE MAP</text>
       </g>
   </g>
@@ -1380,7 +1462,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
         <span class="ref">SK-01 · 03/08</span>
       </div>
       <h2>The short version.</h2>
-      <p>2020 B.Tech IT · 2022 UI/UX and product · 2024 tech risk at EY. Each chapter still shows up in how I work.</p>
+      <p>I started out in IT in 2020, spent 2022 designing interfaces, and landed in tech risk at EY in 2024. All three still show up in how I work.</p>
       
       <div class="deep">
   <p class="dtitle">How I got here</p>
@@ -1459,7 +1541,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
         <span class="ref">SK-01 · 05/08</span>
       </div>
       <h2>What I do, in the language of the field.</h2>
-      <p>Real EY engagements, client names anonymised — the headline and the keywords a recruiter is scanning for.</p>
+      <p>Four engagements at EY, with client names kept out of it. These are the short versions — ask me for the long one and I’ll happily talk you through it.</p>
       
       <div class="deep">
   <p class="dtitle">Selected work</p>
@@ -1551,6 +1633,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   </section></main>
 </div>
 
+<!-- The ending, OUTSIDE #scroller and deliberately not a <section>. The camera maps one shot
+     per `#copy section`, so a ninth section here would silently shift the whole shot list by
+     one. It also has to sit after the scroller: this is the beat where the drawing has
+     finished and the page speaks plainly. -->
+<div id="closing">
+  <p class="cl-lead">Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.</p>
+  <p class="cl-sub">Risk, product, design, or the next trail. Say hi.</p>
+</div>
+
 <!-- Portrait only: one stuck panel that never moves. Content types out and back in as
      the active section changes, so it reads as a single terminal rather than a stack of
      cards travelling past. -->
@@ -1584,7 +1675,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 import { mountScene } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
-import { SECTIONS, KEYWORDS, NAV, FOOTER, OBJECT_SECTION } from './assets/scene/content.js';
+import { SECTIONS, KEYWORDS, NAV, FOOTER, CLOSING, CLOSING_SUB, OBJECT_SECTION }
+  from './assets/scene/content.js';
 import { panelsHTML, external } from './assets/scene/panels.js';
 
 const pad = n => String(n).padStart(2, '0');
@@ -1667,6 +1759,13 @@ document.getElementById('msheet').innerHTML =
        .map(s => `<button data-n="${s.n}">${NAV[s.id] || s.title}</button>`).join('');
 
 document.getElementById('foot').textContent = FOOTER;
+/* Guarded and only filled if the build did not already inline them, matching the panels and
+   the drawing: the ending is content, so it has to survive with no JavaScript. */
+{
+  const lead = document.querySelector('.cl-lead'), sub = document.querySelector('.cl-sub');
+  if (lead && !lead.textContent.trim()) lead.innerHTML = CLOSING;
+  if (sub && !sub.textContent.trim()) sub.textContent = CLOSING_SUB;
+}
 rail.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (b) cam.goTo(+b.dataset.n);
