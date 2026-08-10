@@ -48,10 +48,16 @@ const smooth = t => t * t * (3 - 2 * t);
 export function mountScene(svg, { sheet = '', overlay = '', copy = null,
                                   sections = '#copy section', hold = 0.62,
                                   markers = [], details = [], onObject = null } = {}) {
-  svg.innerHTML = `${GRID_DEFS}
-    <rect class="gridbg" x="-800" y="-800" width="4400" height="4000" fill="url(#bp50)"/>
-    <g id="camg"><g class="art" id="scene">${buildScene({ copy })}</g>${overlay}</g>
-    <g class="sheet" id="furniture">${sheet}</g>`;
+  /* If the drawing was inlined at build time, DO NOT rebuild it. Reusing the served markup
+     is the whole point: one request instead of a module round-trip, no flash of an empty
+     stage on first paint, and — most importantly — the drawing is still there if the module
+     never loads at all. Rebuilding would throw away the copy the browser already has. */
+  if (!svg.querySelector('.obj')) {
+    svg.innerHTML = `${GRID_DEFS}
+      <rect class="gridbg" x="-800" y="-800" width="4400" height="4000" fill="url(#bp50)"/>
+      <g id="camg"><g class="art" id="scene">${buildScene({ copy })}</g>${overlay}</g>
+      <g class="sheet" id="furniture">${sheet}</g>`;
+  }
 
   const camg = svg.querySelector('#camg');
   const layers = LAYERS
@@ -110,6 +116,13 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
      ANY travel object still takes you to travel. The marker says where the group is; the
      whole group is the target. */
   const detailSet = new Set(details);
+  /* Markers live inside the camera group so they travel with the object they belong to —
+     which also means the camera SCALES them. At a 2x shot a 62-unit cue rendered as a
+     180px disc with lettering to match, sitting over the drawing like a sticker. They are
+     interface, not drawing, so they get counter-scaled every frame to a fixed pixel size
+     (see MARK_PX): the cue stays the same size to the hand whatever the zoom is doing. */
+  const cues = [];                    // not `marks` — that name already holds section offsets
+  const MARK_PX = 23;                 // on-screen radius of the plus disc
   const groups = new Map();
   for (const o of objs) {
     const sec = markers[o.id];
@@ -139,6 +152,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
       `<text class="mark-t" x="${(mx - 78).toFixed(1)}" y="${(my + 24).toFixed(1)}" ` +
       `text-anchor="end">${owner ? 'MORE' : 'GO'}</text>`;
     anchor.el.appendChild(g);
+    cues.push({ el: g, mx, my });
   }
 
   if (onObject) {
@@ -186,6 +200,10 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     if (p) {
       camg.style.transform = '';
       for (const L of layers) L.el.style.transform = '';
+      /* Portrait never scales the camera, so the authored 62-unit cue is already the
+         ~29px target on a phone. Any counter-scale left over from a landscape render
+         has to go, or a rotated phone keeps a desktop-sized correction. */
+      for (const c of cues) c.el.removeAttribute('transform');
     }
     return p;
   }
@@ -211,6 +229,18 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
       const dx = (x + w / 2 - SHEET_W / 2) * PARALLAX;
       const dy = (y + w / ASPECT / 2 - SHEET_H / 2) * PARALLAX * 0.5;
       for (const L of layers) L.el.style.transform = `translate(${dx * L.w}px, ${dy * L.w}px)`;
+
+      /* Hold the cues at MARK_PX on screen. Derived from the SVG's real rendered width
+         rather than a guessed constant, so the cue is the same physical size on a 1280
+         laptop as on a 2560 display — the authored radius is 62 units, and one unit is
+         (k * clientWidth / SHEET_W) pixels once the camera has had its say. */
+      const px = k * (svg.clientWidth || SHEET_W) / SHEET_W;
+      const s = px > 0 ? (MARK_PX / px) / 62 : 1;
+      for (const c of cues) {
+        c.el.setAttribute('transform',
+          `translate(${c.mx.toFixed(1)} ${c.my.toFixed(1)}) scale(${s.toFixed(4)}) ` +
+          `translate(${(-c.mx).toFixed(1)} ${(-c.my).toFixed(1)})`);
+      }
     }
 
     /* colour belongs to the nearest shot; the CSS transition does the crossfade */
