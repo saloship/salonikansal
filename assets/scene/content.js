@@ -199,6 +199,11 @@ export const SECTIONS = {
       eyebrow: 'Let’s build something meaningful',
       head: 'Bringing clarity <em>in chaos</em>.',
       body: 'Up for a good conversation — risk, product, design, travel, or a team that needs a few hats worn at once. If that’s you, say hi.',
+      /* The warm close, folded INTO this card rather than living in a section of its own below
+         it. This card is now the footer, so the page ends here — and the line is what makes it an
+         ending rather than a stop: it returns to the hero's "control and chaos", so the last
+         thing read is where the first thing started. */
+      close: 'Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.',
       links: [
         { label: '✉ salonikansal.in@gmail.com', href: 'mailto:salonikansal.in@gmail.com?subject=Hi%20Saloni' },
         { label: 'LinkedIn ↗', href: 'https://www.linkedin.com/in/saloni-kansal/' },
@@ -239,19 +244,7 @@ export const OBJECT_SECTION = {
 };
 
 /* The hero opens on "control and chaos" and v1's last line landed on it again. */
-/* THE ENDING.
-   The page used to stop: the last panel scrolled away and the reader was handed a small grey
-   credit line. v1 does not end that way — it ends warm, and the warmth is the last thing a
-   reader takes with them.
-
-   Both halves are her own words, borrowed from the two ends of her own site: the hero opens
-   with "Living between control and chaos" and the footer signs off "somewhere between control
-   and chaos", so closing on it is the page returning to where it started rather than a new
-   claim bolted on. The second clause is the invitation from her connect section, said once
-   more at full size — because an invitation set in 10px mono is not an invitation.
-
-   Rendered large and bold on the paper ground, after the drawing has done its work. */
-export const CLOSING = 'Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.';
-export const CLOSING_SUB = 'Risk, product, design, or the next trail. Say hi.';
-
+/* The warm close now lives on the connect panel as `close` — see SECTIONS.connect. It had its own
+   full-height section below the drawing for a while; that read as the page stopping and then
+   starting again, so it folded into the last card, which is the footer. */
 export const FOOTER = 'Made by Saloni Kansal · with ♥, somewhere between control and chaos';

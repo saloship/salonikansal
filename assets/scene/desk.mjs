@@ -156,10 +156,18 @@ export function panel(x, y, z, w, h, dp, o = {}) {
  *  looks like in an oblique projection.
  *
  *  Text-local y runs TOWARD the viewer (decreasing z) rather than away. Away is the intuitive
- *  choice and it is wrong: it makes the vertical scale negative, which mirrors every glyph. */
+ *  choice and it is wrong: it makes the vertical scale negative, which mirrors every glyph.
+ *
+ *  `rot` turns the type within the plane, for a sheet put down at an angle. It stays ONE matrix:
+ *  an in-plane rotation composes with the projection rather than fighting it. Note this is not a
+ *  screen rotation — an oblique projection turns a rotation in the plane into a different shear,
+ *  so the sheet's outline and its type have to be rotated through the same mapping or the type
+ *  will sit at a visibly different angle from the paper it is printed on. */
 export function deskText(x, y, z, str, o = {}) {
   const [sx, sy] = P(x, y, z);
-  const m = `matrix(${f(SC)} 0 ${f(-SC * KZX)} ${f(SC * KZY)} ${f(sx)} ${f(sy)})`;
+  const t = o.rot || 0, ct = Math.cos(t), st = Math.sin(t);
+  const m = `matrix(${f(SC * (ct + KZX * st))} ${f(-SC * KZY * st)} ` +
+            `${f(SC * (st - KZX * ct))} ${f(SC * KZY * ct)} ${f(sx)} ${f(sy)})`;
   return `<text class="${o.cls || 'scr'}" transform="${m}" font-size="${o.size || 12}"` +
          `${o.anchor ? ` text-anchor="${o.anchor}"` : ''}>${str}</text>`;
 }
@@ -1028,76 +1036,110 @@ export const PROPS = [
       const cols = ['#cf9a6d', '#5fa8ad', '#c07a92'];
       const YEARS = ['2020', '2022', '2024'];
 
-      /* The paperwork goes down FIRST, so the books' own occluding fill covers the half of it
-         that is underneath them. Drawing it after would leave certificates floating on top of
-         the stack. */
-      /* THE TITLED SHEET LIES ON TOP OF THE STACK, and it took two tries to find out why it had
+      /* NOTHING HERE IS SQUARE TO THE DESK. A stack aligned to the millimetre reads as a
+         rendering; books someone actually uses sit a few degrees out, and paperwork dropped on
+         top of them more so. Every piece carries its own small rotation.
+
+         `at` is the one mapping that makes that safe: local (u, v) to world with an in-plane
+         rotation. Outline, striations, label and type all go through it, so a rotated object
+         stays internally consistent instead of having its details drawn at the old angle. Note
+         these are NOT screen rotations — under an oblique projection a rotation in the plane
+         becomes a different shear, which is why deskText has to be told the same angle. */
+      const at = (ox, oz, th) => {
+        const c = Math.cos(th), s = Math.sin(th);
+        return (u, v) => [ox + u * c - v * s, oz + u * s + v * c];
+      };
+
+      /* THE TITLED SHEETS LIE ON TOP OF THE STACK, and it took three tries to learn why they had
          to. Under the books at x 232 the title read as "HACKATHON" — the first two words were
          behind a notebook. Moved right to clear them, it landed behind the PARTS LIST, which is
          sheet furniture fixed to the screen rather than part of the drawing, so no camera framing
-         can move the drawing out from under it. The strip between the books' right edge and that
-         table is too narrow for a legible sheet. On top of the stack it is clear of both, and
-         "certificates resting on the notebooks" is what a desk actually looks like.
-         A second sheet still slides out on the right, carrying no type — it says there is
-         paperwork here without depending on legibility in the one place that cannot be read. */
-      const paper = (x, y, z, w, dp, lines, seal) => {
-        const q = [P(x, y, z), P(x + w, y, z), P(x + w, y, z + dp), P(x, y, z + dp)];
-        const type = lines.map((l, k) =>
-          deskText(x + 18, y + 0.8, z + dp - 24 - k * 21, l[0],
-                   { size: l[1], cls: l[2] ? 'scr scr-n' : 'scr' })).join('');
-        /* A seal: concentric rings with radiating teeth, the way an embossed one reads. */
-        const sx = x + w - 44, sz = z + 40;
+         can move the drawing out from under it, and the strip between the books' right edge and
+         that table is too narrow for a legible sheet. On top of the stack it is clear of both,
+         and "certificates resting on the notebooks" is what a desk actually looks like. */
+      const paper = (ox, y, oz, w, dp, th, lines, seal) => {
+        const L = at(ox, oz, th);
+        const pt = (u, v, yy = y) => { const [x, z] = L(u, v); return P(x, yy, z); };
+        const q = [pt(0, 0), pt(w, 0), pt(w, dp), pt(0, dp)];
+        const type = lines.map((l, k) => {
+          const [tx, tz] = L(18, dp - 24 - k * 21);
+          return deskText(tx, y + 0.8, tz, l[0],
+                          { size: l[1], cls: l[2] ? 'scr scr-n' : 'scr', rot: th });
+        }).join('');
+        /* A seal: concentric rings with radiating teeth, the way an embossed one reads. Circles
+           are rotation-invariant, so only its centre needs the mapping. */
+        const [sx, sz] = L(w - 42, 38);
         const rosette = seal ? `
-          <path class="vis" d="${poly(ringXZ(sx, y + 0.6, sz, 22))}"/>
-          <path class="con" d="${poly(ringXZ(sx, y + 0.6, sz, 15))}"/>
+          <path class="vis" d="${poly(ringXZ(sx, y + 0.6, sz, 21))}"/>
+          <path class="con" d="${poly(ringXZ(sx, y + 0.6, sz, 14))}"/>
           <g class="con">${Array.from({ length: 12 }, (_, k) => {
             const a = k / 12 * Math.PI * 2;
-            return `<path d="${line2(P(sx + 15 * Math.cos(a), y + 0.6, sz + 15 * Math.sin(a)),
-                                     P(sx + 22 * Math.cos(a), y + 0.6, sz + 22 * Math.sin(a)))}"/>`;
+            return `<path d="${line2(P(sx + 14 * Math.cos(a), y + 0.6, sz + 14 * Math.sin(a)),
+                                     P(sx + 21 * Math.cos(a), y + 0.6, sz + 21 * Math.sin(a)))}"/>`;
           }).join('')}</g>` : '';
-        const rule = v => `<path class="con" d="${line2(P(x + 16, y + 0.4, z + dp * v), P(x + w - 16, y + 0.4, z + dp * v))}"/>`;
+        const rule = v => `<path class="con" d="${line2(pt(16, dp * v, y + 0.4), pt(w - 16, dp * v, y + 0.4))}"/>`;
         return `
           <path class="solid" d="${poly(q)}"/><path class="ol" d="${poly(q)}"/>
-          ${type}${rosette}${lines.length ? '' : rule(0.62) + rule(0.44) + rule(0.26)}`;
+          ${type}${rosette}${lines.length ? '' : rule(0.62) + rule(0.42) + rule(0.24)}`;
       };
 
-      /* the untitled sheet slides out from under the stack on the right, drawn before the books */
-      const under = paper(300, 2, 30, 214, 132, [], false);
+      /* an untitled sheet slides out from under the stack, drawn before the books so they cover
+         the half of it that is underneath */
+      const under = paper(298, 2, 26, 214, 132, 0.075, [], false);
 
-      const books = cols.map((c, i) => {
-        const x = 60 + i * 8, y = i * 26, z = 40 + i * 6, w = 300 - i * 12, dp = 210 - i * 8;
-        /* Page block on the fore edge: more striations, and a couple carried round the near
-           edge so the block reads as a stack of leaves rather than a printed line. */
+      /* Offsets deliberately not a staircase, and a different angle each. */
+      const BOOKS = [
+        { x: 58, z: 38, w: 300, dp: 210, th: -0.052 },
+        { x: 80, z: 58, w: 280, dp: 196, th:  0.046 },
+        { x: 62, z: 42, w: 268, dp: 192, th: -0.088 }
+      ];
+      const books = BOOKS.map((b, i) => {
+        const y = i * 26, h = 24, L = at(b.x, b.z, b.th);
+        const pt = (u, v, yy) => { const [x, z] = L(u, v); return P(x, yy, z); };
+        const top  = [pt(0, 0, y + h), pt(b.w, 0, y + h), pt(b.w, b.dp, y + h), pt(0, b.dp, y + h)];
+        const near = [pt(0, 0, y + h), pt(b.w, 0, y + h), pt(b.w, 0, y), pt(0, 0, y)];
+        const side = [pt(b.w, 0, y + h), pt(b.w, b.dp, y + h), pt(b.w, b.dp, y), pt(b.w, 0, y)];
+        /* Page block on the two edges that face the viewer — the fore edge and the tail. Drawn
+           on the FAR edge before, which is geometry the top face should have hidden. */
         const pages = `<g class="con">${[5, 9, 13, 17, 21].map(o =>
-          `<path d="${line2(P(x + 4, y + o, z + dp), P(x + w - 4, y + o, z + dp))}"/>`).join('')}
-          ${[7, 15].map(o => `<path d="${line2(P(x + w, y + o, z + 6), P(x + w, y + o, z + dp - 6))}"/>`).join('')}</g>`;
-        /* Spine: the hinge groove a cased book has, at the left edge. */
-        const spine = `<path class="vis" d="${line2(P(x + 15, y + 24, z + 4), P(x + 15, y + 24, z + dp - 4))}"/>
-          <path class="con" d="${line2(P(x + 22, y + 24, z + 6), P(x + 22, y + 24, z + dp - 6))}"/>`;
-        /* Ribbon marker trailing out of the fore edge. */
+          `<path d="${line2(pt(24, 0, y + o), pt(b.w - 5, 0, y + o))}"/>`).join('')}
+          ${[6, 12, 18].map(o =>
+          `<path d="${line2(pt(b.w, 6, y + o), pt(b.w, b.dp - 6, y + o))}"/>`).join('')}</g>`;
+        /* Spine: the hinge groove a cased book has, along the left edge. */
+        const spine = `<path class="vis" d="${line2(pt(15, 4, y + h), pt(15, b.dp - 4, y + h))}"/>
+          <path class="con" d="${line2(pt(22, 6, y + h), pt(22, b.dp - 6, y + h))}"/>`;
+        /* Ribbon marker trailing out past the fore edge. */
         const ribbon = i !== 1 ? `<path class="vis" d="${poly([
-          P(x + w * 0.42, y + 1, z + dp), P(x + w * 0.48, y + 1, z + dp),
-          P(x + w * 0.50, y + 1, z + dp + 34), P(x + w * 0.44, y + 1, z + dp + 34)])}"/>` : '';
+          pt(b.w, b.dp * 0.40, y + 1), pt(b.w, b.dp * 0.47, y + 1),
+          pt(b.w + 34, b.dp * 0.50, y + 1), pt(b.w + 34, b.dp * 0.43, y + 1)])}"/>` : '';
         const elastic = i === 2
-          ? `<path class="vis" d="${line2(P(x + w * .74, y + 24, z), P(x + w * .74, y + 24, z + dp))}"/>
-             <path class="vis" d="${line2(P(x + w * .74, y, z + dp / 2), P(x + w * .74, y + 24, z + dp / 2))}"/>` : '';
-        /* The cover label carries the year — this is what makes the stack read as a timeline
-           rather than as three books. */
-        const lab = [P(x + 30, y + 24, z + 26), P(x + 150, y + 24, z + 26),
-                     P(x + 150, y + 24, z + 84), P(x + 30, y + 24, z + 84)];
+          ? `<path class="vis" d="${line2(pt(b.w * .74, 0, y + h), pt(b.w * .74, b.dp, y + h))}"/>
+             <path class="vis" d="${line2(pt(b.w * .74, 0, y), pt(b.w * .74, 0, y + h))}"/>` : '';
+        /* The cover label carries the year — what makes the stack read as a timeline rather than
+           as three books. */
+        const lab = [pt(30, 26, y + h), pt(150, 26, y + h), pt(150, 84, y + h), pt(30, 84, y + h)];
+        const [lx, lz] = L(40, 70), [mx, mz] = L(40, 44);
         const label = `<path class="con" d="${poly(lab)}"/>
-          ${deskText(x + 40, y + 24.4, z + 70, YEARS[i], { size: 20, cls: 'scr scr-n' })}
-          ${deskText(x + 40, y + 24.4, z + 44, i === 0 ? 'B.TECH IT' : i === 1 ? 'DESIGN' : 'TECH RISK',
-                     { size: 10 })}`;
-        return `${sheet(x, y, z, w, dp, 24, { col: c })}${pages}${spine}${label}${ribbon}${elastic}`;
+          ${deskText(lx, y + h + 0.4, lz, YEARS[i], { size: 20, cls: 'scr scr-n', rot: b.th })}
+          ${deskText(mx, y + h + 0.4, mz, i === 0 ? 'B.TECH IT' : i === 1 ? 'DESIGN' : 'TECH RISK',
+                     { size: 10, rot: b.th })}`;
+        return `
+          <path class="solid" d="${poly(top)}"/>
+          <path class="col vis" style="--c:${cols[i]}" d="${poly(top)}"/>
+          <path class="solid" d="${poly(near)}"/><path class="vis" d="${poly(near)}"/>
+          <path class="solid" d="${poly(side)}"/><path class="vis" d="${poly(side)}"/>
+          ${pages}${spine}${label}${ribbon}${elastic}`;
       }).join('');
 
-      /* Sits on the closed stack (three books at 26mm each plus the top cover), behind the year
-         label so both read: the label occupies z 78..136 and this starts at 140. */
-      const award = paper(96, 78, 140, 204, 128,
+      /* Two certificates on the closed stack, at opposing angles so they read as dropped there
+         rather than laid out. ACM goes down first and sits back-left; the hackathon sheet lands
+         across it front-right, which is what gives the pile its overlap. */
+      const acm = paper(84, 78, 150, 178, 104, -0.20,
+        [['ACM CHAPTER', 12, 1], ['CHAIRPERSON', 10, 0]], true);
+      const sih = paper(148, 79.5, 56, 192, 112, 0.105,
         [['SMART INDIA', 13, 1], ['HACKATHON 2024', 13, 1], ['FINALIST', 10, 0]], true);
 
-      return `${under}${books}${award}`;
+      return `${under}${books}${acm}${sih}`;
     } },
 
   { id: 'keyboard', cl: 'risk', z: 190, art: () => {

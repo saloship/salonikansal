@@ -77,6 +77,7 @@ export function panelsHTML(SHOTS, SECTIONS) {
       <h2>${c.head}</h2>
       <p>${c.body}</p>
       ${c.links ? `<div class="links">${c.links.map(linkHTML).join('')}</div>` : ''}
+      ${c.close ? `<p class="cl">${c.close}</p>` : ''}
       ${sec.deep ? deepHTML(sec.deep, ON_OBJECT.has(s.id)) : ''}
     </div>
   </section>`;

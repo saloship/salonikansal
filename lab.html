@@ -74,7 +74,7 @@
    mandatory snapping fights a reader trying to rest halfway down one. Easy to make stronger
    if the pull turns out too gentle. */
 html{scroll-behavior:smooth;scroll-snap-type:y proximity}
-#copy section,#closing{scroll-snap-align:start}
+#copy section{scroll-snap-align:start}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 /* NO overflow-x:hidden here. Setting overflow on html or body makes it the scroll container,
    which breaks position:sticky on every descendant — it is what un-pinned the desk. The
@@ -128,35 +128,26 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 #copy section[data-side="c"] .card{text-align:center}
 #copy section[data-side="c"] .tag,#copy section[data-side="c"] .links{justify-content:center}
 
-/* CENTRE-BOTTOM, NO CARD — the closing beat. The card chrome comes off entirely and the words
-   sit over the drawing, with a wash that blurs the scene back so they carry the frame. It is a
-   gradient across the full width rather than a rectangle behind the text, because a blurred
-   rectangle is just a card again: light falling on the lower half of the sheet reads as part of
-   the drawing, a soft-edged box reads as a panel with its border removed. */
+/* THE LAST CARD IS THE FOOTER: the same sheet-of-paper panel as every other section, but running
+   the full width of the window and sitting at the bottom. That makes it the end of the page —
+   which is why the separate closing section below it is gone. It had been bare words over a
+   blurred scene; a full-width card carries its own legibility, so the wash and its blur go with
+   it. Everything the closing beat said is now the `close` line inside this card. */
 #copy section[data-side="b"]{align-items:flex-end;justify-content:center;text-align:center;
-                             padding-bottom:clamp(38px,7vh,84px)}
+                             padding:0 0 0 0}
 /* The MASK is what makes this work. backdrop-filter is clipped to the element's box, so a
    fading background over a blurred box still leaves the blur ending on a hard horizontal line
    straight across the drawing. Masking the element fades the blur itself out, so the effect
    arrives gradually and there is no edge to see. */
-/* THE WASH IS BOUND TO THE TEXT, not to a percentage of the viewport. Sized as a fraction of the
-   screen it was both too weak where the words are and too wide overall: the eyebrow line sat up
-   in the part of the gradient that had already faded to nothing, so "LET'S BUILD SOMETHING
-   MEANINGFUL" was unreadable over the binoculars, while the band still reached a third of the way
-   up the desk. Anchored to the card it covers exactly the text it needs to — 44px above the first
-   line, 34 below the last — at any viewport, and can therefore be strong: .97 opacity and 6px of
-   blur across the body of it, fading out only in the last sixth. Full-bleed horizontally so it
-   reads as light on the sheet rather than a slab behind the words. */
-#copy section[data-side="b"] .card{position:relative;z-index:1;width:min(62ch,88vw);
-    background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}
-#copy section[data-side="b"] .card::before{display:block;content:"";position:absolute;
-    /* right:auto is load-bearing — the generic .card::before sets inset:5px, and a stray
-       right:5px fights the 100vw width and silently collapses the band. */
-    left:calc(50% - 50vw);right:auto;width:100vw;top:-44px;bottom:-34px;
-    z-index:-1;pointer-events:none;border:0;backdrop-filter:blur(6px);
-    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
-    mask-image:linear-gradient(to top,#000 84%,transparent)}
+/* Full width, square to the window, and no side margin: the panel becomes a band across the foot
+   of the page. It keeps the paper, the double rule and the header field of every other card, so it
+   still reads as the same sheet — just the last leaf of it. */
+#copy section[data-side="b"] .card{width:100%;max-width:none;padding:30px clamp(20px,6vw,90px) 26px;
+    border-left:0;border-right:0;border-bottom:0}
+#copy section[data-side="b"] .card::before{left:0;right:0;top:5px;bottom:auto;height:0;
+    border-left:0;border-right:0;border-bottom:0}
+#copy section[data-side="b"] .card p{max-width:62ch;margin-inline:auto}
+#copy section[data-side="b"] .card .tag{max-width:none}
 #copy section[data-side="b"] .tag{justify-content:center;border-bottom:0;margin-bottom:8px}
 #copy section[data-side="b"] .links{justify-content:center;margin-top:20px}
 #copy section[data-side="b"] .card h2{font-size:clamp(26px,3.6vw,44px)}
@@ -347,36 +338,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
     padding:0 2px 0 0;justify-content:flex-start}
 #rail button:hover .rn,#rail button[aria-current="true"] .rn{padding-left:8px}
 
-/* ---- the ending ----------------------------------------------------------
-   The last thing a reader sees, and until now that was a 12px credit line. This is the
-   warm close v1 has: full-size serif, her own words, on the bare paper with no panel
-   around it — the drawing is over, so the page stops pretending to be a drawing and
-   just talks. The rule above it is the only ornament, and it reads as a sheet's lower
-   border rather than a divider. */
-/* Full viewport, laid OVER the sticky drawing, with the words at the bottom. The blur is a
-   backdrop-filter rather than a filter on the stage, because filtering the stage would blur
-   the whole sticky element for every section, not just this one. A wash sits with it: blur
-   alone leaves the linework legible enough to compete with the type. */
-#closing{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-end;
-         justify-content:center;text-align:center;
-         padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px)}
-/* Bound to its own text, for the same reason and with the same numbers as the connect wash, so
-   the two closing beats are one idea rather than two similar effects. */
-.cl-in::before{content:"";position:absolute;left:calc(50% - 50vw);right:auto;width:100vw;
-    top:-44px;bottom:-34px;z-index:-1;pointer-events:none;backdrop-filter:blur(6px);
-    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
-    mask-image:linear-gradient(to top,#000 84%,transparent)}
-/* 34ch broke the sign-off into five stubby lines. At 48ch it lands in two or three, which is
-   what a spoken line should look like. relative/z-index keeps it above the wash band. */
-.cl-in{max-width:min(48ch,88vw);position:relative;z-index:1}
-.cl-lead{font-family:'Fraunces',Georgia,serif;font-weight:600;
-         font-size:clamp(25px,3.7vw,45px);line-height:1.16;letter-spacing:-.02em;
-         color:var(--card-ink);margin:0 auto}
-/* Same marker as the panels use, so the emphasis is the page's own gesture and not a
-   second idea introduced at the last moment. */
-.cl-lead em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
-.cl-sub{margin:16px auto 0;font-size:clamp(14px,1.3vw,16.5px);color:var(--card-ink-2)}
+/* ---- the warm close, inside the last card -------------------------------
+   It had a full-height section of its own below the drawing, which read as the page stopping and
+   then starting again. Folded into the footer card it is the final line of the page instead. Set
+   in the serif at display size because it is the last thing anyone reads, with the same marker
+   under the emphasised words as every other panel so the gesture belongs to the page. */
+.cl{font-family:'Fraunces',Georgia,serif;font-weight:600;
+    font-size:clamp(19px,2.1vw,27px);line-height:1.22;letter-spacing:-.015em;
+    color:var(--card-ink);margin:22px auto 0;max-width:48ch;
+    padding-top:18px;border-top:1px solid var(--rule-2)}
+.cl em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
 
 /* Footer — v1's last line landed back on "control and chaos", closing the loop the
    hero opens. It sits after the final section rather than fixed, so it reads as an end. */
@@ -514,6 +485,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
      `opacity` or `color:transparent` because it also takes the text out of the accessibility
      tree, so a screen reader on the live region is not read a line twice. */
   #tw .off{visibility:hidden}
+  /* The sign-off sits in a panel a third of the screen tall, so it takes the panel's scale
+     rather than the display size it has inside the full-width footer card. */
+  #tw .cl{font-size:15.5px;line-height:1.3;margin:14px 0 0;max-width:none;padding-top:12px}
+  #tw .cl:empty{display:none}
   /* the caret only exists while something is actually being typed, and it goes on the TYPED
      span — on the parent it would land after the invisible remainder, a line away from the
      last letter written */
@@ -621,20 +596,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
        reference it by id, so the element name is free to be the correct one. -->
   <main id="copy"></main>
 
-  <!-- The ending sits INSIDE #scroller, so the sticky stage is still behind it and the desk
-       does not end mid-page. Outside the scroller it cut the drawing off and started a bare
-       slab of paper underneath — the scene got chopped exactly where the page should have
-       been resolving. Over the scene instead: the closing words at centre-bottom, no card
-       around them, and a wash that blurs the desk back so the words carry the frame.
-
-       Still deliberately NOT a <section>. The camera maps one shot per `#copy section`, so a
-       ninth section here would silently shift the whole shot list by one. -->
-  <div id="closing">
-    <div class="cl-in">
-      <p class="cl-lead"></p>
-      <p class="cl-sub"></p>
-    </div>
-  </div>
+  <!-- No closing section any more. It was a full-height block below the drawing carrying the warm
+       sign-off, and it read as the page stopping and then starting again. The last card is the
+       footer now, and the sign-off is the final line inside it. -->
 </div>
 
 <!-- Portrait only: one stuck panel that never moves. Content types out and back in as
@@ -649,6 +613,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
        down the screen — measured at 0.33 cumulative layout shift, where 0.1 is the limit. -->
   <h2 id="tw-h"><span class="on"></span><span class="off"></span></h2>
   <p id="tw-b"><span class="on"></span><span class="off"></span></p>
+  <!-- The warm sign-off lives inside the last CARD, and cards are hidden on a phone — so without
+       this the closing line simply did not exist on mobile. Filled only on the section that has
+       one, and not typed: it is the line the page ends on, not part of the reveal. -->
+  <p id="tw-c" class="cl"></p>
   <p class="hint">TAP ANY OBJECT TO JUMP TO ITS SECTION · ⊕ MORE MARKS EXTRA DETAIL</p>
 </div>
 
@@ -672,8 +640,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 import { mountScene } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
-import { SECTIONS, KEYWORDS, NAV, FOOTER, CLOSING, CLOSING_SUB, OBJECT_SECTION }
-  from './assets/scene/content.js';
+import { SECTIONS, KEYWORDS, NAV, FOOTER, OBJECT_SECTION } from './assets/scene/content.js';
 import { panelsHTML, external } from './assets/scene/panels.js';
 
 const pad = n => String(n).padStart(2, '0');
@@ -756,13 +723,6 @@ document.getElementById('msheet').innerHTML =
        .map(s => `<button data-n="${s.n}">${NAV[s.id] || s.title}</button>`).join('');
 
 document.getElementById('foot').textContent = FOOTER;
-/* Guarded and only filled if the build did not already inline them, matching the panels and
-   the drawing: the ending is content, so it has to survive with no JavaScript. */
-{
-  const lead = document.querySelector('.cl-lead'), sub = document.querySelector('.cl-sub');
-  if (lead && !lead.textContent.trim()) lead.innerHTML = CLOSING;
-  if (sub && !sub.textContent.trim()) sub.textContent = CLOSING_SUB;
-}
 rail.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (b) cam.goTo(+b.dataset.n);
@@ -953,7 +913,8 @@ addEventListener('scroll', () => {
    would have printed the tags. */
 const tw = {
   e: document.getElementById('tw-e'), r: document.getElementById('tw-r'),
-  h: document.getElementById('tw-h'), b: document.getElementById('tw-b')
+  h: document.getElementById('tw-h'), b: document.getElementById('tw-b'),
+  c: document.getElementById('tw-c')
 };
 /* the typed and untyped halves of each line, so the box can hold its full height */
 for (const k of ['h', 'b']) {
@@ -1030,6 +991,13 @@ function twAt(raw) {
 
   tw.e.textContent = c.eyebrow;
   tw.r.textContent = `SK-01 · ${pad(i + 1)}/${pad(SHOTS.length)}`;
+  /* Shown once the body has finished, so the ending arrives after the words rather than sitting
+     under an unfinished sentence. */
+  if (tw.c) {
+    const done = shown >= H.length + Bp.length;
+    const want = c.close && done ? c.close : '';
+    if (tw.c.innerHTML !== want) tw.c.innerHTML = want;
+  }
   if (shown >= H.length) {
     twWrite('h', H, H.length, c.head);
     const complete = shown >= H.length + Bp.length;

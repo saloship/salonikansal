@@ -110,7 +110,7 @@
    mandatory snapping fights a reader trying to rest halfway down one. Easy to make stronger
    if the pull turns out too gentle. */
 html{scroll-behavior:smooth;scroll-snap-type:y proximity}
-#copy section,#closing{scroll-snap-align:start}
+#copy section{scroll-snap-align:start}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 /* NO overflow-x:hidden here. Setting overflow on html or body makes it the scroll container,
    which breaks position:sticky on every descendant — it is what un-pinned the desk. The
@@ -164,35 +164,26 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 #copy section[data-side="c"] .card{text-align:center}
 #copy section[data-side="c"] .tag,#copy section[data-side="c"] .links{justify-content:center}
 
-/* CENTRE-BOTTOM, NO CARD — the closing beat. The card chrome comes off entirely and the words
-   sit over the drawing, with a wash that blurs the scene back so they carry the frame. It is a
-   gradient across the full width rather than a rectangle behind the text, because a blurred
-   rectangle is just a card again: light falling on the lower half of the sheet reads as part of
-   the drawing, a soft-edged box reads as a panel with its border removed. */
+/* THE LAST CARD IS THE FOOTER: the same sheet-of-paper panel as every other section, but running
+   the full width of the window and sitting at the bottom. That makes it the end of the page —
+   which is why the separate closing section below it is gone. It had been bare words over a
+   blurred scene; a full-width card carries its own legibility, so the wash and its blur go with
+   it. Everything the closing beat said is now the `close` line inside this card. */
 #copy section[data-side="b"]{align-items:flex-end;justify-content:center;text-align:center;
-                             padding-bottom:clamp(38px,7vh,84px)}
+                             padding:0 0 0 0}
 /* The MASK is what makes this work. backdrop-filter is clipped to the element's box, so a
    fading background over a blurred box still leaves the blur ending on a hard horizontal line
    straight across the drawing. Masking the element fades the blur itself out, so the effect
    arrives gradually and there is no edge to see. */
-/* THE WASH IS BOUND TO THE TEXT, not to a percentage of the viewport. Sized as a fraction of the
-   screen it was both too weak where the words are and too wide overall: the eyebrow line sat up
-   in the part of the gradient that had already faded to nothing, so "LET'S BUILD SOMETHING
-   MEANINGFUL" was unreadable over the binoculars, while the band still reached a third of the way
-   up the desk. Anchored to the card it covers exactly the text it needs to — 44px above the first
-   line, 34 below the last — at any viewport, and can therefore be strong: .97 opacity and 6px of
-   blur across the body of it, fading out only in the last sixth. Full-bleed horizontally so it
-   reads as light on the sheet rather than a slab behind the words. */
-#copy section[data-side="b"] .card{position:relative;z-index:1;width:min(62ch,88vw);
-    background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}
-#copy section[data-side="b"] .card::before{display:block;content:"";position:absolute;
-    /* right:auto is load-bearing — the generic .card::before sets inset:5px, and a stray
-       right:5px fights the 100vw width and silently collapses the band. */
-    left:calc(50% - 50vw);right:auto;width:100vw;top:-44px;bottom:-34px;
-    z-index:-1;pointer-events:none;border:0;backdrop-filter:blur(6px);
-    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
-    mask-image:linear-gradient(to top,#000 84%,transparent)}
+/* Full width, square to the window, and no side margin: the panel becomes a band across the foot
+   of the page. It keeps the paper, the double rule and the header field of every other card, so it
+   still reads as the same sheet — just the last leaf of it. */
+#copy section[data-side="b"] .card{width:100%;max-width:none;padding:30px clamp(20px,6vw,90px) 26px;
+    border-left:0;border-right:0;border-bottom:0}
+#copy section[data-side="b"] .card::before{left:0;right:0;top:5px;bottom:auto;height:0;
+    border-left:0;border-right:0;border-bottom:0}
+#copy section[data-side="b"] .card p{max-width:62ch;margin-inline:auto}
+#copy section[data-side="b"] .card .tag{max-width:none}
 #copy section[data-side="b"] .tag{justify-content:center;border-bottom:0;margin-bottom:8px}
 #copy section[data-side="b"] .links{justify-content:center;margin-top:20px}
 #copy section[data-side="b"] .card h2{font-size:clamp(26px,3.6vw,44px)}
@@ -383,36 +374,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
     padding:0 2px 0 0;justify-content:flex-start}
 #rail button:hover .rn,#rail button[aria-current="true"] .rn{padding-left:8px}
 
-/* ---- the ending ----------------------------------------------------------
-   The last thing a reader sees, and until now that was a 12px credit line. This is the
-   warm close v1 has: full-size serif, her own words, on the bare paper with no panel
-   around it — the drawing is over, so the page stops pretending to be a drawing and
-   just talks. The rule above it is the only ornament, and it reads as a sheet's lower
-   border rather than a divider. */
-/* Full viewport, laid OVER the sticky drawing, with the words at the bottom. The blur is a
-   backdrop-filter rather than a filter on the stage, because filtering the stage would blur
-   the whole sticky element for every section, not just this one. A wash sits with it: blur
-   alone leaves the linework legible enough to compete with the type. */
-#closing{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-end;
-         justify-content:center;text-align:center;
-         padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px)}
-/* Bound to its own text, for the same reason and with the same numbers as the connect wash, so
-   the two closing beats are one idea rather than two similar effects. */
-.cl-in::before{content:"";position:absolute;left:calc(50% - 50vw);right:auto;width:100vw;
-    top:-44px;bottom:-34px;z-index:-1;pointer-events:none;backdrop-filter:blur(6px);
-    background:linear-gradient(to top,rgba(236,230,216,.97) 68%,rgba(236,230,216,.9) 84%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 84%,transparent);
-    mask-image:linear-gradient(to top,#000 84%,transparent)}
-/* 34ch broke the sign-off into five stubby lines. At 48ch it lands in two or three, which is
-   what a spoken line should look like. relative/z-index keeps it above the wash band. */
-.cl-in{max-width:min(48ch,88vw);position:relative;z-index:1}
-.cl-lead{font-family:'Fraunces',Georgia,serif;font-weight:600;
-         font-size:clamp(25px,3.7vw,45px);line-height:1.16;letter-spacing:-.02em;
-         color:var(--card-ink);margin:0 auto}
-/* Same marker as the panels use, so the emphasis is the page's own gesture and not a
-   second idea introduced at the last moment. */
-.cl-lead em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
-.cl-sub{margin:16px auto 0;font-size:clamp(14px,1.3vw,16.5px);color:var(--card-ink-2)}
+/* ---- the warm close, inside the last card -------------------------------
+   It had a full-height section of its own below the drawing, which read as the page stopping and
+   then starting again. Folded into the footer card it is the final line of the page instead. Set
+   in the serif at display size because it is the last thing anyone reads, with the same marker
+   under the emphasised words as every other panel so the gesture belongs to the page. */
+.cl{font-family:'Fraunces',Georgia,serif;font-weight:600;
+    font-size:clamp(19px,2.1vw,27px);line-height:1.22;letter-spacing:-.015em;
+    color:var(--card-ink);margin:22px auto 0;max-width:48ch;
+    padding-top:18px;border-top:1px solid var(--rule-2)}
+.cl em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
 
 /* Footer — v1's last line landed back on "control and chaos", closing the loop the
    hero opens. It sits after the final section rather than fixed, so it reads as an end. */
@@ -550,6 +521,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
      `opacity` or `color:transparent` because it also takes the text out of the accessibility
      tree, so a screen reader on the live region is not read a line twice. */
   #tw .off{visibility:hidden}
+  /* The sign-off sits in a panel a third of the screen tall, so it takes the panel's scale
+     rather than the display size it has inside the full-width footer card. */
+  #tw .cl{font-size:15.5px;line-height:1.3;margin:14px 0 0;max-width:none;padding-top:12px}
+  #tw .cl:empty{display:none}
   /* the caret only exists while something is actually being typed, and it goes on the TYPED
      span — on the parent it would land after the invisible remainder, a line away from the
      last letter written */
@@ -1112,36 +1087,47 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
             <path d="M1334.62 1075.94 L1424.69 1067.15"/>
             <path d="M1337.62 1065.77 L1386.4 1061.01"/>
           </g></g></g>
-<g class="obj" id="p-notebooks" data-cl="journey" data-foot="60 30 514 284 79"><g class="ob">
-          <path class="solid" d="M263.56 1134.52 L417.64 1134.52 L450.9 1072.74 L296.82 1072.74 Z"/><path class="ol" d="M263.56 1134.52 L417.64 1134.52 L450.9 1072.74 L296.82 1072.74 Z"/>
-          <path class="con" d="M295.7 1095.93 L426.74 1095.93"/><path class="con" d="M289.72 1107.05 L420.76 1107.05"/><path class="con" d="M283.73 1118.17 L414.77 1118.17"/>
-    <path class="solid" d="M93.28 1114 L309.28 1114 L362.2 1015.72 L146.2 1015.72 Z"/>
-    <path class="ol col" style="--c:#cf9a6d" d="M93.28 1114 L309.28 1114 L362.2 1015.72 L146.2 1015.72 Z"/>
-    <path class="vis" d="M93.28 1131.28 L93.28 1114 L309.28 1114 L309.28 1131.28"/><g class="con"><path d="M149.08 1029.4 L359.32 1029.4"/><path d="M149.08 1026.52 L359.32 1026.52"/><path d="M149.08 1023.64 L359.32 1023.64"/><path d="M149.08 1020.76 L359.32 1020.76"/><path d="M149.08 1017.88 L359.32 1017.88"/>
-          <path d="M310.79 1123.43 L360.69 1030.77"/><path d="M310.79 1117.67 L360.69 1025.01"/></g><path class="vis" d="M105.09 1112.13 L155.99 1017.59"/>
-          <path class="con" d="M110.63 1111.19 L160.53 1018.53"/><path class="con" d="M121.43 1101.83 L207.83 1101.83 L222.45 1074.69 L136.05 1074.69 Z"/>
-          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 139.72 1080.95)" font-size="20">2020</text>
-          <text class="scr" transform="matrix(0.72 0 -0.25 0.47 133.17 1093.12)" font-size="10">B.TECH IT</text><path class="vis" d="M236.92 1032.28 L249.88 1032.28 L262.77 1016.37 L249.81 1016.37 Z"/>
-    <path class="solid" d="M100.55 1092.47 L307.91 1092.47 L358.82 997.94 L151.46 997.94 Z"/>
-    <path class="ol col" style="--c:#5fa8ad" d="M100.55 1092.47 L307.91 1092.47 L358.82 997.94 L151.46 997.94 Z"/>
-    <path class="vis" d="M100.55 1109.75 L100.55 1092.47 L307.91 1092.47 L307.91 1109.75"/><g class="con"><path d="M154.34 1011.62 L355.94 1011.62"/><path d="M154.34 1008.74 L355.94 1008.74"/><path d="M154.34 1005.86 L355.94 1005.86"/><path d="M154.34 1002.98 L355.94 1002.98"/><path d="M154.34 1000.1 L355.94 1000.1"/>
-          <path d="M309.42 1101.9 L357.3 1012.98"/><path d="M309.42 1096.14 L357.3 1007.22"/></g><path class="vis" d="M112.36 1090.6 L161.25 999.81"/>
-          <path class="con" d="M117.9 1089.66 L165.78 1000.74"/><path class="con" d="M128.7 1080.3 L215.1 1080.3 L229.72 1053.16 L143.32 1053.16 Z"/>
-          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 146.99 1059.42)" font-size="20">2022</text>
-          <text class="scr" transform="matrix(0.72 0 -0.25 0.47 140.44 1071.59)" font-size="10">DESIGN</text>
-    <path class="solid" d="M107.82 1070.94 L306.54 1070.94 L355.43 980.15 L156.71 980.15 Z"/>
-    <path class="ol col" style="--c:#c07a92" d="M107.82 1070.94 L306.54 1070.94 L355.43 980.15 L156.71 980.15 Z"/>
-    <path class="vis" d="M107.82 1088.22 L107.82 1070.94 L306.54 1070.94 L306.54 1088.22"/><g class="con"><path d="M159.59 993.83 L352.55 993.83"/><path d="M159.59 990.95 L352.55 990.95"/><path d="M159.59 988.07 L352.55 988.07"/><path d="M159.59 985.19 L352.55 985.19"/><path d="M159.59 982.31 L352.55 982.31"/>
-          <path d="M308.06 1080.38 L353.92 995.2"/><path d="M308.06 1074.62 L353.92 989.44"/></g><path class="vis" d="M119.63 1069.07 L166.5 982.02"/>
-          <path class="con" d="M125.18 1068.14 L171.04 982.96"/><path class="con" d="M135.98 1058.78 L222.38 1058.78 L236.99 1031.63 L150.59 1031.63 Z"/>
-          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 154.26 1037.9)" font-size="20">2024</text>
-          <text class="scr" transform="matrix(0.72 0 -0.25 0.47 147.71 1050.06)" font-size="10">TECH RISK</text><path class="vis" d="M240.17 996.71 L252.1 996.71 L264.64 980.8 L252.72 980.8 Z"/><path class="vis" d="M254.88 1070.94 L303.76 980.15"/>
-             <path class="vis" d="M279.32 1042.83 L279.32 1025.55"/>
-          <path class="solid" d="M144.4 1028.32 L291.28 1028.32 L323.54 968.42 L176.66 968.42 Z"/><path class="ol" d="M144.4 1028.32 L291.28 1028.32 L323.54 968.42 L176.66 968.42 Z"/>
-          <text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 183.57 979.07)" font-size="13">SMART INDIA</text><text class="scr scr-n" transform="matrix(0.72 0 -0.25 0.47 178.28 988.9)" font-size="13">HACKATHON 2024</text><text class="scr" transform="matrix(0.72 0 -0.25 0.47 172.98 998.73)" font-size="10">FINALIST</text>
-          <path class="vis" d="M285.52 1009.17 L285.94 1008.27 L286.24 1007.38 L286.42 1006.5 L286.46 1005.65 L286.38 1004.82 L286.17 1004.02 L285.84 1003.26 L285.38 1002.55 L284.8 1001.89 L284.11 1001.28 L283.31 1000.73 L282.4 1000.25 L281.4 999.84 L280.31 999.49 L279.13 999.22 L277.89 999.03 L276.58 998.91 L275.22 998.87 L273.82 998.91 L272.39 999.03 L270.94 999.22 L269.47 999.49 L268.01 999.84 L266.56 1000.25 L265.14 1000.73 L263.75 1001.28 L262.4 1001.89 L261.11 1002.55 L259.88 1003.26 L258.73 1004.02 L257.67 1004.82 L256.69 1005.65 L255.81 1006.5 L255.04 1007.38 L254.38 1008.27 L253.84 1009.17 L253.42 1010.07 L253.12 1010.96 L252.94 1011.83 L252.9 1012.69 L252.98 1013.52 L253.19 1014.32 L253.52 1015.07 L253.98 1015.79 L254.56 1016.45 L255.25 1017.06 L256.05 1017.6 L256.96 1018.08 L257.96 1018.5 L259.05 1018.84 L260.23 1019.11 L261.47 1019.31 L262.78 1019.42 L264.14 1019.46 L265.54 1019.42 L266.97 1019.31 L268.42 1019.11 L269.89 1018.84 L271.35 1018.5 L272.8 1018.08 L274.22 1017.6 L275.61 1017.06 L276.96 1016.45 L278.25 1015.79 L279.48 1015.07 L280.63 1014.32 L281.69 1013.52 L282.67 1012.69 L283.55 1011.83 L284.32 1010.96 L284.98 1010.07 Z"/>
-          <path class="con" d="M280.48 1009.17 L280.77 1008.56 L280.97 1007.95 L281.09 1007.35 L281.12 1006.77 L281.07 1006.2 L280.92 1005.66 L280.69 1005.14 L280.38 1004.66 L279.99 1004.2 L279.52 1003.79 L278.97 1003.42 L278.35 1003.09 L277.67 1002.81 L276.93 1002.57 L276.13 1002.39 L275.28 1002.25 L274.39 1002.17 L273.46 1002.15 L272.5 1002.17 L271.53 1002.25 L270.54 1002.39 L269.54 1002.57 L268.54 1002.81 L267.55 1003.09 L266.58 1003.42 L265.63 1003.79 L264.72 1004.2 L263.84 1004.66 L263 1005.14 L262.22 1005.66 L261.49 1006.2 L260.82 1006.77 L260.23 1007.35 L259.7 1007.95 L259.25 1008.56 L258.88 1009.17 L258.59 1009.78 L258.39 1010.39 L258.27 1010.98 L258.24 1011.57 L258.29 1012.13 L258.44 1012.68 L258.67 1013.19 L258.98 1013.68 L259.37 1014.13 L259.84 1014.55 L260.39 1014.92 L261.01 1015.25 L261.69 1015.53 L262.43 1015.76 L263.23 1015.95 L264.08 1016.08 L264.97 1016.16 L265.9 1016.19 L266.86 1016.16 L267.83 1016.08 L268.82 1015.95 L269.82 1015.76 L270.82 1015.53 L271.81 1015.25 L272.78 1014.92 L273.73 1014.55 L274.64 1014.13 L275.52 1013.68 L276.36 1013.19 L277.14 1012.68 L277.87 1012.13 L278.54 1011.57 L279.13 1010.98 L279.66 1010.39 L280.11 1009.78 Z"/>
-          <g class="con"><path d="M280.48 1009.17 L285.52 1009.17"/><path d="M280.92 1005.66 L286.17 1004.02"/><path d="M278.35 1003.09 L282.4 1000.25"/><path d="M273.46 1002.15 L275.22 998.87"/><path d="M267.55 1003.09 L266.56 1000.25"/><path d="M262.22 1005.66 L258.73 1004.02"/><path d="M258.88 1009.17 L253.84 1009.17"/><path d="M258.44 1012.68 L253.19 1014.32"/><path d="M261.01 1015.25 L256.96 1018.08"/><path d="M265.9 1016.19 L264.14 1019.46"/><path d="M271.81 1015.25 L272.8 1018.08"/><path d="M277.14 1012.68 L280.63 1014.32"/></g></g></g>
+<g class="obj" id="p-notebooks" data-cl="journey" data-foot="58 18 511 267 80"><g class="ob">
+          <path class="solid" d="M261.11 1136.39 L418.8 1128.89 L444.85 1067.29 L287.16 1074.79 Z"/><path class="ol" d="M261.11 1136.39 L418.8 1128.89 L444.85 1067.29 L287.16 1074.79 Z"/>
+          <path class="con" d="M289.05 1097.35 L423.16 1090.97"/><path class="con" d="M283.84 1109.67 L417.95 1103.29"/><path class="con" d="M279.15 1120.76 L413.26 1114.38"/>
+          <path class="solid" d="M91.34 1114.94 L303.11 1122.23 L363.82 1024.09 L152.04 1016.79 Z"/>
+          <path class="col vis" style="--c:#cf9a6d" d="M91.34 1114.94 L303.11 1122.23 L363.82 1024.09 L152.04 1016.79 Z"/>
+          <path class="solid" d="M91.34 1114.94 L303.11 1122.23 L303.11 1139.51 L91.34 1132.22 Z"/><path class="vis" d="M91.34 1114.94 L303.11 1122.23 L303.11 1139.51 L91.34 1132.22 Z"/>
+          <path class="solid" d="M303.11 1122.23 L363.82 1024.09 L363.82 1041.37 L303.11 1139.51 Z"/><path class="vis" d="M303.11 1122.23 L363.82 1024.09 L363.82 1041.37 L303.11 1139.51 Z"/>
+          <g class="con"><path d="M108.28 1129.2 L299.58 1135.79"/><path d="M108.28 1126.32 L299.58 1132.91"/><path d="M108.28 1123.44 L299.58 1130.03"/><path d="M108.28 1120.56 L299.58 1127.15"/><path d="M108.28 1117.68 L299.58 1124.27"/>
+          <path d="M304.85 1132.39 L362.09 1039.85"/><path d="M304.85 1128.07 L362.09 1035.53"/><path d="M304.85 1123.75 L362.09 1031.21"/></g><path class="vis" d="M103.08 1113.43 L161.48 1019.02"/>
+          <path class="con" d="M108.6 1112.67 L165.84 1020.13"/><path class="con" d="M120.03 1103.51 L204.74 1106.43 L221.51 1079.33 L136.8 1076.41 Z"/>
+          <text class="scr scr-n" transform="matrix(0.71 0.02 -0.29 0.47 139.81 1082.91)" font-size="20">2020</text>
+          <text class="scr" transform="matrix(0.71 0.02 -0.29 0.47 132.29 1095.06)" font-size="10">B.TECH IT</text><path class="vis" d="M327.4 1099.53 L331.65 1092.66 L357.47 1090.55 L353.22 1097.42 Z"/>
+          <path class="solid" d="M112.22 1086.86 L316.85 1080.83 L359.7 989.2 L155.07 995.23 Z"/>
+          <path class="col vis" style="--c:#5fa8ad" d="M112.22 1086.86 L316.85 1080.83 L359.7 989.2 L155.07 995.23 Z"/>
+          <path class="solid" d="M112.22 1086.86 L316.85 1080.83 L316.85 1098.11 L112.22 1104.14 Z"/><path class="vis" d="M112.22 1086.86 L316.85 1080.83 L316.85 1098.11 L112.22 1104.14 Z"/>
+          <path class="solid" d="M316.85 1080.83 L359.7 989.2 L359.7 1006.48 L316.85 1098.11 Z"/><path class="vis" d="M316.85 1080.83 L359.7 989.2 L359.7 1006.48 L316.85 1098.11 Z"/>
+          <g class="con"><path d="M129.76 1100.02 L313.19 1094.62"/><path d="M129.76 1097.14 L313.19 1091.74"/><path d="M129.76 1094.26 L313.19 1088.86"/><path d="M129.76 1091.38 L313.19 1085.98"/><path d="M129.76 1088.5 L313.19 1083.1"/>
+          <path d="M318.16 1090.99 L358.39 1004.96"/><path d="M318.16 1086.67 L358.39 1000.64"/><path d="M318.16 1082.35 L358.39 996.32"/></g><path class="vis" d="M124.05 1084.66 L165.15 996.77"/>
+          <path class="con" d="M129.61 1083.58 L169.83 997.56"/><path class="con" d="M139.83 1074.06 L227.52 1071.47 L240.2 1044.36 L152.51 1046.94 Z"/>
+          <text class="scr scr-n" transform="matrix(0.73 -0.02 -0.22 0.47 156.75 1052.98)" font-size="20">2022</text>
+          <text class="scr" transform="matrix(0.73 -0.02 -0.22 0.47 151.07 1065.14)" font-size="10">DESIGN</text>
+          <path class="solid" d="M95.22 1075.62 L281.5 1086.65 L341.85 997.14 L155.57 986.12 Z"/>
+          <path class="col vis" style="--c:#c07a92" d="M95.22 1075.62 L281.5 1086.65 L341.85 997.14 L155.57 986.12 Z"/>
+          <path class="solid" d="M95.22 1075.62 L281.5 1086.65 L281.5 1103.93 L95.22 1092.9 Z"/><path class="vis" d="M95.22 1075.62 L281.5 1086.65 L281.5 1103.93 L95.22 1092.9 Z"/>
+          <path class="solid" d="M281.5 1086.65 L341.85 997.14 L341.85 1014.42 L281.5 1103.93 Z"/><path class="vis" d="M281.5 1086.65 L341.85 997.14 L341.85 1014.42 L281.5 1103.93 Z"/>
+          <g class="con"><path d="M111.91 1090.29 L278.03 1100.12"/><path d="M111.91 1087.41 L278.03 1097.24"/><path d="M111.91 1084.53 L278.03 1094.36"/><path d="M111.91 1081.65 L278.03 1091.48"/><path d="M111.91 1078.77 L278.03 1088.6"/>
+          <path d="M283.39 1096.81 L339.96 1012.9"/><path d="M283.39 1092.49 L339.96 1008.58"/><path d="M283.39 1088.17 L339.96 1004.26"/></g><path class="vis" d="M106.91 1074.38 L164.74 988.6"/>
+          <path class="con" d="M112.4 1073.73 L168.98 989.82"/><path class="con" d="M124.25 1064.74 L207.66 1069.67 L225.89 1042.63 L142.48 1037.7 Z"/>
+          <text class="scr scr-n" transform="matrix(0.7 0.04 -0.31 0.47 145.03 1044.35)" font-size="20">2024</text>
+          <text class="scr" transform="matrix(0.7 0.04 -0.31 0.47 136.86 1056.47)" font-size="10">TECH RISK</text><path class="vis" d="M305.64 1067.4 L309.86 1061.14 L335.31 1059.85 L331.08 1066.12 Z"/><path class="vis" d="M233.07 1083.78 L293.42 994.27"/>
+             <path class="vis" d="M233.07 1101.06 L233.07 1083.78"/>
+          <path class="solid" d="M138.28 1023.64 L254.97 1040.19 L295.54 992.49 L178.84 975.94 Z"/><path class="ol" d="M138.28 1023.64 L254.97 1040.19 L295.54 992.49 L178.84 975.94 Z"/>
+          <text class="scr scr-n" transform="matrix(0.66 0.09 -0.39 0.46 181.28 988.04)" font-size="12">ACM CHAPTER</text><text class="scr" transform="matrix(0.66 0.09 -0.39 0.46 173.09 997.68)" font-size="10">CHAIRPERSON</text>
+          <path class="vis" d="M257.38 1018.42 L257.78 1017.57 L258.07 1016.72 L258.23 1015.88 L258.28 1015.06 L258.2 1014.27 L258 1013.51 L257.68 1012.79 L257.24 1012.11 L256.69 1011.47 L256.03 1010.89 L255.27 1010.37 L254.4 1009.91 L253.45 1009.52 L252.4 1009.19 L251.29 1008.93 L250.1 1008.74 L248.85 1008.63 L247.55 1008.6 L246.21 1008.63 L244.85 1008.74 L243.46 1008.93 L242.06 1009.19 L240.67 1009.52 L239.28 1009.91 L237.92 1010.37 L236.59 1010.89 L235.31 1011.47 L234.08 1012.11 L232.91 1012.79 L231.81 1013.51 L230.79 1014.27 L229.86 1015.06 L229.02 1015.88 L228.29 1016.72 L227.66 1017.57 L227.14 1018.42 L226.74 1019.28 L226.45 1020.13 L226.29 1020.97 L226.24 1021.78 L226.32 1022.58 L226.52 1023.34 L226.84 1024.06 L227.28 1024.74 L227.83 1025.37 L228.49 1025.95 L229.25 1026.47 L230.12 1026.93 L231.07 1027.33 L232.12 1027.66 L233.24 1027.92 L234.42 1028.1 L235.67 1028.21 L236.97 1028.25 L238.31 1028.21 L239.67 1028.1 L241.06 1027.92 L242.46 1027.66 L243.85 1027.33 L245.24 1026.93 L246.6 1026.47 L247.93 1025.95 L249.21 1025.37 L250.44 1024.74 L251.61 1024.06 L252.71 1023.34 L253.73 1022.58 L254.66 1021.78 L255.5 1020.97 L256.23 1020.13 L256.86 1019.28 Z"/>
+          <path class="con" d="M252.34 1018.42 L252.61 1017.85 L252.8 1017.29 L252.91 1016.73 L252.94 1016.18 L252.89 1015.65 L252.75 1015.15 L252.54 1014.67 L252.25 1014.21 L251.88 1013.79 L251.44 1013.4 L250.93 1013.06 L250.36 1012.75 L249.72 1012.49 L249.02 1012.27 L248.28 1012.09 L247.48 1011.97 L246.65 1011.9 L245.79 1011.87 L244.9 1011.9 L243.98 1011.97 L243.06 1012.09 L242.13 1012.27 L241.2 1012.49 L240.28 1012.75 L239.37 1013.06 L238.48 1013.4 L237.63 1013.79 L236.81 1014.21 L236.03 1014.67 L235.29 1015.15 L234.62 1015.65 L233.99 1016.18 L233.44 1016.73 L232.95 1017.29 L232.53 1017.85 L232.18 1018.42 L231.91 1018.99 L231.72 1019.56 L231.61 1020.12 L231.58 1020.66 L231.63 1021.19 L231.77 1021.7 L231.98 1022.18 L232.27 1022.63 L232.64 1023.06 L233.08 1023.44 L233.59 1023.79 L234.16 1024.1 L234.8 1024.36 L235.5 1024.58 L236.24 1024.75 L237.04 1024.88 L237.87 1024.95 L238.73 1024.98 L239.62 1024.95 L240.54 1024.88 L241.46 1024.75 L242.39 1024.58 L243.32 1024.36 L244.24 1024.1 L245.15 1023.79 L246.04 1023.44 L246.89 1023.06 L247.71 1022.63 L248.49 1022.18 L249.23 1021.7 L249.9 1021.19 L250.53 1020.66 L251.08 1020.12 L251.57 1019.56 L251.99 1018.99 Z"/>
+          <g class="con"><path d="M252.34 1018.42 L257.38 1018.42"/><path d="M252.75 1015.15 L258 1013.51"/><path d="M250.36 1012.75 L254.4 1009.91"/><path d="M245.79 1011.87 L247.55 1008.6"/><path d="M240.28 1012.75 L239.28 1009.91"/><path d="M235.29 1015.15 L231.81 1013.51"/><path d="M232.18 1018.42 L227.14 1018.42"/><path d="M231.77 1021.7 L226.52 1023.34"/><path d="M234.16 1024.1 L230.12 1026.93"/><path d="M238.73 1024.98 L236.97 1028.25"/><path d="M244.24 1024.1 L245.24 1026.93"/><path d="M249.23 1021.7 L252.71 1023.34"/></g>
+          <path class="solid" d="M160.67 1066.55 L303.22 1057.13 L322.84 1005.01 L180.29 1014.42 Z"/><path class="ol" d="M160.67 1066.55 L303.22 1057.13 L322.84 1005.01 L180.29 1014.42 Z"/>
+          <text class="scr scr-n" transform="matrix(0.74 -0.05 -0.18 0.47 189.45 1024.14)" font-size="13">SMART INDIA</text><text class="scr scr-n" transform="matrix(0.74 -0.05 -0.18 0.47 185.77 1033.91)" font-size="13">HACKATHON 2024</text><text class="scr" transform="matrix(0.74 -0.05 -0.18 0.47 182.09 1043.68)" font-size="10">FINALIST</text>
+          <path class="vis" d="M293.81 1041.08 L294.22 1040.22 L294.5 1039.37 L294.67 1038.53 L294.71 1037.72 L294.63 1036.92 L294.43 1036.16 L294.12 1035.44 L293.68 1034.76 L293.13 1034.13 L292.47 1033.55 L291.7 1033.03 L290.84 1032.57 L289.88 1032.17 L288.84 1031.84 L287.72 1031.58 L286.53 1031.4 L285.28 1031.29 L283.99 1031.25 L282.65 1031.29 L281.28 1031.4 L279.89 1031.58 L278.5 1031.84 L277.1 1032.17 L275.72 1032.57 L274.36 1033.03 L273.03 1033.55 L271.75 1034.13 L270.51 1034.76 L269.34 1035.44 L268.25 1036.16 L267.23 1036.92 L266.3 1037.72 L265.46 1038.53 L264.72 1039.37 L264.09 1040.22 L263.57 1041.08 L263.17 1041.93 L262.89 1042.78 L262.72 1043.62 L262.68 1044.44 L262.75 1045.23 L262.95 1045.99 L263.27 1046.71 L263.71 1047.39 L264.26 1048.03 L264.92 1048.61 L265.69 1049.13 L266.55 1049.59 L267.51 1049.98 L268.55 1050.31 L269.67 1050.57 L270.86 1050.76 L272.1 1050.87 L273.4 1050.9 L274.74 1050.87 L276.11 1050.76 L277.5 1050.57 L278.89 1050.31 L280.29 1049.98 L281.67 1049.59 L283.03 1049.13 L284.36 1048.61 L285.64 1048.03 L286.88 1047.39 L288.04 1046.71 L289.14 1045.99 L290.16 1045.23 L291.09 1044.44 L291.93 1043.62 L292.67 1042.78 L293.3 1041.93 Z"/>
+          <path class="con" d="M288.77 1041.08 L289.04 1040.51 L289.23 1039.94 L289.34 1039.38 L289.37 1038.84 L289.32 1038.31 L289.19 1037.8 L288.98 1037.32 L288.68 1036.86 L288.32 1036.44 L287.88 1036.06 L287.37 1035.71 L286.79 1035.4 L286.15 1035.14 L285.46 1034.92 L284.71 1034.75 L283.92 1034.62 L283.09 1034.55 L282.22 1034.52 L281.33 1034.55 L280.42 1034.62 L279.49 1034.75 L278.56 1034.92 L277.63 1035.14 L276.71 1035.4 L275.8 1035.71 L274.92 1036.06 L274.06 1036.44 L273.24 1036.86 L272.46 1037.32 L271.73 1037.8 L271.05 1038.31 L270.43 1038.84 L269.87 1039.38 L269.38 1039.94 L268.96 1040.51 L268.61 1041.08 L268.35 1041.65 L268.16 1042.21 L268.04 1042.77 L268.02 1043.32 L268.07 1043.85 L268.2 1044.35 L268.41 1044.83 L268.71 1045.29 L269.07 1045.71 L269.51 1046.1 L270.02 1046.44 L270.6 1046.75 L271.24 1047.01 L271.93 1047.23 L272.68 1047.41 L273.47 1047.53 L274.3 1047.6 L275.17 1047.63 L276.06 1047.6 L276.97 1047.53 L277.9 1047.41 L278.83 1047.23 L279.76 1047.01 L280.68 1046.75 L281.59 1046.44 L282.47 1046.1 L283.33 1045.71 L284.15 1045.29 L284.93 1044.83 L285.66 1044.35 L286.34 1043.85 L286.96 1043.32 L287.52 1042.77 L288.01 1042.21 L288.43 1041.65 Z"/>
+          <g class="con"><path d="M288.77 1041.08 L293.81 1041.08"/><path d="M289.19 1037.8 L294.43 1036.16"/><path d="M286.79 1035.4 L290.84 1032.57"/><path d="M282.22 1034.52 L283.99 1031.25"/><path d="M276.71 1035.4 L275.72 1032.57"/><path d="M271.73 1037.8 L268.25 1036.16"/><path d="M268.61 1041.08 L263.57 1041.08"/><path d="M268.2 1044.35 L262.95 1045.99"/><path d="M270.6 1046.75 L266.55 1049.59"/><path d="M275.17 1047.63 L273.4 1050.9"/><path d="M280.68 1046.75 L281.67 1049.59"/><path d="M285.66 1044.35 L289.14 1045.99"/></g></g></g>
 <g class="obj" id="p-phone" data-cl="general" data-foot="1290 20 1366 178 9"><g class="ob">
       <path class="solid" d="M983.2 1134.16 L1019.2 1134.16 Q1028.56 1134.16 1031.84 1128.08 L1065.1 1066.3 Q1068.38 1060.22 1059.02 1060.22 L1023.02 1060.22 Q1013.66 1060.22 1010.38 1066.3 L977.12 1128.08 Q973.84 1134.16 983.2 1134.16 Z"/>
       <path class="ol" d="M983.2 1134.16 L1019.2 1134.16 Q1028.56 1134.16 1031.84 1128.08 L1065.1 1066.3 Q1068.38 1060.22 1059.02 1060.22 L1023.02 1060.22 Q1013.66 1060.22 1010.38 1066.3 L977.12 1128.08 Q973.84 1134.16 983.2 1134.16 Z"/>
@@ -1506,6 +1492,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <p>Tech risk today, product next — with design and the mountains in between. I find where systems break, then design the replacement.</p>
       <div class="links"><button class="lnk" data-goto="4">See how I work</button><button class="lnk" data-goto="8">Say hello</button><a class="lnk" href="assets/Saloni-Kansal-CV.pdf" download>Download CV</a></div>
       
+      
     </div>
   </section><section data-shot="2" data-side="r">
     <div class="card">
@@ -1515,6 +1502,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       </div>
       <h2>I’ve never been just <em>one thing</em>.</h2>
       <p>Tech risk is the day job, and I actually enjoy it. Design is where I tinker after hours, the mountains where I switch off.</p>
+      
       
       <div class="deep">
   <p class="dtitle">Where the three overlap is where I do my best work</p>
@@ -1548,6 +1536,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <h2>The short version.</h2>
       <p>I started out in IT in 2020, spent 2022 designing interfaces, and landed in tech risk at EY in 2024. All three still show up in how I work.</p>
       
+      
       <div class="deep">
   <p class="dtitle">How I got here</p>
   <dl>
@@ -1579,6 +1568,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       </div>
       <h2>The <em>Cold-Start</em> Audit.</h2>
       <p>Sometimes I get handed something no one has audited before — no template, no map. I kept taking the same path through it, so I gave it a name.</p>
+      
       
       <div class="deep on-object">
   <p class="dtitle">The Cold-Start Audit</p>
@@ -1627,6 +1617,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <h2>What I do, in the language of the field.</h2>
       <p>Four engagements at EY, with client names kept out of it. These are the short versions — ask me for the long one and I’ll happily talk you through it.</p>
       
+      
       <div class="deep">
   <p class="dtitle">Selected work</p>
   <dl>
@@ -1665,6 +1656,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <p>Every control assumes someone will follow it. Designing for the one who won’t is the job.</p>
       
       
+      
     </div>
   </section><section data-shot="7" data-side="l">
     <div class="card">
@@ -1674,6 +1666,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       </div>
       <h2>Beyond the <em>frameworks</em>.</h2>
       <p>Between meetings and assessments, I disappear into the mountains. Trekking taught me things no management book did — and it’s where I think best.</p>
+      
       
       <div class="deep">
   <p class="dtitle">Collecting stories</p>
@@ -1712,24 +1705,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <h2>Bringing clarity <em>in chaos</em>.</h2>
       <p>Up for a good conversation — risk, product, design, travel, or a team that needs a few hats worn at once. If that’s you, say hi.</p>
       <div class="links"><a class="lnk" href="mailto:salonikansal.in@gmail.com?subject=Hi%20Saloni" target="_blank" rel="noopener">✉ salonikansal.in@gmail.com</a><a class="lnk" href="https://www.linkedin.com/in/saloni-kansal/" target="_blank" rel="noopener">LinkedIn ↗</a><a class="lnk" href="https://github.com/saloship" target="_blank" rel="noopener">GitHub ↗</a><a class="lnk" href="https://dribbble.com/saloship" target="_blank" rel="noopener">Dribbble ↗</a><a class="lnk" href="https://www.instagram.com/saloni_falls/" target="_blank" rel="noopener">Instagram ↗</a><a class="lnk" href="assets/Saloni-Kansal-CV.pdf" download>Download CV (PDF) ↓</a></div>
+      <p class="cl">Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.</p>
       
     </div>
   </section></main>
 
-  <!-- The ending sits INSIDE #scroller, so the sticky stage is still behind it and the desk
-       does not end mid-page. Outside the scroller it cut the drawing off and started a bare
-       slab of paper underneath — the scene got chopped exactly where the page should have
-       been resolving. Over the scene instead: the closing words at centre-bottom, no card
-       around them, and a wash that blurs the desk back so the words carry the frame.
-
-       Still deliberately NOT a <section>. The camera maps one shot per `#copy section`, so a
-       ninth section here would silently shift the whole shot list by one. -->
-  <div id="closing">
-    <div class="cl-in">
-      <p class="cl-lead">Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.</p>
-      <p class="cl-sub">Risk, product, design, or the next trail. Say hi.</p>
-    </div>
-  </div>
+  <!-- No closing section any more. It was a full-height block below the drawing carrying the warm
+       sign-off, and it read as the page stopping and then starting again. The last card is the
+       footer now, and the sign-off is the final line inside it. -->
 </div>
 
 <!-- Portrait only: one stuck panel that never moves. Content types out and back in as
@@ -1744,6 +1727,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
        down the screen — measured at 0.33 cumulative layout shift, where 0.1 is the limit. -->
   <h2 id="tw-h"><span class="on"></span><span class="off"></span></h2>
   <p id="tw-b"><span class="on"></span><span class="off"></span></p>
+  <!-- The warm sign-off lives inside the last CARD, and cards are hidden on a phone — so without
+       this the closing line simply did not exist on mobile. Filled only on the section that has
+       one, and not typed: it is the line the page ends on, not part of the reveal. -->
+  <p id="tw-c" class="cl"></p>
   <p class="hint">TAP ANY OBJECT TO JUMP TO ITS SECTION · ⊕ MORE MARKS EXTRA DETAIL</p>
 </div>
 
@@ -1765,8 +1752,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 import { mountScene } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
-import { SECTIONS, KEYWORDS, NAV, FOOTER, CLOSING, CLOSING_SUB, OBJECT_SECTION }
-  from './assets/scene/content.js';
+import { SECTIONS, KEYWORDS, NAV, FOOTER, OBJECT_SECTION } from './assets/scene/content.js';
 import { panelsHTML, external } from './assets/scene/panels.js';
 
 const pad = n => String(n).padStart(2, '0');
@@ -1849,13 +1835,6 @@ document.getElementById('msheet').innerHTML =
        .map(s => `<button data-n="${s.n}">${NAV[s.id] || s.title}</button>`).join('');
 
 document.getElementById('foot').textContent = FOOTER;
-/* Guarded and only filled if the build did not already inline them, matching the panels and
-   the drawing: the ending is content, so it has to survive with no JavaScript. */
-{
-  const lead = document.querySelector('.cl-lead'), sub = document.querySelector('.cl-sub');
-  if (lead && !lead.textContent.trim()) lead.innerHTML = CLOSING;
-  if (sub && !sub.textContent.trim()) sub.textContent = CLOSING_SUB;
-}
 rail.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (b) cam.goTo(+b.dataset.n);
@@ -2046,7 +2025,8 @@ addEventListener('scroll', () => {
    would have printed the tags. */
 const tw = {
   e: document.getElementById('tw-e'), r: document.getElementById('tw-r'),
-  h: document.getElementById('tw-h'), b: document.getElementById('tw-b')
+  h: document.getElementById('tw-h'), b: document.getElementById('tw-b'),
+  c: document.getElementById('tw-c')
 };
 /* the typed and untyped halves of each line, so the box can hold its full height */
 for (const k of ['h', 'b']) {
@@ -2123,6 +2103,13 @@ function twAt(raw) {
 
   tw.e.textContent = c.eyebrow;
   tw.r.textContent = `SK-01 · ${pad(i + 1)}/${pad(SHOTS.length)}`;
+  /* Shown once the body has finished, so the ending arrives after the words rather than sitting
+     under an unfinished sentence. */
+  if (tw.c) {
+    const done = shown >= H.length + Bp.length;
+    const want = c.close && done ? c.close : '';
+    if (tw.c.innerHTML !== want) tw.c.innerHTML = want;
+  }
   if (shown >= H.length) {
     twWrite('h', H, H.length, c.head);
     const complete = shown >= H.length + Bp.length;

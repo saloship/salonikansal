@@ -29,7 +29,7 @@ import { dirname, join } from 'node:path';
 
 import { buildScene, GRID_DEFS } from '../assets/scene/desk.mjs';
 import { sheetFurniture } from '../assets/scene/sheet.mjs';
-import { SECTIONS, KEYWORDS, FOOTER, CLOSING, CLOSING_SUB } from '../assets/scene/content.js';
+import { SECTIONS, KEYWORDS, FOOTER } from '../assets/scene/content.js';
 import { SHOTS } from '../assets/scene/shots.js';
 import { panelsHTML } from '../assets/scene/panels.js';
 
@@ -129,15 +129,8 @@ out = out.replace(COPY, (_, open, close) => `${open}${panels}${close}`);
 const FOOT = /(<footer id="foot"[^>]*>)\s*(<\/footer>)/;
 if (FOOT.test(out)) out = out.replace(FOOT, (_, open, close) => `${open}${FOOTER}${close}`);
 
-/* The closing lines are content — the warm sign-off is the last thing a reader takes away, so
-   it cannot be the one part of the page that needs JavaScript to exist. */
-const fill = (cls, html) => {
-  const re = new RegExp(`(<p class="${cls}"[^>]*>)\\s*(</p>)`);
-  if (!re.test(out)) fail(`could not find an empty <p class="${cls}"> in lab.html`);
-  out = out.replace(re, (_, open, close) => `${open}${html}${close}`);
-};
-fill('cl-lead', CLOSING);
-fill('cl-sub', CLOSING_SUB);
+/* The warm sign-off needs no special handling any more: it is the `close` line on the connect
+   panel, so panelsHTML carries it and it is inlined with the rest of the copy. */
 
 /* --- 3. the real head ----------------------------------------------------- */
 const NOINDEX = /<meta name="robots"[^>]*>\s*/;
