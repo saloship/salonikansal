@@ -488,6 +488,29 @@ const cards = (x, y, z, w, h) => {
    PROPS — each returns SVG, positioned in world space
    ========================================================================= */
 
+/** A sticky note with a lifted corner and writing on it.
+ *
+ *  Drawn twice — on the whiteboard and on the monitor bezel — so it lives here rather
+ *  than being pasted into both. A flat coloured square is the one thing in this drawing
+ *  that cannot be mistaken for anything but a placeholder: a real note has a corner that
+ *  has stopped sticking, and something written on it. The writing is rules rather than
+ *  glyphs, at a deliberately illegible size, because at 66mm anything else is a smudge —
+ *  the point is that the note is USED, which reads at any zoom. */
+function sticky(x, y, z, s, c) {
+  const curl = s * 0.26;
+  const body = [P(x, y, z), P(x + s, y, z), P(x + s, y + s - curl, z),
+                P(x + s - curl, y + s, z), P(x, y + s, z)];
+  const fold = [P(x + s, y + s - curl, z), P(x + s - curl * 0.55, y + s - curl * 0.55, z),
+                P(x + s - curl, y + s, z)];
+  const rules = [0.30, 0.46, 0.62, 0.78].map((k, i) =>
+    `<path class="con" d="${line2(P(x + s * 0.13, y + s * k, z),
+                                  P(x + s * (i === 3 ? 0.62 : 0.87), y + s * k, z))}"/>`).join('');
+  return `<path class="solid" d="${poly(body)}"/>
+    <path class="col vis" style="--c:${c}" d="${poly(body)}"/>
+    <path class="vis" d="${poly(fold, false)}"/>
+    ${rules}`;
+}
+
 const PENS = ['#e0846c', '#5fa8cf', '#79b06b', '#9db0c6'];
 const PAN_COLS = ['#e0705a', '#d9822a', '#e0c341', '#79b06b', '#5fa8cf', '#9385c4',
                   '#c07a92', '#e08a5e', '#a3c268', '#5fa8ad', '#7a8fce', '#a68872'];
@@ -515,20 +538,32 @@ export const PROPS = [
     } },
 
   { id: 'photo', cl: 'travel', z: 738, art: () => {
+      /* A framed print, which needs to be a FRAME: an outer moulding, a mount border set in
+         from it, and the image inside that. It was one coloured rectangle with a single
+         zigzag across it, which reads as a chart. Two ridgelines now, the far one lighter and
+         higher — that overlap is the only thing that makes a landscape have depth — with a
+         sun behind them and the lake line beneath. */
       const x = 250, y = 452, w = 250, h = 200, Z = 738;
-      const b = [P(x, y, Z), P(x + w, y, Z), P(x + w, y + h, Z), P(x, y + h, Z)];
-      const ridge = [P(x + 16, y + 62, Z), P(x + 74, y + 132, Z), P(x + 116, y + 92, Z), P(x + 168, y + 154, Z), P(x + 234, y + 74, Z)];
+      const R = (ix, iy, iw, ih) =>
+        [P(x + ix, y + iy, Z), P(x + ix + iw, y + iy, Z), P(x + ix + iw, y + iy + ih, Z), P(x + ix, y + iy + ih, Z)];
+      const b = R(0, 0, w, h), mount = R(11, 11, w - 22, h - 22), img = R(20, 20, w - 40, h - 40);
+      const far = [P(x + 20, y + 118, Z), P(x + 62, y + 158, Z), P(x + 104, y + 126, Z),
+                   P(x + 150, y + 166, Z), P(x + 196, y + 122, Z), P(x + 230, y + 146, Z)];
+      const near = [P(x + 20, y + 74, Z), P(x + 78, y + 138, Z), P(x + 122, y + 96, Z),
+                    P(x + 172, y + 152, Z), P(x + 230, y + 78, Z)];
       return `<path class="solid" d="${poly(b)}"/><path class="ol" d="${poly(b)}"/>
-              <path class="col" style="--c:#8fa9b8" d="${poly(b)}"/>
-              <path class="vis" d="${poly(ridge, false)}"/>`;
+              <path class="vis" d="${poly(mount)}"/>
+              <path class="col" style="--c:#8fa9b8" d="${poly(img)}"/>
+              <path class="con" d="${poly(circle2(P(x + 176, y + 148, Z), 19))}"/>
+              <path class="con" d="${poly(far, false)}"/>
+              <path class="vis" d="${poly(near, false)}"/>
+              <path class="con" d="${line2(P(x + 20, y + 56, Z), P(x + 230, y + 56, Z))}"/>
+              <path class="con" d="${line2(P(x + 40, y + 42, Z), P(x + 150, y + 42, Z))}"/>`;
     } },
 
   { id: 'stickies-wall', cl: 'risk', z: 737, art: () => {
       const S = [[560, 620, '#e8c24a'], [676, 556, '#d98f6a'], [548, 500, '#9cc4d4']];
-      return S.map(([x, y, c]) => {
-        const b = [P(x, y, 737), P(x + 66, y, 737), P(x + 66, y + 66, 737), P(x, y + 66, 737)];
-        return `<path class="solid" d="${poly(b)}"/><path class="col vis" style="--c:${c}" d="${poly(b)}"/>`;
-      }).join('');
+      return S.map(([x, y, c]) => sticky(x, y, 737, 66, c)).join('');
     } },
 
   /* ---- back of the desk -------------------------------------------------- */
@@ -545,8 +580,16 @@ export const PROPS = [
           <path class="vis" d="M${f(A[0])} ${f(A[1])} Q${f(C1[0])} ${f(C1[1])} ${f(T[0])} ${f(T[1])} Q${f(C2[0])} ${f(C2[1])} ${f(A[0])} ${f(A[1])} Z"/>
           <path class="con" d="M${f(A[0])} ${f(A[1])} Q${f((C1[0] + C2[0]) / 2)} ${f((C1[1] + C2[1]) / 2)} ${f(T[0])} ${f(T[1])}"/>`;
       };
+      /* The pot tapers — 74mm at the rim down to 58 at the base, which is what a pot does
+         and what two stacked cylinders cannot say. Meshed over that taper, drawn after the
+         cylinders so their occluding fills do not bury the isolines. */
+      const pot = (u, v) => {
+        const a = u * Math.PI * 2, rr = 58 + 16 * v;
+        return [cx + rr * Math.cos(a), 30 + 76 * v, cz + rr * Math.sin(a)];
+      };
       return `${cyl(cx, cz, 84, 30, 0, { nohidden: true })}
         ${cyl(cx, cz, 74, 76, 30, { inner: 9 })}
+        ${mesh(pot, 12, 3, { clip: poly(hull(surfacePts(pot))) })}
         ${centre(cx, cz, -30, 340)}
         <path class="con" d="${poly(ringXZ(cx, 96, cz, 74))}"/>
         <path class="col" style="--c:#977a5e" d="${poly(ringXZ(cx, 92, cz, 63))}"/>
@@ -590,6 +633,11 @@ export const PROPS = [
 
   { id: 'speaker', cl: 'general', z: 600, art: () => {
       const x = 420, Z = 600, cx = x + 65;
+      /* No mesh on the driver, and that is a decision rather than an omission. A dome mesh
+         here puts ten radial spokes through a face that already carries 20 grille holes and
+         three circles, and at the size this object is ever seen it reads as a scribble. The
+         mesh earns its keep on a large smooth surface — a mug wall, a mouse shell — not on a
+         44mm disc that is already the busiest thing in the drawing. */
       return `
       ${box(x, 0, Z, 130, 150, 110)}
       <path class="vis" d="${poly(circle2(P(cx, 92, Z), 44))}"/>
@@ -644,10 +692,7 @@ export const PROPS = [
 
   { id: 'stickies-bezel', cl: 'risk', z: 558, on: 'monitor', art: () => {
       const S = [[566, 396, '#e8c24a'], [560, 300, '#d98f6a']];
-      return S.map(([x, y, c]) => {
-        const b = [P(x, y, 558), P(x + 58, y, 558), P(x + 58, y + 58, 558), P(x, y + 58, 558)];
-        return `<path class="solid" d="${poly(b)}"/><path class="col vis" style="--c:${c}" d="${poly(b)}"/>`;
-      }).join('');
+      return S.map(([x, y, c]) => sticky(x, y, 558, 58, c)).join('');
     } },
 
   { id: 'riser', cl: 'work', z: 480, art: () => box(1300, 0, 480, 420, 88, 220) },
@@ -672,20 +717,56 @@ export const PROPS = [
       <path class="hid" d="${line2(P(DX, 74, DZ + 92), P(DX + DW, 74, DZ + 92))}"/>`;
     } },
 
+  /* The pens were flat 8mm ribbons. Each one now has a barrel, a chamfered nib cone at the
+     top and a cap band — three features, which is the difference between a pen and a stripe.
+     The one at the back is a brush, because a designer's cup has one. */
   { id: 'pens', cl: 'design', z: 470, art: () => {
       const cx = 130, cz = 420;
-      const pens = PENS.map((c, i) =>
-        `<path class="col vis" style="--c:${c}" d="${poly([P(cx - 30 + i * 18, 96, cz - 6 + i * 5), P(cx - 22 + i * 18, 96, cz - 6 + i * 5), P(cx - 22 + i * 18, 190 + i * 14, cz - 6 + i * 5), P(cx - 30 + i * 18, 190 + i * 14, cz - 6 + i * 5)])}"/>`).join('');
-      return `${pens}${cyl(cx, cz, 46, 104, 0, { inner: 7 })}`;
+      const pens = PENS.map((c, i) => {
+        const px = cx - 30 + i * 18, pz = cz - 6 + i * 5, top = 190 + i * 14, wid = 9;
+        const q = (x0, y0, x1, y1) => [P(x0, y0, pz), P(x1, y0, pz), P(x1, y1, pz), P(x0, y1, pz)];
+        const nib = [P(px, top - 16, pz), P(px + wid, top - 16, pz),
+                     P(px + wid * 0.62, top, pz), P(px + wid * 0.38, top, pz)];
+        return `<path class="col vis" style="--c:${c}" d="${poly(q(px, 96, px + wid, top - 16))}"/>
+          <path class="vis" d="${poly(nib)}"/>
+          <path class="con" d="${line2(P(px, top - 34, pz), P(px + wid, top - 34, pz))}"/>
+          <path class="con" d="${line2(P(px, top - 40, pz), P(px + wid, top - 40, pz))}"/>`;
+      }).join('');
+      /* brush: a slimmer barrel with a ferrule and a bristle wedge, standing taller */
+      const bx = cx + 26, bz = cz + 22, bt = 268;
+      const brush = `<path class="vis" d="${poly([P(bx, 96, bz), P(bx + 7, 96, bz), P(bx + 7, bt - 40, bz), P(bx, bt - 40, bz)])}"/>
+        <path class="con" d="${poly([P(bx, bt - 40, bz), P(bx + 7, bt - 40, bz), P(bx + 7, bt - 28, bz), P(bx, bt - 28, bz)])}"/>
+        <path class="col vis" style="--c:#a3714a" d="${poly([P(bx - 1, bt - 28, bz), P(bx + 8, bt - 28, bz), P(bx + 4.6, bt, bz), P(bx + 2.4, bt, bz)])}"/>`;
+      return `${pens}${brush}${cyl(cx, cz, 46, 104, 0, { inner: 7 })}`;
     } },
 
   /* ---- middle of the desk ------------------------------------------------ */
+  /* Was a band curve and two flat circles. The cups are the object — domed ear pads on a
+     headband with real thickness, so it reads as a pair of headphones resting on the desk
+     rather than a bicycle handlebar. */
   { id: 'headphones', cl: 'general', z: 420, art: () => {
       const cx = 1254, cz = 424;
+      /* Each cup: a squashed hemisphere on its side, axis along x, so the pad faces
+         outward the way it does when the set is stood on its band. */
+      const cup = s => (u, v) => {
+        const a = u * Math.PI * 2, p = v * Math.PI * 0.5;
+        const rr = 26 * Math.sin(p) + 0.001;
+        return [cx + s * (62 + 13 * Math.cos(p)), 30 + rr * Math.cos(a), cz + rr * 1.05 * Math.sin(a)];
+      };
+      const band = (y0, sp) => `M${f(P(cx - 62, y0, cz)[0])} ${f(P(cx - 62, y0, cz)[1])} ` +
+        `C${f(P(cx - 62, y0 + 122 + sp, cz)[0])} ${f(P(cx - 62, y0 + 122 + sp, cz)[1])} ` +
+        `${f(P(cx + 62, y0 + 122 + sp, cz)[0])} ${f(P(cx + 62, y0 + 122 + sp, cz)[1])} ` +
+        `${f(P(cx + 62, y0, cz)[0])} ${f(P(cx + 62, y0, cz)[1])}`;
+      const cups = [1, -1].map(s => {
+        const fn = cup(s), sil = poly(hull(surfacePts(fn, 30, 12)));
+        return `<path class="solid" d="${sil}"/>${mesh(fn, 9, 4, { clip: sil })}
+          <path class="ol" d="${sil}"/>
+          <path class="con" d="${poly(circle2(P(cx + s * 62, 30, cz), 17))}"/>`;
+      }).join('');
       return `${sheet(1190, 0, 380, 128, 88, 6, { light: true })}
-        <path class="ol" fill="none" d="M${f(P(cx - 62, 10, cz)[0])} ${f(P(cx - 62, 10, cz)[1])} C${f(P(cx - 62, 132, cz)[0])} ${f(P(cx - 62, 132, cz)[1])} ${f(P(cx + 62, 132, cz)[0])} ${f(P(cx + 62, 132, cz)[1])} ${f(P(cx + 62, 10, cz)[0])} ${f(P(cx + 62, 10, cz)[1])}"/>
-        <path class="vis" d="${poly(circle2(P(cx - 62, 30, cz), 26))}"/>
-        <path class="vis" d="${poly(circle2(P(cx + 62, 30, cz), 26))}"/>`;
+        <path class="ol" fill="none" d="${band(10, 0)}"/>
+        <path class="vis" fill="none" d="${band(10, -11)}"/>
+        ${cups}`;
     } },
 
   { id: 'papers', cl: 'risk', z: 372, art: () => {
@@ -736,22 +817,112 @@ export const PROPS = [
   { id: 'mug', cl: 'general', z: 420, art: () => {
       const cx = 1020, cz = 420, r = 46;
       const hx = cx + r, ho = cx + r + 74;          // handle springs off the right side
+
+      /* A mug is not a tube. The wall bows out towards the top and pulls in at a foot —
+         a slight taper is the whole difference between a mug and a length of pipe, and it
+         is what the mesh needs in order to have anything to describe. Half-widths at four
+         stations, 42mm at the foot to 46mm at the rim. */
+      const PROF = [[0, 41], [0.14, 43.5], [0.62, 46], [1, 45]];
+      const wall = (u, v) => {
+        let i = 0;
+        while (i < PROF.length - 2 && PROF[i + 1][0] < v) i++;
+        const [t0, w0] = PROF[i], [t1, w1] = PROF[i + 1];
+        const k = t1 === t0 ? 0 : (v - t0) / (t1 - t0);
+        const rr = w0 + (w1 - w0) * k, a = u * Math.PI * 2;
+        return [cx + rr * Math.cos(a), 4 + 92 * v, cz + rr * Math.sin(a)];
+      };
+      const sil = poly(hull(surfacePts(wall)));
+
+      /* The handle gets a thickness: two curves and the two end caps, so it reads as a
+         strap you could get a finger through rather than a wire loop. */
+      const bez = (y0, y1, sp) =>
+        `M${f(P(hx, y0, cz)[0])} ${f(P(hx, y0, cz)[1])} ` +
+        `C${f(P(ho + sp, y0 + 8, cz)[0])} ${f(P(ho + sp, y0 + 8, cz)[1])} ` +
+        `${f(P(ho + sp, y1 - 6, cz)[0])} ${f(P(ho + sp, y1 - 6, cz)[1])} ` +
+        `${f(P(hx, y1, cz)[0])} ${f(P(hx, y1, cz)[1])}`;
+
       return `
       ${centre(cx, cz, -26, 150)}
-      ${cyl(cx, cz, r, 96, 0, { inner: 7, fill: '#a3714a' })}
-      <path class="ol" fill="none" d="M${f(P(hx, 68, cz)[0])} ${f(P(hx, 68, cz)[1])} C${f(P(ho, 76, cz)[0])} ${f(P(ho, 76, cz)[1])} ${f(P(ho, 22, cz)[0])} ${f(P(ho, 22, cz)[1])} ${f(P(hx, 28, cz)[0])} ${f(P(hx, 28, cz)[1])}"/>`;
+      <!-- cyl FIRST. It paints its own occluding fill, so drawing it after the mesh hid every
+           isoline and the mug went back to being a plain tube. Order is the whole fix. -->
+      ${cyl(cx, cz, r, 92, 4, { inner: 7, fill: '#a3714a', nohidden: true })}
+      ${mesh(wall, 12, 5, { clip: sil })}
+      <path class="ol" d="${sil}"/>
+      <path class="con" d="${poly(ringXZ(cx, 4, cz, 41), false)}"/>
+      <path class="vis" d="${poly(ringXZ(cx, 0, cz, 41))}"/>
+      <path class="ol" fill="none" d="${bez(68, 28, 0)}"/>
+      <path class="ol" fill="none" d="${bez(62, 34, -13)}"/>
+      <path class="vis" d="${line2(P(hx, 68, cz), P(hx, 62, cz))}"/>
+      <path class="vis" d="${line2(P(hx, 34, cz), P(hx, 28, cz))}"/>`;
     } },
 
-  { id: 'ipad', cl: 'design', z: 460, art: () => `
-      ${panel(1760, 46, 460, 250, 180, 10, { content: (x, y, z, w, h) => `<path class="con" d="${line2(P(x + w * .1, y + h * .5, z), P(x + w * .9, y + h * .5, z))}"/><path class="con" d="${line2(P(x + w * .1, y + h * .72, z), P(x + w * .62, y + h * .72, z))}"/>` })}
-      <path class="vis" fill="none" d="${line2(P(1885, 46, 460), P(1885, 0, 488))}"/>
-      <path class="vis" fill="none" d="${line2(P(1820, 46, 460), P(1820, 0, 488))}"/>` },
+  /* The design object, and it was showing two horizontal lines. Now it shows work in
+     progress: a tool strip, a three-box flow with arrows, and construction lines under a
+     shape that is still being resolved — a screen mid-thought rather than a placeholder.
+     The Pencil lies beside it, because a drawing tablet with no stylus is a picture frame. */
+  { id: 'ipad', cl: 'design', z: 460, art: () => {
+      /* Apple Pencil: a 160mm cylinder on its side tapering to the nib, meshed rather than
+         outlined — a plain capsule outline is indistinguishable from a pen lid. */
+      const px0 = 1774, pz = 512, pr = 5.4, plen = 158;
+      const pen = (u, v) => {
+        const a = u * Math.PI * 2;
+        const k = v > 0.88 ? 1 - (v - 0.88) / 0.12 * 0.74 : 1;
+        return [px0 + plen * v, pr + pr * k * Math.cos(a), pz + pr * k * Math.sin(a)];
+      };
+      const penSil = poly(hull(surfacePts(pen, 30, 8)));
 
+      const art = (x, y, z, w, h) => {
+        const L = (x0, y0, x1, y1, c = 'con') =>
+          `<path class="${c}" d="${line2(P(x + w * x0, y + h * y0, z), P(x + w * x1, y + h * y1, z))}"/>`;
+        /* three boxes and two arrows — a flow, which is what a design file actually holds */
+        const boxes = [[0.08, 0.30], [0.40, 0.30], [0.72, 0.30]].map(([bx, by]) =>
+          `<path class="vis" d="${rrectXY(x + w * bx, y + h * by, z, w * 0.20, h * 0.26, 3)}"/>`).join('');
+        const arrow = bx => `${L(bx, 0.43, bx + 0.08, 0.43, 'vis')}` +
+          `${L(bx + 0.08, 0.43, bx + 0.055, 0.47, 'vis')}${L(bx + 0.08, 0.43, bx + 0.055, 0.39, 'vis')}`;
+        /* tool strip down the left, the way a drawing app parks its tools */
+        const tools = [0.86, 0.76, 0.66, 0.56].map(ty =>
+          `<path class="con" d="${poly(circle2(P(x + w * 0.05, y + h * ty, z), 3.4))}"/>`).join('');
+        return `${tools}${boxes}${arrow(0.28)}${arrow(0.60)}
+          ${L(0.08, 0.86, 0.62, 0.86, 'vis')}
+          ${L(0.08, 0.14, 0.92, 0.14)}
+          ${L(0.14, 0.10, 0.14, 0.94)}
+          ${L(0.30, 0.72, 0.52, 0.90, 'vis')}
+          ${L(0.52, 0.90, 0.74, 0.70, 'vis')}`;
+      };
+
+      return `
+      ${panel(1760, 46, 460, 250, 180, 10, { content: art })}
+      <path class="vis" fill="none" d="${line2(P(1885, 46, 460), P(1885, 0, 488))}"/>
+      <path class="vis" fill="none" d="${line2(P(1820, 46, 460), P(1820, 0, 488))}"/>
+      <path class="solid" d="${penSil}"/>
+      ${mesh(pen, 8, 3, { clip: penSil })}
+      <path class="ol" d="${penSil}"/>
+      <path class="con" d="${poly(ringXZ(px0 + plen * 0.14, pr, pz, pr), false)}"/>`;
+    } },
+
+  /* x moved from 1880 into the 124mm gap between the paint set (ends 1636) and the iPad
+     (starts 1760). The footprint checker was happy where it was — a bottle and a tablet stand
+     do not overlap on the desk — but the bottle is 220mm tall and the iPad is a PANEL behind
+     it, so it stood squarely across the screen and hid the design section's own artwork. The
+     checker works on the desk plane; occlusion of an upright panel is not something it can
+     see, so a green check means "nothing is buried", not "this is composed". */
   { id: 'bottle', cl: 'general', z: 400, art: () => {
-      const cx = 1880, cz = 400, r = 44;
+      const cx = 1698, cz = 400, r = 44;
+      /* The body gets isolines over its real taper — straight-sided down most of its length
+         then drawing in to the shoulder. A cylinder plus two rings said "tin can"; the mesh
+         is what makes the shoulder a curved surface instead of a change of diameter. */
+      const body = (u, v) => {
+        const y = 6 + 184 * v;
+        const k = v < 0.78 ? 1 : 1 - Math.pow((v - 0.78) / 0.22, 1.7) * 0.24;
+        const a = u * Math.PI * 2;
+        return [cx + r * k * Math.cos(a), y, cz + r * k * Math.sin(a)];
+      };
+      const bodySil = poly(hull(surfacePts(body)));
       return `
       ${centre(cx, cz, -26, 330)}
-      ${cyl(cx, cz, r, 190, 0)}
+      ${cyl(cx, cz, r, 190, 0, { nohidden: true })}
+      ${mesh(body, 12, 5, { clip: bodySil })}
+      <path class="ol" d="${bodySil}"/>
       <path class="con" d="${poly(ringXZ(cx, 26, cz, r), false)}"/>
       <path class="con" d="${poly(ringXZ(cx, 150, cz, r), false)}"/>
       ${cyl(cx, cz, 34, 24, 190, { nohidden: true })}
@@ -798,11 +969,27 @@ export const PROPS = [
         pans.push(`<path class="vis col" style="--c:${PAN_COLS[r * 6 + c]}" d="${poly([P(px, Hb, pz), P(px + 30, Hb, pz), P(px + 30, Hb, pz + 36), P(px, Hb, pz + 36)])}"/>`);
       }
       const lid = [P(x, Hb, z + D), P(x + W, Hb, z + D), P(x + W, Hb + 92, z + D + 34), P(x, Hb + 92, z + D + 34)];
+      /* The lid is the mixing area on a travel set, and a used one carries washes. Three
+         soft patches plus the swatch strip say "this gets painted with" — an empty lid says
+         it came out of the box. The hinge knuckles and the front latch are the hardware that
+         makes it a case that opens rather than two stacked slabs. */
+      const wash = [[0.16, 0.30, 26], [0.44, 0.52, 21], [0.72, 0.34, 17]].map(([u, v, r]) => {
+        const px = x + W * u, py = Hb + 92 * v, pz = z + D + 34 * v;
+        return `<path class="con" d="${poly(circle2(P(px, py, pz), r))}"/>`;
+      }).join('');
+      const hinge = [0.18, 0.5, 0.82].map(u =>
+        `<path class="vis" d="${poly([P(x + W * u - 11, Hb, z + D), P(x + W * u + 11, Hb, z + D),
+                                     P(x + W * u + 11, Hb + 13, z + D + 5), P(x + W * u - 11, Hb + 13, z + D + 5)])}"/>`).join('');
+      const latch = `<path class="vis" d="${poly([P(x + W / 2 - 17, 3, z), P(x + W / 2 + 17, 3, z),
+                                                  P(x + W / 2 + 17, Hb - 2, z), P(x + W / 2 - 17, Hb - 2, z)])}"/>`;
       return `<path class="solid" d="${poly(lid)}"/><path class="ol" d="${poly(lid)}"/>
+        <path class="con" d="${poly([P(x + 10, Hb + 10, z + D + 4), P(x + W - 10, Hb + 10, z + D + 4),
+                                     P(x + W - 10, Hb + 82, z + D + 30), P(x + 10, Hb + 82, z + D + 30)])}"/>
+        ${wash}${hinge}
         ${box(x, 0, z, W, Hb, D, { nohidden: true })}
         <path class="solid" d="${poly([P(x, Hb, z), P(x + W, Hb, z), P(x + W, Hb, z + D), P(x, Hb, z + D)])}"/>
         <path class="vis" d="${poly([P(x, Hb, z), P(x + W, Hb, z), P(x + W, Hb, z + D), P(x, Hb, z + D)])}"/>
-        ${pans.join('')}`;
+        ${pans.join('')}${latch}`;
     } },
 
   { id: 'notebooks', cl: 'journey', z: 40, art: () => {
@@ -850,15 +1037,104 @@ export const PROPS = [
         ${cable([x + W - 24, 14, z + DP], [1000, 4, 556], 0.3)}`;
     } },
 
+  /* 62 x 112 x 40 — a real mouse, where this was a 92mm puck with one line across it.
+     The shell is a swept dome: u runs across the top from the left edge over to the
+     right, v from the nose to the tail, so ONE function gives both the cross-section
+     arc and the length profile, and the mesh follows the contour instead of describing
+     a circle. */
   { id: 'mouse', cl: 'general', z: 170, art: () => {
-      const cx = 1320, cz = 260;
-      return `${cyl(cx, cz, 46, 30, 0, { nohidden: true })}
-        <path class="vis" d="${line2(P(cx, 30, cz - 46), P(cx, 30, cz + 46))}"/>`;
+      const cx = 1320, z0 = 206, L = 112;
+
+      /* Half-width and height at six stations, interpolated. A table is easier to adjust
+         by eye than a formula that happens to fit a hand, and it puts the peak at 68% of
+         the way back where the palm actually rests — a mouse that peaks in the middle
+         reads as a bar of soap. */
+      const PROF = [[0, 19, 13], [0.25, 27, 24], [0.5, 31, 34],
+                    [0.68, 31, 40], [0.85, 29, 35], [1, 24, 22]];
+      const at = v => {
+        let i = 0;
+        while (i < PROF.length - 2 && PROF[i + 1][0] < v) i++;
+        const [t0, w0, h0] = PROF[i], [t1, w1, h1] = PROF[i + 1];
+        const k = t1 === t0 ? 0 : (v - t0) / (t1 - t0);
+        return [w0 + (w1 - w0) * k, h0 + (h1 - h0) * k];
+      };
+      /* v = 0 is the NOSE and it points AWAY from the chair, so the length runs from high z
+         back toward low z: the user sits at the front of the desk (the keyboard is at z 170,
+         the monitor at 560), which puts the palm hump nearest them and the buttons at the far
+         end. Built the other way round first, and it read as a mouse facing the wall. */
+      const shell = (u, v) => {
+        const [hw, ht] = at(v), a = Math.PI * u;
+        return [cx + hw * Math.cos(a), ht * Math.sin(a), z0 + L * (1 - v)];
+      };
+      const sil = poly(hull(surfacePts(shell)));
+
+      /* An isoline drawn ON the surface, so a feature line sits where the surface is
+         rather than floating at a guessed height above it. */
+      const along = (u, v0, v1, n = 20) =>
+        poly(Array.from({ length: n + 1 }, (_, i) => P(...shell(u, v0 + (v1 - v0) * i / n))), false);
+      const across = (v, n = 20) =>
+        poly(Array.from({ length: n + 1 }, (_, i) => P(...shell(i / n, v))), false);
+
+      /* Scroll wheel: a disc in the plane x = cx, sunk into the shell so its top edge
+         breaks the surface. Recessed 5mm with a 9mm radius, which is what makes it read
+         as a wheel in a slot and not a sticker. */
+      /* Sunk so only the top ~2mm breaks the shell. At 4mm it read as a coin stuck on. */
+      const wv = 0.3, [, wh] = at(wv), wz = z0 + L * (1 - wv), wy = wh - 8, wr = 10;
+      const disc = (r, k = 1) => poly(Array.from({ length: 25 }, (_, i) => {
+        const t = i / 24 * Math.PI * 2;
+        return P(cx, wy + r * Math.cos(t), wz + r * k * Math.sin(t));
+      }));
+
+      return `
+      <path class="solid" d="${sil}"/>
+      ${mesh(shell, 9, 7, { clip: sil })}
+      <path class="ol" d="${sil}"/>
+      <path class="vis" d="${along(0.5, 0, 0.42)}"/>
+      <path class="vis" d="${across(0.42)}"/>
+      <path class="con" d="${along(0.22, 0.02, 0.4)}"/>
+      <path class="con" d="${along(0.78, 0.02, 0.4)}"/>
+      <path class="solid" d="${disc(wr + 3, 1.15)}"/>
+      <path class="con" d="${disc(wr + 3, 1.15)}"/>
+      <path class="vis" d="${disc(wr)}"/>
+      <path class="con" d="${disc(wr * 0.3)}"/>
+      ${cable([cx, 10, z0 + L], [cx + 30, 4, z0 + L + 130], 0.28)}`;
     } },
 
-  /* 76 x 158 — a phone, not the tea tray it used to be */
-  { id: 'phone', cl: 'general', z: 20, art: () => `
-      ${sheet(1290, 0, 20, 76, 158, 12, { col: '#9db0c6' })}` },
+  /* 76 x 158 x 9 — a phone lying screen-up beside the keyboard. It was a flat coloured
+     slab with square corners: no screen, no buttons, nothing that said phone rather than
+     coaster. Now a rounded shell with a real bezel, an island, a few rows of interface and
+     the power and volume tabs on the edges it would actually carry them on. */
+  { id: 'phone', cl: 'general', z: 20, art: () => {
+      const x = 1290, z = 20, w = 76, dp = 158, t = 9;
+      const shell = rrectXZ(x, t, z, w, dp, 13);
+      const screen = rrectXZ(x + 3.5, t + 0.3, z + 4, w - 7, dp - 8, 10);
+
+      /* Interface, at the size a phone screen really is: 68mm across, so nothing here can
+         be text — it is the RHYTHM of an interface. A tall card, then rows. Anything more
+         detailed would be a smudge at every zoom the camera actually reaches. */
+      const rows = [0.30, 0.40, 0.50, 0.60, 0.70, 0.80].map(k =>
+        `<path class="con" d="${line2(P(x + 11, t + 0.4, z + dp * k), P(x + w - 11, t + 0.4, z + dp * k))}"/>`).join('');
+
+      /* The near edge, drawn as a face rather than a line, is what gives it thickness —
+         and the two tabs are the buttons: power on the right, volume pair on the left. */
+      const edge = [P(x, 0, z), P(x, t, z), P(x + w, t, z), P(x + w, 0, z)];
+      const tab = (px, pz, len) =>
+        `<path class="vis" d="${poly([P(px, 2.4, pz), P(px, t - 2, pz), P(px, t - 2, pz + len), P(px, 2.4, pz + len)])}"/>`;
+
+      return `
+      <path class="solid" d="${shell}"/>
+      <path class="ol" d="${shell}"/>
+      <path class="vis" d="${poly(edge, false)}"/>
+      <path class="col vis" style="--c:#9db0c6" d="${screen}"/>
+      <!-- island at the FAR edge and the home indicator at the near one, because that is
+           how a phone gets put down: top away from you. Built the other way first and it
+           read as lying upside-down. -->
+      <path class="con" d="${rrectXZ(x + 26, t + 0.4, z + dp - 17, 24, 8, 4)}"/>
+      <path class="con" d="${rrectXZ(x + 9, t + 0.4, z + dp - 66, w - 18, 38, 5)}"/>
+      ${rows}
+      ${tab(x + w, z + dp - 68, 24)}${tab(x, z + dp - 56, 16)}${tab(x, z + dp - 78, 16)}
+      <path class="con" d="${line2(P(x + w / 2 - 14, t + 0.4, z + 7), P(x + w / 2 + 14, t + 0.4, z + 7))}"/>`;
+    } },
 
   /* passes lying on the map is a real thing a desk does — declared, so the
      layout checker treats it as intent rather than an accident of draw order */
