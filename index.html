@@ -71,12 +71,16 @@
   --bp-grid:rgba(30,58,95,.075); --bp-grid-b:rgba(30,58,95,.14);
   /* --bp-fill MUST equal --bp-ground: it is the occluding fill that hides the linework
      behind a solid object, so any difference paints a visible silhouette block. */
-  /* Wall EQUALS the ground, which is what "cohesive" has to mean here. Carried over from the
-     dark scheme it was four values off, and on navy that was invisible; on paper the same
-     four values drew a hard rectangular seam across the top of the drawing, with the wall's
-     right edge running down the page like a join between two sheets. The wall is now defined
-     by its linework alone — which is how a drawing defines a plane anyway. */
-  --bp-fill:#ece6d8; --bp-wall:#ece6d8; --bp-case:#e4ddcc;
+  /* DEPTH BY VALUE, the way the navy scheme had it. Each plane of the room takes a slightly
+     different tone as it turns away from the light, which is what gave that version its sense of
+     a room rather than a flat elevation.
+     The first attempt at this on paper failed and the reason was the SIZE of the step, not the
+     idea: four values apart on navy is invisible, and on cream it drew a hard join across the
+     sheet. These are two and four steps — enough to separate the planes, not enough to read as
+     an edge between two different papers.
+     --bp-fill must stay EXACTLY --bp-ground: it is the occluding fill that hides linework behind
+     a solid object, so any difference paints a visible silhouette block. */
+  --bp-fill:#ece6d8; --bp-wall:#eae3d3; --bp-case:#e6dfce;
   /* ILLUMINATION. On a portrait screen a deep zoom into a wide drawing is awkward, so
      lighting an object in place has to carry what the zoom carries on desktop.
      On paper "lit" cannot mean a bright line — there is nothing brighter than the
@@ -94,6 +98,9 @@
   --chip:rgba(250,247,240,.78); --chip-br:rgba(30,58,95,.26);
   --scrim:rgba(24,38,58,.42);              /* dims the drawing so the dialog is the page */
   --halo:rgba(30,58,95,.13); --halo-2:rgba(30,58,95,.085); --halo-3:rgba(30,58,95,.055);
+  /* Footer grid pitch. The script measures the real one from the stage; this is the fallback so
+     the texture is still there with no JavaScript. */
+  --gp:23.4px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* ANCHOR, THEN JUMP. Each panel is a snap point, so a scroll that ends near one settles ON it
@@ -175,15 +182,38 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    fading background over a blurred box still leaves the blur ending on a hard horizontal line
    straight across the drawing. Masking the element fades the blur itself out, so the effect
    arrives gradually and there is no edge to see. */
-/* Full width, square to the window, and no side margin: the panel becomes a band across the foot
-   of the page. It keeps the paper, the double rule and the header field of every other card, so it
-   still reads as the same sheet — just the last leaf of it. */
-#copy section[data-side="b"] .card{width:100%;max-width:none;padding:30px clamp(20px,6vw,90px) 26px;
-    border-left:0;border-right:0;border-bottom:0}
-#copy section[data-side="b"] .card::before{left:0;right:0;top:5px;bottom:auto;height:0;
-    border-left:0;border-right:0;border-bottom:0}
+/* THE FOOTER IS A TECHNICAL LEGEND PRINTED ON THE SHEET, not a card resting on it.
+   It was the panel paper (#faf7f0) — a lighter value than the drawing's ground — so however
+   wide it ran it still announced itself as a separate surface, and the join at its top edge was
+   the abrupt jump. Three things fix that, and they have to go together:
+
+     · the exact canvas value, so there is no step at all
+     · the grid carried through it, so the texture does not stop where the drawing does
+     · navy linework and mono labels, so it reads as the sheet's legend block
+
+   `--gp` is the grid pitch in pixels, set from the stage's real rendered width by the script —
+   the drawing's grid is 40 user units on a 2400-unit sheet, so the pitch depends on how wide the
+   SVG actually is. A hard-coded value would line up at one window size and drift at every other. */
+#copy section[data-side="b"] .card{width:100%;max-width:none;padding:34px clamp(20px,6vw,90px) 30px;
+    border-left:0;border-right:0;border-bottom:0;border-top:1px solid var(--bp-ink);
+    box-shadow:none;backdrop-filter:none;
+    background-color:var(--bp-ground);
+    background-image:
+      repeating-linear-gradient(to right,var(--bp-grid) 0 1px,transparent 1px var(--gp)),
+      repeating-linear-gradient(to bottom,var(--bp-grid) 0 1px,transparent 1px var(--gp)),
+      repeating-linear-gradient(to right,var(--bp-grid-b) 0 1.6px,transparent 1.6px calc(var(--gp) * 5)),
+      repeating-linear-gradient(to bottom,var(--bp-grid-b) 0 1.6px,transparent 1.6px calc(var(--gp) * 5))}
+/* the inner rule a title block carries, top edge only — the sheet continues below */
+#copy section[data-side="b"] .card::before{left:0;right:0;top:6px;bottom:auto;height:0;
+    border-left:0;border-right:0;border-bottom:0;border-top:1px solid var(--bp-ink);opacity:.34}
 #copy section[data-side="b"] .card p{max-width:62ch;margin-inline:auto}
-#copy section[data-side="b"] .card .tag{max-width:none}
+#copy section[data-side="b"] .card .tag{max-width:none;border-bottom-color:var(--bp-ink);
+    opacity:.85}
+/* Links become instrument boxes: a single navy hairline, mono, no fill until you touch them. */
+#copy section[data-side="b"] .lnk{border-color:var(--bp-ink);color:var(--bp-ink);opacity:.9}
+#copy section[data-side="b"] .lnk:hover{background:var(--bp-ink);color:var(--bp-ground);opacity:1}
+#copy section[data-side="b"] .card h2,#copy section[data-side="b"] .cl{color:var(--bp-ink)}
+#copy section[data-side="b"] .cl{border-top-color:var(--bp-ink);border-top-style:solid}
 #copy section[data-side="b"] .tag{justify-content:center;border-bottom:0;margin-bottom:8px}
 #copy section[data-side="b"] .links{justify-content:center;margin-top:20px}
 #copy section[data-side="b"] .card h2{font-size:clamp(26px,3.6vw,44px)}
@@ -247,13 +277,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 .art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.38}
 .art .solid{fill:var(--bp-fill);stroke:none}
 .art #wall{fill:var(--bp-wall);stroke:none}
-/* THE VITRINE IS A PHONE IDEA, so its planes are filled only where the vitrine exists.
-   The case was built for the portrait hero — a desk inside a lit display case — and on
-   desktop there is no case, just a drawing. Filling its three planes there painted a
-   darker rectangle across the top of the sheet with a hard vertical join running down the
-   page, which looked exactly like two sheets butted together. Invisible on navy at four
-   values apart; unmissable on paper. Portrait re-enables it below. */
-.art .casewall{fill:none;stroke:none}
+/* The case planes take the light differently as they turn away from the viewer — back wall
+   lightest, sides darker — which is what gives the room depth rather than reading as a flat
+   elevation. Filled again after being switched off: the problem was the step size, not the
+   shading. Portrait still drops them, because there the fills fought the page background and
+   chopped the halo circle. */
+.art .casewall{fill:var(--bp-case);stroke:none}
 /* the halo sets its own per-ring opacity inline, so it needs to escape .con's */
 .art .halo{fill:none;opacity:1;stroke-width:1.6}
 .art *{vector-effect:non-scaling-stroke}
@@ -1835,6 +1864,18 @@ document.getElementById('msheet').innerHTML =
        .map(s => `<button data-n="${s.n}">${NAV[s.id] || s.title}</button>`).join('');
 
 document.getElementById('foot').textContent = FOOTER;
+
+/* GRID PITCH for the footer's own texture, in pixels. The drawing's grid is 40 units on a
+   2400-unit sheet, so the on-screen pitch is a function of the SVG's rendered width — which is
+   min(100%, 1700px) and therefore different on nearly every window. Measuring it means the
+   footer's grid continues the drawing's instead of nearly continuing it. */
+function gridPitch() {
+  const svg = document.getElementById('stage');
+  const w = svg.clientWidth || 1400;
+  document.documentElement.style.setProperty('--gp', (40 * w / 2400).toFixed(2) + 'px');
+}
+gridPitch();
+addEventListener('resize', gridPitch);
 rail.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (b) cam.goTo(+b.dataset.n);
