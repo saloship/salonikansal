@@ -1064,21 +1064,31 @@ export const FOREGROUND = () => {
      backrest that the desktop crop happily cut off. Five arms at 72 degrees with one
      pointing at the viewer, because that is what a task chair looks like from behind
      and an even count would hide the middle one behind the column. */
-  /* A solid with thickness, not a flat plate — a 40mm rect read as a paddle. Its top
-     lands at -252 so the backrest sits on it. */
-  const seat = box(cx - 230, -294, CZ - 240, 460, 42, 440, { nohidden: true });
-  const column = cyl(cx, CZ - 20, 36, 250, FLOOR + 70, { nohidden: true })
-               + cyl(cx, CZ - 20, 52, 74, FLOOR + 60, { nohidden: true });
+  /* THE SEAT RUNS AWAY FROM THE VIEWER, toward the desk. It used to span CZ-240 to
+     CZ+170, i.e. mostly on the camera side of the backrest, which projected it forward as
+     a wide plate hanging off the bottom of the chair with nothing joining the two. From
+     behind a seated person the seat is almost entirely hidden — by her, by the backrest,
+     and by the desk — and that is what makes a chair read as one object.
+     Narrower than the 404mm back, too, so the back covers it across as well as in depth. */
+  const SZ = CZ - 10;
+  const seat = box(cx - 195, -296, SZ, 390, 44, 420, { nohidden: true });
+  /* the bracket that visibly carries the back down onto the seat */
+  const spine = box(cx - 30, -258, SZ - 26, 60, 96, 66, { nohidden: true });
+
+  /* the column sits under the middle of the seat, not under its front edge */
+  const HZ = SZ + 200;
+  const column = cyl(cx, HZ, 36, 250, FLOOR + 70, { nohidden: true })
+               + cyl(cx, HZ, 52, 74, FLOOR + 60, { nohidden: true });
 
   const star = Array.from({ length: 5 }, (_, i) => {
     const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
     const ux = Math.cos(a), uz = Math.sin(a), px = -uz, pz = ux;
     /* thicker arms — at 15mm at the tip the base read as bent wire rather than cast */
     const r0 = 58, r1 = 320, w0 = 34, w1 = 21, y = FLOOR + 34;
-    const at = (r, w) => P(cx + ux * r + px * w, y, CZ - 20 + uz * r + pz * w);
+    const at = (r, w) => P(cx + ux * r + px * w, y, HZ + uz * r + pz * w);
     const quad = poly([at(r0, w0), at(r1, w1), at(r1, -w1), at(r0, -w0)]);
     return `<path class="solid" d="${quad}"/><path class="ol" d="${quad}"/>` +
-           cyl(cx + ux * r1, CZ - 20 + uz * r1, 27, 34, FLOOR, { nohidden: true });
+           cyl(cx + ux * r1, HZ + uz * r1, 27, 34, FLOOR, { nohidden: true });
   }).join('');
 
   /* Draw order is depth order, and the chair is NEARER the camera than she is —
@@ -1113,6 +1123,7 @@ export const FOREGROUND = () => {
     ${star}
     ${column}
     ${seat}
+    ${spine}
     ${chairArm(-1)}${chairArm(1)}
     <path class="solid" d="${backSil}"/>
     ${mesh(back, 9, 7, { clip: backSil })}

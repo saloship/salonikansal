@@ -363,6 +363,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   /* the svg arcs live inside the drawing's own frame, so they clip at its top edge —
      which is exactly the chopped look. #halo replaces them on portrait. */
   .art .halo{display:none}
+
+  /* NO ROOM FILL ON PORTRAIT. The back wall and case planes are filled rectangles, so the
+     drawing carried its own hard-edged background — a visibly different navy starting
+     partway down the screen, which is what made it read as two setups pasted together and
+     what kept chopping the circle. Dropping the fills lets the page's own navy run
+     continuously behind both the copy and the desk, and the walls survive as edge lines.
+     The .solid occlusion fills stay: they are the page navy, so they vanish against it
+     while still hiding what is behind each object. */
+  .art #wall,.art .casewall{fill:none}
+
+  /* the drawing-sheet furniture is a landscape conceit — on a phone it only produces
+     half-sentences cropped at the frame edge */
+  .sheet{display:none}
   /* Width derived from height, so the drawing cannot eat the whole screen on a tablet.
      The frame's aspect is 1720/1960, so a width of 55vh caps the height near 62vh. On a
      phone 55vh exceeds the viewport width, so min() falls back to full width. */
@@ -726,8 +739,11 @@ const clamp01 = v => (v < 0 ? 0 : v > 1 ? 1 : v);
    nothing to miss.
 
      first 20% of a section   type in
-     middle                   hold, fully typed
-     last 12%                 type out, so it is empty exactly at the boundary
+     rest of the section      hold, fully typed
+
+   There is deliberately NO type-out. Erasing on the way out cost the reader an extra
+   stretch of scrolling to get to the next section — the text was busy undoing itself
+   while they were trying to move on. The new section's text simply starts from nothing.
 
    It runs on the RAW section position, not the camera's. The camera deliberately holds
    still for the first 62% of a section, so its progress is zero for most of the scroll —
@@ -743,9 +759,7 @@ function twAt(raw) {
   if (!c) return;
 
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const frac = reduce ? 1
-    : t > 0.88 ? clamp01(1 - (t - 0.88) / 0.12)
-    : clamp01(t / 0.20);
+  const frac = reduce ? 1 : clamp01(t / 0.20);
 
   const H = plain(c.head), B = c.body;
   const shown = Math.round(frac * (H.length + B.length));
