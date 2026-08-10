@@ -33,6 +33,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* overflow-x hidden because #halo is deliberately wider than the viewport — without this
+   the page could be panned sideways, and on a phone that fights the vertical scroll */
+html,body{overflow-x:hidden;max-width:100%}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--bp-ink);
      line-height:1.6;-webkit-font-smoothing:antialiased}
 
@@ -237,6 +240,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    two stacked zones — which was the chopped feeling. Inner shadow, as in the reference. */
 #halo{display:none}
 @media (max-width:900px){
+  /* The grid belongs to the whole page, not to the drawing's own band. As an svg rect it
+     stopped where the drawing stopped, which put a visible horizon halfway down the screen
+     — the same seam as the room fill. On the body it runs behind copy and desk alike. */
+  body{background-image:
+    repeating-linear-gradient(to right,rgba(227,237,248,.05) 0 1px,transparent 1px 42px),
+    repeating-linear-gradient(to bottom,rgba(227,237,248,.05) 0 1px,transparent 1px 42px);
+    background-attachment:fixed}
+  .gridbg{display:none}
+
   #halo{display:block;position:fixed;left:50%;top:47vh;width:134vw;aspect-ratio:1;
         transform:translate(-50%,-50%);border-radius:50%;z-index:0;pointer-events:none;
         border:1px solid rgba(227,237,248,.10);
@@ -255,6 +267,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    the only visual difference between "jump here" and "there is more here". */
 .art .mark-r{fill:none;stroke:var(--bp-ink);stroke-width:1.3;opacity:.34}
 .art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.5;opacity:.5}
+.art .mark-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:34px;
+             letter-spacing:.1em;opacity:.34}
+.obj.tappable:hover .mark-t{opacity:.85}
+.obj.lit.has-detail .mark-t{opacity:1;fill:var(--sun)}
 .obj.tappable{cursor:pointer}
 .obj.tappable:hover .mark-r,.obj.tappable:hover .mark-p{opacity:.9}
 .obj.lit.has-detail .mark-r{opacity:1;fill:var(--sun);stroke:var(--sun)}
@@ -324,6 +340,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
          letter-spacing:-.015em;font-weight:600;margin:0 0 9px;color:var(--card-ink);
          min-height:1.14em}
   #tw p{font-size:14px;margin:0;min-height:1.5em}
+  /* say what the markers mean once, rather than hoping a glyph explains itself */
+  #tw .hint{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+            color:var(--card-ink);opacity:.45;margin-top:12px;padding-top:9px;
+            border-top:1px solid var(--rule-2)}
   /* the caret only exists while something is actually being typed */
   #tw .caret::after{content:"";display:inline-block;width:.5ch;height:1em;
        margin-left:1px;background:var(--card-ink);vertical-align:-.12em;
@@ -425,6 +445,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   <div class="tag"><span class="eyebrow" id="tw-e"></span><span class="ref" id="tw-r"></span></div>
   <h2 id="tw-h"></h2>
   <p id="tw-b"></p>
+  <p class="hint">TAP ANY OBJECT TO JUMP TO ITS SECTION · ⊕ MORE MARKS EXTRA DETAIL</p>
 </div>
 
 <!-- Detail view. Opens from the object you tapped and pushes the drawing back behind it. -->
@@ -738,8 +759,13 @@ const clamp01 = v => (v < 0 ? 0 : v > 1 ? 1 : v);
    appear; stop and it stops; scroll back and it un-types. Nothing to wait for and
    nothing to miss.
 
-     first 20% of a section   type in
-     rest of the section      hold, fully typed
+     first 62% of a section   type in
+     last 38%                 hold, fully typed, while the camera moves on
+
+   The span used to be 20%, which meant the typing was over in a few ticks and the remaining
+   four fifths of the scroll changed nothing at all — so it felt like several scrolls doing
+   nothing followed by one where everything happened. Spread across most of the section,
+   almost every scroll produces letters.
 
    There is deliberately NO type-out. Erasing on the way out cost the reader an extra
    stretch of scrolling to get to the next section — the text was busy undoing itself
@@ -759,7 +785,7 @@ function twAt(raw) {
   if (!c) return;
 
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const frac = reduce ? 1 : clamp01(t / 0.20);
+  const frac = reduce ? 1 : clamp01(t / 0.62);
 
   const H = plain(c.head), B = c.body;
   const shown = Math.round(frac * (H.length + B.length));

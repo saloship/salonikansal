@@ -75,17 +75,26 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
       }
       box = [a, b, c, d];
 
-      /* A transparent hit rect, because this drawing is almost all unfilled
-         strokes — hovering a 1.3px line is a game of skill, not an interaction.
-         Appended last so it sits on top WITHIN its own object; objects nearer the
-         camera come later in the document, so their hit areas correctly win over
-         the ones behind them. */
+      /* A transparent hit rect, because this drawing is almost all unfilled strokes —
+         hovering a 1.3px line is a game of skill, not an interaction.
+
+         Padded to a minimum size, because a phone renders the whole desk at roughly a
+         quarter of a pixel per millimetre: a mug comes out 30px across and the phone prop
+         25px, well under a finger. The pad applies to the TARGET only — `box` keeps the
+         true bounds, so culling still uses real geometry.
+
+         Appended last so it sits on top within its own object; objects nearer the camera
+         come later in the document, so their hit areas correctly win over those behind. */
+      const MIN = 190;
+      let hx = a, hy = b, hw = c - a, hh = d - b;
+      if (hw < MIN) { hx -= (MIN - hw) / 2; hw = MIN; }
+      if (hh < MIN) { hy -= (MIN - hh) / 2; hh = MIN; }
       const hit = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       hit.setAttribute('class', 'hit');
-      hit.setAttribute('x', a.toFixed(1));
-      hit.setAttribute('y', b.toFixed(1));
-      hit.setAttribute('width', Math.max(1, c - a).toFixed(1));
-      hit.setAttribute('height', Math.max(1, d - b).toFixed(1));
+      hit.setAttribute('x', hx.toFixed(1));
+      hit.setAttribute('y', hy.toFixed(1));
+      hit.setAttribute('width', hw.toFixed(1));
+      hit.setAttribute('height', hh.toFixed(1));
       el.appendChild(hit);
     }
     return { el, id: el.id.replace(/^p-/, ''), box, shown: true, lit: false };
@@ -103,10 +112,16 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     const [x0, y0, x1] = o.box;
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'mark');
+    const mx = x1 - 16, my = y0 + 16;
     g.innerHTML =
-      `<circle class="mark-r" cx="${(x1 - 14).toFixed(1)}" cy="${(y0 + 14).toFixed(1)}" r="15"/>` +
-      `<path class="mark-p" d="M${(x1 - 22).toFixed(1)} ${(y0 + 14).toFixed(1)}h16` +
-      `M${(x1 - 14).toFixed(1)} ${(y0 + 6).toFixed(1)}v16"/>`;
+      `<circle class="mark-r" cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="17"/>` +
+      `<path class="mark-p" d="M${(mx - 9).toFixed(1)} ${my.toFixed(1)}h18` +
+      `M${mx.toFixed(1)} ${(my - 9).toFixed(1)}v18"/>` +
+      /* A word, not just a glyph. A plus alone says "something happens"; the label says
+         what — MORE where there is a detail view behind it, GO where the tap only travels
+         to that object's section. */
+      `<text class="mark-t" x="${(mx - 24).toFixed(1)}" y="${(my + 8).toFixed(1)}" ` +
+      `text-anchor="end">${detailSet.has(o.id) ? 'MORE' : 'GO'}</text>`;
     o.el.appendChild(g);
   }
 

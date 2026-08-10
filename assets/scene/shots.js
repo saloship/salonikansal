@@ -96,7 +96,13 @@ export const SHOTS = [
    roughly 12% more desk and takes the drawing from 45% to 53% of the viewport.
    The vitrine walls survive as ~30-unit bands at each edge, which is the thin sliver her
    reference shows anyway. */
-export const MOBILE_VIEW = [10, 150, 1720, 1960];
+/* Cropped in from 1720 to 1580 across, and the bottom trimmed so less of the chair base
+   shows. The width is the part that matters: the drawing is width-constrained, so the desk's
+   on-screen size is proportional to 1/frameWidth and nothing else. 80 to 1660 drops only the
+   bare desk corners — every object still falls inside — and buys about 9% more desk.
+   Trimming the bottom does not enlarge anything, but it removes dead space below the
+   castors, which is what Saloni offered to give up to get the zoom. */
+export const MOBILE_VIEW = [80, 150, 1580, 1730];
 
 /* Portrait is not the desktop list rescaled — that only ever gives you a wide
    drawing with its subject somewhere off to the side. Tighter crops, and the
