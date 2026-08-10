@@ -228,7 +228,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 /* ---- the stuck typewriter panel (portrait only) ------------------------- */
 #tw{display:none}
 @media (max-width:900px){
-  #tw{display:block;position:fixed;left:14px;right:14px;top:7vh;z-index:4;
+  /* tighter to the top edge, so the extra desk height comes out of dead space rather
+     than out of the copy */
+  #tw{display:block;position:fixed;left:14px;right:14px;top:4.5vh;z-index:4;
       background:rgba(242,245,249,.96);border:1px solid var(--rule);
       box-shadow:0 22px 48px -18px rgba(0,0,0,.6);padding:16px 18px 15px;
       color:var(--card-ink-2);min-height:31vh}
@@ -267,10 +269,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
      bottom third and cut the drawing in half. Behind it, the band always reads as the
      desk and the text disappears into a soft fade at the boundary rather than being
      clipped — which is also how her mock-up is composed. */
-  #stage-wrap{place-items:end center;z-index:3;pointer-events:none}
+  /* padding-bottom clears the fixed nav bar. Without it the drawing runs to the viewport
+     floor and the chair's castors — the thing that makes it a whole chair — sat behind
+     the bar. The svg is width-constrained so this moves it up rather than shrinking it. */
+  #stage-wrap{place-items:end center;z-index:3;pointer-events:none;padding-bottom:64px}
   #stage-wrap::before{content:"";position:absolute;left:0;right:0;bottom:0;height:48vh;
     background:linear-gradient(to bottom,transparent,var(--navy) 38%)}
-  #stage{width:100%;position:relative}
+  /* Width derived from height, so the drawing cannot eat the whole screen on a tablet.
+     The frame's aspect is 1720/1960, so a width of 55vh caps the height near 62vh. On a
+     phone 55vh exceeds the viewport width, so min() falls back to full width. */
+  #stage{width:min(100%,55vh);position:relative}
   #copy section{align-items:flex-start;padding:7vh 16px 46vh}
   #copy .card{width:100%;padding:20px 18px 18px}
   .card h2{font-size:clamp(21px,6.4vw,28px)}

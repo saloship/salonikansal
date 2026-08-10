@@ -89,9 +89,14 @@ export const SHOTS = [
    portrait gets its own viewBox and no camera transform whatsoever.
    That is deliberate rather than a limitation: on a phone the camera does not move at
    all, and the story is told purely by which objects light up. */
-/* Widened to take in the case: the side walls sit just outside the desk, so the frame has
-   to be a little wider than the furniture or the vitrine is cropped away entirely. */
-export const MOBILE_VIEW = [-96, 150, 1930, 1960];
+/* Tight to the desk, because the desk's ON-SCREEN size depends only on the frame's
+   WIDTH — the svg is width-constrained, so height = 100% x (frameH / frameW) and adding
+   vertical extent changes nothing. The furniture spans 1657 units across, so 1720 is
+   about as narrow as this can go before the desk itself starts getting cropped: it buys
+   roughly 12% more desk and takes the drawing from 45% to 53% of the viewport.
+   The vitrine walls survive as ~30-unit bands at each edge, which is the thin sliver her
+   reference shows anyway. */
+export const MOBILE_VIEW = [10, 150, 1720, 1960];
 
 /* Portrait is not the desktop list rescaled — that only ever gives you a wide
    drawing with its subject somewhere off to the side. Tighter crops, and the
