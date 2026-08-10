@@ -30,18 +30,28 @@ export const frameAt = (cw, world, bx = 0.5, by = 0.5) => {
   return [cx - cw * bx, cy - ch * by, cw, ch];
 };
 
-/* PANELS ALTERNATE SIDES, AND THE CAMERA ALTERNATES WITH THEM.
-   The panels were moved to a single side because the camera had ONE fixed bias — subject
-   pushed down-right, so the only clear zone was upper-left and the panel had to live there.
-   Parking every panel in the same place is what turned eight shots into a list of boxes: the
-   drawing moves but the reading position never does, so nothing feels like it is travelling.
+/* THE CAMERA IS A PAN ACROSS THE DESK, and the frame CENTRES have to make that journey
+   legible. Mirroring the bias off the panel side — my previous attempt — got the panels
+   alternating but made the camera swing: shot 2 drifted right, shot 3 threw it hard left, and
+   the result read as lateral jerks rather than travel.
 
-   The fix is that the bias is not a constant. `side` says which side the panel takes, and the
-   horizontal bias is simply mirrored to match — panel left puts the subject at 68% across,
-   panel right puts it at 32%. One declaration per shot drives both, so they cannot disagree,
-   which is the failure the single-sided version was avoiding rather than solving. */
-const B = 0.68, BY = 0.60;
-const bx = side => (side === 'r' ? 1 - B : side === 'c' ? 0.5 : B);
+   So the bias serves the PATH, and the panel takes whichever half of the frame is empty. The
+   frame centres now run:
+
+     1 hero     1200   the whole sheet
+     2 me        950   drifting left, barely zoomed — this shot's event is the LIGHTING
+     3 journey   388   the left end of the desk, the furthest point left
+     4 method    620   ┐
+     5 work     1495   │ one continuous sweep rightward across the desk
+     6 statement 1400   │ pull back, almost no lateral move so the zoom carries it
+     7 beyond   1531   ┘
+     8 connect  1200   pull out to take it all in
+
+   Two direction changes in eight shots — at the leftmost point, and at the final resolve —
+   where before there were five. Everything between shot 3 and shot 7 travels one way.
+
+   `BY` stays put: vertical bias never fought anything. */
+const BY = 0.60;
 
 const WHOLE = [0, 0, SHEET_W, SHEET_W / ASPECT];
 
@@ -51,22 +61,31 @@ export const SHOTS = [
     beat: 'Everything present, dense, nothing lit. The tagline has to carry it.'
   },
   {
-    /* Bias 0.30, not the mirror of 0.58, and this shot cannot be made perfectly clean either
-       way. It is nearly the whole sheet and lights six objects spread right across the desk, so
-       SOMETHING sits behind the panel whichever side it takes: on the left it buries the
-       sketchpad, on the right the iPad. The sketchpad wins, because it owns this section's
-       detail view and is the anchor a reader taps — the iPad is one member of the design
-       cluster and the sketchpad already speaks for it. 0.30 is the bias that clears the
-       sketchpad; measured, the iPad ends up ~93% behind the panel at 1440px and comes back
-       into view on wider screens, where the card stops growing at 56ch. */
-    n: 2, id: 'me', title: 'Three hats', side: 'r',
-    r: frameAt(2280, [1060, 210, 340], 0.30, 0.55),
+    /* Barely a camera move at all, and that is the point: this shot's event is six objects
+       lighting up across the desk, not a change of viewpoint. A gentle 2400 to 2100 push-in
+       with the centre drifting left, so it sets up the leftward move into shot 3 instead of
+       reversing it.
+
+       Panel LEFT, and the bias is 0.682 rather than anything mirrored, because this is the one
+       shot where the choice is measurable rather than aesthetic. Its beat is three clusters —
+       risk, design, travel — spread right across the desk. With the panel on the right, four of
+       the six lit objects (the whole travel cluster plus the iPad) sat behind it: the shot lit
+       things nobody could see. 0.682 pushes the entire lit span into the clear right-hand 55%
+       of the frame, so all six read and only the sketchpad's left edge is clipped. */
+    n: 2, id: 'me', title: 'Three hats', side: 'l',
+    r: frameAt(2280, [1060, 210, 340], 0.682, 0.55),
     lit: ['papers', 'sketchpad', 'ipad', 'map', 'binoculars', 'palette'],
     beat: 'Three clusters light in turn: risk, design, travel.'
   },
   {
-    n: 3, id: 'journey', title: 'Journey', side: 'l',
-    r: frameAt(1320, [210, 40, 140], bx('l'), BY),
+    /* FRAME TIGHTENED 1320 to 900, which is the fix for the empty middle she photographed.
+       The notebook stack is only 320 units wide; in a 1320-wide frame it filled a quarter of
+       the screen and sat right over against the far edge, so the panel and the subject were
+       separated by a void. At 900 it fills a third and lands about 100px from the panel — near
+       enough to read as one composition, not so near that they touch.
+       Panel right, so the desk's left end reads left-to-right into the words. */
+    n: 3, id: 'journey', title: 'Journey', side: 'r',
+    r: frameAt(900, [210, 40, 140], 0.32, BY),
     lit: ['notebooks'],
     beat: 'The notebook stack and the dated tickets read as a timeline.'
   },
@@ -82,31 +101,41 @@ export const SHOTS = [
        So it repeats the previous shot's side, and that is a deliberate exception rather than
        an oversight: content that must stay legible outranks the rhythm. */
     n: 4, id: 'method', title: 'Method', side: 'l',
-    r: frameAt(1180, [905, 210, 560], bx('l'), 0.54),
+    r: frameAt(1180, [905, 210, 560], 0.68, 0.54),
     lit: ['monitor', 'papers', 'stickies-bezel'],
     beat: 'Hero morph: the loose workpapers square up and resolve into the control table on screen.'
   },
   {
     n: 5, id: 'work', title: 'Work', side: 'r',
-    r: frameAt(1080, [1510, 200, 690], bx('r'), BY),
+    r: frameAt(1080, [1510, 200, 690], 0.32, BY),
     lit: ['laptop'],
     beat: 'Projects appear as clean screens on the laptop.'
   },
   {
     /* Centred, because it is the one shot with a single line of copy and a full pull-back —
-       the reading position landing dead centre is what makes it read as a statement. */
-    n: 6, id: 'statement', title: 'Statement', r: [-140, -100, 2680, 1675],
+       the reading position landing dead centre is what makes it read as a statement.
+       Offset right of the sheet's middle (centre 1400, not 1200) so the pull-back happens with
+       almost no lateral movement: coming off shot 5 at 1495, the zoom does all the work and the
+       camera does not slide sideways while it breathes out. */
+    n: 6, id: 'statement', title: 'Statement', r: [60, -100, 2680, 1675],
     lit: [], side: 'c',
     beat: 'Hard pull back. Systems are predictable. Humans are not.'
   },
   {
-    n: 7, id: 'beyond', title: 'Beyond', side: 'l',
-    r: frameAt(1180, [1700, 40, 220], bx('l'), BY),
+    n: 7, id: 'beyond', title: 'Beyond', side: 'r',
+    r: frameAt(1180, [1700, 40, 220], 0.32, BY),
     lit: ['map', 'binoculars', 'tickets', 'whiteboard', 'palette', 'photo'],
     beat: 'Second hero morph: the map contours become a ridgeline.'
   },
   {
-    n: 8, id: 'connect', title: 'Connect', r: WHOLE, side: 'r',
+    /* side 'b' — CENTRE-BOTTOM, no card, over a blurred scene. This is the only shot where a
+       side panel cannot work: the frame is the whole sheet with fifteen objects lit, so a panel
+       on either flank buries half of them (measured: six on the left, four on the right). The
+       resolve is meant to show the desk entire.
+       Dropping the words to the bottom centre puts them over the desk's front edge and the
+       chair — the emptiest band in the drawing — so nothing lit is covered at all, and the
+       page ends by speaking over the scene rather than beside it. */
+    n: 8, id: 'connect', title: 'Connect', r: WHOLE, side: 'b',
     lit: ['monitor', 'sketchpad', 'ipad', 'map', 'notebooks', 'laptop', 'photo',
           'palette', 'plant', 'mug', 'lamp', 'papers', 'tickets', 'binoculars',
           'whiteboard'],

@@ -96,7 +96,21 @@
   --halo:rgba(30,58,95,.13); --halo-2:rgba(30,58,95,.085); --halo-3:rgba(30,58,95,.055);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+/* ANCHOR, THEN JUMP. Each panel is a snap point, so a scroll that ends near one settles ON it
+   — the reader is taught to stop there and read — and the next flick delivers the following
+   panel in one action instead of leaving them parked between two.
+
+   This is the right layer for it. The ask was about how far the page travels per scroll, which
+   CSS cannot set directly, but snapping produces the effect: resistance at the anchor, then
+   the next card arrives whole. It also leaves the camera free to keep moving continuously,
+   so the pause comes from the SCROLL and the flow from the CAMERA — rather than the camera
+   having to sit dead still to manufacture a pause, which is what made it lurch before.
+
+   `proximity`, not `mandatory`: sections with deep content are taller than the viewport, and
+   mandatory snapping fights a reader trying to rest halfway down one. Easy to make stronger
+   if the pull turns out too gentle. */
+html{scroll-behavior:smooth;scroll-snap-type:y proximity}
+#copy section,#closing{scroll-snap-align:start}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 /* NO overflow-x:hidden here. Setting overflow on html or body makes it the scroll container,
    which breaks position:sticky on every descendant — it is what un-pinned the desk. The
@@ -144,10 +158,35 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    position never moving, eight shots read as a list of boxes down the left margin however
    much the drawing travelled. The camera's horizontal bias now mirrors this, so each side
    has its own clear zone instead of one side having all of them. */
+#copy section{position:relative}
 #copy section[data-side="r"]{justify-content:flex-end}
 #copy section[data-side="c"]{justify-content:center}
 #copy section[data-side="c"] .card{text-align:center}
 #copy section[data-side="c"] .tag,#copy section[data-side="c"] .links{justify-content:center}
+
+/* CENTRE-BOTTOM, NO CARD — the closing beat. The card chrome comes off entirely and the words
+   sit over the drawing, with a wash that blurs the scene back so they carry the frame. It is a
+   gradient across the full width rather than a rectangle behind the text, because a blurred
+   rectangle is just a card again: light falling on the lower half of the sheet reads as part of
+   the drawing, a soft-edged box reads as a panel with its border removed. */
+#copy section[data-side="b"]{align-items:flex-end;justify-content:center;text-align:center;
+                             padding-bottom:clamp(38px,7vh,84px)}
+/* The MASK is what makes this work. backdrop-filter is clipped to the element's box, so a
+   fading background over a blurred box still leaves the blur ending on a hard horizontal line
+   straight across the drawing. Masking the element fades the blur itself out, so the effect
+   arrives gradually and there is no edge to see. */
+#copy section[data-side="b"]::before{content:"";position:absolute;left:0;right:0;bottom:0;
+    height:66%;pointer-events:none;z-index:0;backdrop-filter:blur(3px);
+    background:linear-gradient(to top,rgba(236,230,216,.9),rgba(236,230,216,.6) 52%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 38%,transparent);
+    mask-image:linear-gradient(to top,#000 38%,transparent)}
+#copy section[data-side="b"] .card{position:relative;z-index:1;width:min(62ch,88vw);
+    background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}
+#copy section[data-side="b"] .card::before{display:none}
+#copy section[data-side="b"] .tag{justify-content:center;border-bottom:0;margin-bottom:8px}
+#copy section[data-side="b"] .links{justify-content:center;margin-top:20px}
+#copy section[data-side="b"] .card h2{font-size:clamp(26px,3.6vw,44px)}
+#copy section[data-side="b"] .card p{font-size:16px;max-width:52ch;margin:0 auto}
 .tag{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
      padding-bottom:9px;margin-bottom:15px;border-bottom:1px solid var(--rule-2)}
 .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;
@@ -218,12 +257,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 .art .halo{fill:none;opacity:1;stroke-width:1.6}
 .art *{vector-effect:non-scaling-stroke}
 .art .colstroke{stroke:var(--bp-con)}
-/* LEVEL OF DETAIL WHILE THE CAMERA IS IN FLIGHT. The mesh isolines are about half the paths
-   in the drawing and re-rasterising them on every scale change is the whole of the measured
-   jank tail. They come back the instant the camera settles — which is where the reader stops
-   and looks — so the detail is present in every frame anyone actually studies. Hidden lines
-   and centre lines go with them: pure drafting annotation, and unreadable in motion anyway. */
-#stage[data-moving] .mesh,#stage[data-moving] .hid,#stage[data-moving] .cen{display:none}
+/* NO LEVEL-OF-DETAIL HIDING. This used to drop the mesh isolines, hidden lines and centre
+   lines while the camera moved, which cut slow frames from 52 to 21 over a full traverse —
+   a real measurement and a real gain. It is gone anyway, because she watched the page and
+   saw the fine lines on the figure BLINK. A frame-rate win that the reader perceives as the
+   drawing flickering is not a win; the flicker is more damaging than the jank it bought.
+   `data-moving` is still set on the stage — it is a fact about the camera worth having — but
+   nothing keys off it visually any more. */
 
 /* Screen copy: faint white on navy at rest, dark on the lit screen — because at
    rest the display has no fill and the navy ground shows through it. */
@@ -339,18 +379,28 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    around it — the drawing is over, so the page stops pretending to be a drawing and
    just talks. The rule above it is the only ornament, and it reads as a sheet's lower
    border rather than a divider. */
-#closing{position:relative;z-index:2;text-align:center;
-         padding:clamp(56px,11vh,110px) clamp(20px,7vw,90px) clamp(30px,5vh,54px)}
-#closing::before{content:"";display:block;width:64px;height:1px;margin:0 auto 34px;
-                 background:var(--bp-ink);opacity:.34}
+/* Full viewport, laid OVER the sticky drawing, with the words at the bottom. The blur is a
+   backdrop-filter rather than a filter on the stage, because filtering the stage would blur
+   the whole sticky element for every section, not just this one. A wash sits with it: blur
+   alone leaves the linework legible enough to compete with the type. */
+#closing{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-end;
+         justify-content:center;text-align:center;
+         padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px);
+         backdrop-filter:blur(3.5px);background:rgba(236,230,216,.52);
+         /* same reason as the connect wash: fade the blur in from the top rather than
+            starting it on a hard line across the drawing */
+         -webkit-mask-image:linear-gradient(to top,#000 55%,transparent);
+         mask-image:linear-gradient(to top,#000 55%,transparent)}
+/* 34ch broke the sign-off into five stubby lines. At 48ch it lands in two or three, which is
+   what a spoken line should look like. */
+.cl-in{max-width:min(48ch,88vw)}
 .cl-lead{font-family:'Fraunces',Georgia,serif;font-weight:600;
-         font-size:clamp(25px,4.1vw,50px);line-height:1.16;letter-spacing:-.02em;
-         color:var(--card-ink);max-width:23ch;margin:0 auto}
+         font-size:clamp(25px,3.7vw,45px);line-height:1.16;letter-spacing:-.02em;
+         color:var(--card-ink);margin:0 auto}
 /* Same marker as the panels use, so the emphasis is the page's own gesture and not a
    second idea introduced at the last moment. */
 .cl-lead em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
-.cl-sub{margin:20px auto 0;max-width:44ch;font-size:clamp(14px,1.3vw,16.5px);
-        color:var(--card-ink-2)}
+.cl-sub{margin:16px auto 0;font-size:clamp(14px,1.3vw,16.5px);color:var(--card-ink-2)}
 
 /* Footer — v1's last line landed back on "control and chaos", closing the loop the
    hero opens. It sits after the final section rather than fixed, so it reads as an end. */
@@ -1429,7 +1479,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <div class="links"><button class="lnk" data-goto="4">See how I work</button><button class="lnk" data-goto="8">Say hello</button><a class="lnk" href="assets/Saloni-Kansal-CV.pdf" download>Download CV</a></div>
       
     </div>
-  </section><section data-shot="2" data-side="r">
+  </section><section data-shot="2" data-side="l">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">A little about me</span>
@@ -1461,7 +1511,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
   <p class="dnote"><a href="ideas.html">The sketchbook — 7 concepts →</a></p>
 </div>
     </div>
-  </section><section data-shot="3" data-side="l">
+  </section><section data-shot="3" data-side="r">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">How I got here</span>
@@ -1588,7 +1638,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       
       
     </div>
-  </section><section data-shot="7" data-side="l">
+  </section><section data-shot="7" data-side="r">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">The person behind the work</span>
@@ -1625,7 +1675,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
   <p class="dnote"><a href="diaries/">Read the full diaries →</a></p>
 </div>
     </div>
-  </section><section data-shot="8" data-side="r">
+  </section><section data-shot="8" data-side="b">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">Let’s build something meaningful</span>
@@ -1637,15 +1687,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       
     </div>
   </section></main>
-</div>
 
-<!-- The ending, OUTSIDE #scroller and deliberately not a <section>. The camera maps one shot
-     per `#copy section`, so a ninth section here would silently shift the whole shot list by
-     one. It also has to sit after the scroller: this is the beat where the drawing has
-     finished and the page speaks plainly. -->
-<div id="closing">
-  <p class="cl-lead">Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.</p>
-  <p class="cl-sub">Risk, product, design, or the next trail. Say hi.</p>
+  <!-- The ending sits INSIDE #scroller, so the sticky stage is still behind it and the desk
+       does not end mid-page. Outside the scroller it cut the drawing off and started a bare
+       slab of paper underneath — the scene got chopped exactly where the page should have
+       been resolving. Over the scene instead: the closing words at centre-bottom, no card
+       around them, and a wash that blurs the desk back so the words carry the frame.
+
+       Still deliberately NOT a <section>. The camera maps one shot per `#copy section`, so a
+       ninth section here would silently shift the whole shot list by one. -->
+  <div id="closing">
+    <div class="cl-in">
+      <p class="cl-lead">Still somewhere between <em>control</em> and <em>chaos</em> — and always up for a good conversation.</p>
+      <p class="cl-sub">Risk, product, design, or the next trail. Say hi.</p>
+    </div>
+  </div>
 </div>
 
 <!-- Portrait only: one stuck panel that never moves. Content types out and back in as
