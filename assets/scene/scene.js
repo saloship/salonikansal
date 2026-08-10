@@ -141,9 +141,17 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
 
     const [x0, y0, x1] = anchor.box;
     const mx = x1 - 30, my = y0 - 26;
+    /* TWO nested groups, and the nesting is load-bearing. The pulse in the stylesheet animates
+       `transform` on .mark, and an animated property REPLACES the transform attribute rather
+       than composing with it — so the counter-scale below was being thrown away for exactly the
+       cue that matters most, the lit one with a detail view behind it, which throbbed between
+       46px and 170px. The animation stays on .mark; the fit lives on the inner group, where
+       nothing competes for the property. */
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'mark');
-    g.innerHTML =
+    const fit = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    fit.setAttribute('class', 'markfit');
+    fit.innerHTML =
       `<circle class="mark-r" cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="62"/>` +
       `<path class="mark-p" d="M${(mx - 30).toFixed(1)} ${my.toFixed(1)}h60` +
       `M${mx.toFixed(1)} ${(my - 30).toFixed(1)}v60"/>` +
@@ -151,8 +159,9 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
          what. MORE where a detail view sits behind the group, GO where the tap travels. */
       `<text class="mark-t" x="${(mx - 78).toFixed(1)}" y="${(my + 24).toFixed(1)}" ` +
       `text-anchor="end">${owner ? 'MORE' : 'GO'}</text>`;
+    g.appendChild(fit);
     anchor.el.appendChild(g);
-    cues.push({ el: g, mx, my });
+    cues.push({ el: fit, mx, my });
   }
 
   if (onObject) {
@@ -172,6 +181,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
 
   let list = pickList();
   let lastLit = -1;
+  let lastK = 0, moveTimer = 0;    // camera scale last frame, and the settle timer for LOD
 
   /** Morph progress: ramps in over the last three-quarters of the approach so the
    *  change lands exactly as the camera settles, then holds until `out`. */
@@ -234,6 +244,26 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
          rather than a guessed constant, so the cue is the same physical size on a 1280
          laptop as on a 2560 display — the authored radius is 62 units, and one unit is
          (k * clientWidth / SHEET_W) pixels once the camera has had its say. */
+      /* LEVEL OF DETAIL, KEYED TO MOTION RATHER THAN TO ZOOM.
+         Changing the camera scale forces the browser to re-rasterise the whole drawing, and
+         measured over a full-page traverse that is the ENTIRE jank tail: with the scale frozen
+         the 90th-percentile frame is 17ms and nothing exceeds 50ms; live it is 50ms with
+         thirteen frames over 50. Removing transitions, the drafting sheet and the grid
+         background each changed nothing, so this is where the cost is.
+
+         The obvious fix — drop detail at wide framings — is wrong here, because the mesh is
+         plainly visible on the figure and the chair in the opening shot. So detail is dropped
+         while the camera is MOVING and restored the moment it settles. That spends the saving
+         exactly where the cost is, and costs nothing where the reader actually looks: the
+         camera deliberately holds still for the first 62% of every section, which is where
+         they stop and read. */
+      if (Math.abs(k - lastK) > k * 0.0015) {
+        if (!svg.dataset.moving) svg.dataset.moving = '1';
+        clearTimeout(moveTimer);
+        moveTimer = setTimeout(() => { delete svg.dataset.moving; }, 110);
+      }
+      lastK = k;
+
       const px = k * (svg.clientWidth || SHEET_W) / SHEET_W;
       const s = px > 0 ? (MARK_PX / px) / 62 : 1;
       for (const c of cues) {

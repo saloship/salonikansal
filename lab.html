@@ -138,6 +138,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .art .halo{fill:none;opacity:1;stroke-width:1.6}
 .art *{vector-effect:non-scaling-stroke}
 .art .colstroke{stroke:var(--bp-con)}
+/* LEVEL OF DETAIL WHILE THE CAMERA IS IN FLIGHT. The mesh isolines are about half the paths
+   in the drawing and re-rasterising them on every scale change is the whole of the measured
+   jank tail. They come back the instant the camera settles — which is where the reader stops
+   and looks — so the detail is present in every frame anyone actually studies. Hidden lines
+   and centre lines go with them: pure drafting annotation, and unreadable in motion anyway. */
+#stage[data-moving] .mesh,#stage[data-moving] .hid,#stage[data-moving] .cen{display:none}
 
 /* Screen copy: faint white on navy at rest, dark on the lit screen — because at
    rest the display has no fill and the navy ground shows through it. */
@@ -249,8 +255,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 
 /* Footer — v1's last line landed back on "control and chaos", closing the loop the
    hero opens. It sits after the final section rather than fixed, so it reads as an end. */
+/* .45 measured 3.68:1 against the navy — under the 4.5:1 minimum for text this size. At .6
+   it is 5.4:1. It still reads as quiet; it is now also readable, which quiet was costing. */
 #foot{position:relative;z-index:2;text-align:center;padding:34px 20px 44px;
-      font-size:12.5px;color:var(--bp-ink);opacity:.45}
+      font-size:12.5px;color:var(--bp-ink);opacity:.6}
 
 /* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
@@ -373,13 +381,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
   #tw .hint{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
             color:var(--card-ink);opacity:.45;margin-top:12px;padding-top:9px;
             border-top:1px solid var(--rule-2)}
-  /* the caret only exists while something is actually being typed */
-  #tw .caret::after{content:"";display:inline-block;width:.5ch;height:1em;
+  /* The untyped remainder holds its space but shows nothing. `visibility` rather than
+     `opacity` or `color:transparent` because it also takes the text out of the accessibility
+     tree, so a screen reader on the live region is not read a line twice. */
+  #tw .off{visibility:hidden}
+  /* the caret only exists while something is actually being typed, and it goes on the TYPED
+     span — on the parent it would land after the invisible remainder, a line away from the
+     last letter written */
+  #tw .caret .on::after{content:"";display:inline-block;width:.5ch;height:1em;
        margin-left:1px;background:var(--card-ink);vertical-align:-.12em;
        animation:blink .9s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
 }
-@media (prefers-reduced-motion:reduce){#tw .caret::after{animation:none}}
+@media (prefers-reduced-motion:reduce){#tw .caret .on::after{animation:none}}
 
 #mobar,#msheet{display:none}
 /* the object carries this content on desktop; the panel must not repeat it */
@@ -470,7 +484,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
       costs nothing and makes both first paint and the no-JS page correct. -->
  <div id="stage-wrap"><svg id="stage" viewBox="0 0 2400 1500"
       aria-label="The desk — one drawing, eight shots"></svg></div>
-  <div id="copy"></div>
+  <!-- <main>, not a div: the page had no main landmark, so a screen-reader user had no way to
+       skip the drawing and the drafting furniture and get to the writing. All CSS and script
+       reference it by id, so the element name is free to be the correct one. -->
+  <main id="copy"></main>
 </div>
 
 <!-- Portrait only: one stuck panel that never moves. Content types out and back in as
@@ -478,8 +495,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
      cards travelling past. -->
 <div id="tw" aria-live="polite">
   <div class="tag"><span class="eyebrow" id="tw-e"></span><span class="ref" id="tw-r"></span></div>
-  <h2 id="tw-h"></h2>
-  <p id="tw-b"></p>
+  <!-- Each line is split in two: the characters typed so far, and the rest held INVISIBLE
+       rather than absent. visibility:hidden still occupies its space, so the panel is its
+       finished height from the first character and nothing below it ever moves. Typing by
+       appending text reflowed the box on almost every character and shoved the hint line
+       down the screen — measured at 0.33 cumulative layout shift, where 0.1 is the limit. -->
+  <h2 id="tw-h"><span class="on"></span><span class="off"></span></h2>
+  <p id="tw-b"><span class="on"></span><span class="off"></span></p>
   <p class="hint">TAP ANY OBJECT TO JUMP TO ITS SECTION · ⊕ MORE MARKS EXTRA DETAIL</p>
 </div>
 
@@ -778,6 +800,24 @@ const tw = {
   e: document.getElementById('tw-e'), r: document.getElementById('tw-r'),
   h: document.getElementById('tw-h'), b: document.getElementById('tw-b')
 };
+/* the typed and untyped halves of each line, so the box can hold its full height */
+for (const k of ['h', 'b']) {
+  tw[k + 'On'] = tw[k].querySelector('.on');
+  tw[k + 'Off'] = tw[k].querySelector('.off');
+}
+/** Write `n` characters of `full` into a line, keeping the remainder present but invisible. */
+function twWrite(k, full, n, markup) {
+  const on = tw[k + 'On'], off = tw[k + 'Off'];
+  if (markup !== undefined) {
+    /* Complete: swap in the real HTML so the yellow marker inks in. The remainder is emptied
+       because the marked-up text carries every character the plain text did — same height. */
+    if (on.innerHTML !== markup) on.innerHTML = markup;
+    off.textContent = '';
+  } else {
+    on.textContent = full.slice(0, n);
+    off.textContent = full.slice(n);
+  }
+}
 const plain = html => html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '');
 const clamp01 = v => (v < 0 ? 0 : v > 1 ? 1 : v);
 
@@ -831,16 +871,17 @@ function twAt(raw) {
   tw.e.textContent = c.eyebrow;
   tw.r.textContent = `SK-01 · ${pad(i + 1)}/${pad(SHOTS.length)}`;
   if (shown >= H.length) {
-    /* swap to the real markup once the words have landed, so the marker inks in */
-    if (tw.h.innerHTML !== c.head) tw.h.innerHTML = c.head;
+    twWrite('h', H, H.length, c.head);
     const complete = shown >= H.length + Bp.length;
-    if (complete) { if (tw.b.innerHTML !== c.body) tw.b.innerHTML = c.body; }
-    else tw.b.textContent = Bp.slice(0, shown - H.length);
+    if (complete) twWrite('b', Bp, Bp.length, c.body);
+    else twWrite('b', Bp, shown - H.length);
     tw.h.classList.remove('caret');
     tw.b.classList.toggle('caret', !complete);
   } else {
-    tw.h.textContent = H.slice(0, shown);
-    tw.b.textContent = '';
+    twWrite('h', H, shown);
+    /* The body's remainder stays in place even before the heading has finished, which is the
+       whole point: its height is reserved from the moment the section starts. */
+    twWrite('b', Bp, 0);
     tw.h.classList.add('caret');
     tw.b.classList.remove('caret');
   }

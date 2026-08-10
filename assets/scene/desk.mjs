@@ -278,11 +278,17 @@ export function mesh(fn, nu = 10, nv = 8, o = {}) {
     const v = j / nv;
     lines.push(poly(Array.from({ length: res + 1 }, (_, i) => P(...fn(i / res, v))), false));
   }
+  /* Tagged `mesh` as well as its line class. Isolines are around half of every path in the
+     drawing and they are the finest thing in it, which makes them both the largest raster
+     cost and the cheapest detail to drop while the camera is in motion — see the
+     [data-moving] rule. Nothing else can identify them: they are unclassed children of a
+     group, so without this the renderer has no handle on them. */
   const paths = lines.map(d => `<path d="${d}"/>`).join('');
-  if (!o.clip) return `<g class="${o.cls || 'con'}">${paths}</g>`;
+  const cls = `${o.cls || 'con'} mesh`;
+  if (!o.clip) return `<g class="${cls}">${paths}</g>`;
   const id = `mclip${++clipN}`;
   return `<defs><clipPath id="${id}"><path d="${o.clip}"/></clipPath></defs>
-    <g class="${o.cls || 'con'}" clip-path="url(#${id})">${paths}</g>`;
+    <g class="${cls}" clip-path="url(#${id})">${paths}</g>`;
 }
 
 /** A lofted body of revolution-ish surface from an explicit profile of

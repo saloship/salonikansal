@@ -121,8 +121,8 @@ out = out.replace(STAGE, (_, open, close) => `${open}${svg}${close}`);
    purpose is to be believed, the writing is the part that has to survive.
 
    Rendered from the same module lab.html uses, so the two cannot drift apart. */
-const COPY = /(<div id="copy"[^>]*>)\s*(<\/div>)/;
-if (!COPY.test(out)) fail('could not find an empty <div id="copy"> in lab.html');
+const COPY = /(<main id="copy"[^>]*>)\s*(<\/main>)/;
+if (!COPY.test(out)) fail('could not find an empty <main id="copy"> in lab.html');
 const panels = panelsHTML(SHOTS, SECTIONS);
 out = out.replace(COPY, (_, open, close) => `${open}${panels}${close}`);
 
