@@ -63,8 +63,12 @@ export function panelsHTML(SHOTS, SECTIONS) {
   return SHOTS.map(s => {
     const sec = SECTIONS[s.id] || {};
     const c = sec.panel;
-    if (!c) return `<section data-shot="${s.n}"></section>`;
-    return `<section data-shot="${s.n}">
+    /* data-side comes straight from the shot, so the panel and the camera bias that clears
+       room for it are driven by ONE declaration. They used to be set independently, which is
+       why the panels ended up pinned to a single side: any other arrangement collided. */
+    const side = ` data-side="${s.side || 'l'}"`;
+    if (!c) return `<section data-shot="${s.n}"${side}></section>`;
+    return `<section data-shot="${s.n}"${side}>
     <div class="card">
       <div class="tag">
         <span class="eyebrow">${c.eyebrow}</span>

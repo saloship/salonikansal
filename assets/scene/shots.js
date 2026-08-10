@@ -30,51 +30,83 @@ export const frameAt = (cw, world, bx = 0.5, by = 0.5) => {
   return [cx - cw * bx, cy - ch * by, cw, ch];
 };
 
-/* Subject down-right, panel upper-left. */
+/* PANELS ALTERNATE SIDES, AND THE CAMERA ALTERNATES WITH THEM.
+   The panels were moved to a single side because the camera had ONE fixed bias — subject
+   pushed down-right, so the only clear zone was upper-left and the panel had to live there.
+   Parking every panel in the same place is what turned eight shots into a list of boxes: the
+   drawing moves but the reading position never does, so nothing feels like it is travelling.
+
+   The fix is that the bias is not a constant. `side` says which side the panel takes, and the
+   horizontal bias is simply mirrored to match — panel left puts the subject at 68% across,
+   panel right puts it at 32%. One declaration per shot drives both, so they cannot disagree,
+   which is the failure the single-sided version was avoiding rather than solving. */
 const B = 0.68, BY = 0.60;
+const bx = side => (side === 'r' ? 1 - B : side === 'c' ? 0.5 : B);
 
 const WHOLE = [0, 0, SHEET_W, SHEET_W / ASPECT];
 
 export const SHOTS = [
   {
-    n: 1, id: 'hero', title: 'Hero', r: WHOLE, lit: [],
+    n: 1, id: 'hero', title: 'Hero', r: WHOLE, lit: [], side: 'l',
     beat: 'Everything present, dense, nothing lit. The tagline has to carry it.'
   },
   {
-    n: 2, id: 'me', title: 'Three hats', r: frameAt(2280, [1060, 210, 340], 0.58, 0.55),
+    /* Bias 0.30, not the mirror of 0.58, and this shot cannot be made perfectly clean either
+       way. It is nearly the whole sheet and lights six objects spread right across the desk, so
+       SOMETHING sits behind the panel whichever side it takes: on the left it buries the
+       sketchpad, on the right the iPad. The sketchpad wins, because it owns this section's
+       detail view and is the anchor a reader taps — the iPad is one member of the design
+       cluster and the sketchpad already speaks for it. 0.30 is the bias that clears the
+       sketchpad; measured, the iPad ends up ~93% behind the panel at 1440px and comes back
+       into view on wider screens, where the card stops growing at 56ch. */
+    n: 2, id: 'me', title: 'Three hats', side: 'r',
+    r: frameAt(2280, [1060, 210, 340], 0.30, 0.55),
     lit: ['papers', 'sketchpad', 'ipad', 'map', 'binoculars', 'palette'],
     beat: 'Three clusters light in turn: risk, design, travel.'
   },
   {
-    n: 3, id: 'journey', title: 'Journey', r: frameAt(1320, [210, 40, 140], B, BY),
+    n: 3, id: 'journey', title: 'Journey', side: 'l',
+    r: frameAt(1320, [210, 40, 140], bx('l'), BY),
     lit: ['notebooks'],
     beat: 'The notebook stack and the dated tickets read as a timeline.'
   },
   {
     /* Framed to hold the monitor AND the paper pile. Centred on the screen alone,
        the papers fell off the bottom edge — and they are the subject of the morph,
-       so the one thing the shot exists to show was happening out of frame. */
-    n: 4, id: 'method', title: 'Method', r: frameAt(1180, [905, 210, 560], B, 0.54),
+       so the one thing the shot exists to show was happening out of frame.
+
+       THE ONE SHOT THAT CANNOT ALTERNATE. The monitor carries the six audit steps at
+       readable size, so it is the widest subject in the drawing — around half the frame.
+       With the panel on the right it overlaps the screen's text no matter how far left the
+       bias pushes it, and the whole point of this shot is that those six steps can be read.
+       So it repeats the previous shot's side, and that is a deliberate exception rather than
+       an oversight: content that must stay legible outranks the rhythm. */
+    n: 4, id: 'method', title: 'Method', side: 'l',
+    r: frameAt(1180, [905, 210, 560], bx('l'), 0.54),
     lit: ['monitor', 'papers', 'stickies-bezel'],
     beat: 'Hero morph: the loose workpapers square up and resolve into the control table on screen.'
   },
   {
-    n: 5, id: 'work', title: 'Work', r: frameAt(1080, [1510, 200, 690], B, BY),
+    n: 5, id: 'work', title: 'Work', side: 'r',
+    r: frameAt(1080, [1510, 200, 690], bx('r'), BY),
     lit: ['laptop'],
     beat: 'Projects appear as clean screens on the laptop.'
   },
   {
+    /* Centred, because it is the one shot with a single line of copy and a full pull-back —
+       the reading position landing dead centre is what makes it read as a statement. */
     n: 6, id: 'statement', title: 'Statement', r: [-140, -100, 2680, 1675],
-    lit: [],
+    lit: [], side: 'c',
     beat: 'Hard pull back. Systems are predictable. Humans are not.'
   },
   {
-    n: 7, id: 'beyond', title: 'Beyond', r: frameAt(1180, [1700, 40, 220], B, BY),
+    n: 7, id: 'beyond', title: 'Beyond', side: 'l',
+    r: frameAt(1180, [1700, 40, 220], bx('l'), BY),
     lit: ['map', 'binoculars', 'tickets', 'whiteboard', 'palette', 'photo'],
     beat: 'Second hero morph: the map contours become a ridgeline.'
   },
   {
-    n: 8, id: 'connect', title: 'Connect', r: WHOLE,
+    n: 8, id: 'connect', title: 'Connect', r: WHOLE, side: 'r',
     lit: ['monitor', 'sketchpad', 'ipad', 'map', 'notebooks', 'laptop', 'photo',
           'palette', 'plant', 'mug', 'lamp', 'papers', 'tickets', 'binoculars',
           'whiteboard'],

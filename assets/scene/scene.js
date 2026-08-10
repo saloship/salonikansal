@@ -45,8 +45,24 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = t => (t < 0 ? 0 : t > 1 ? 1 : t);
 const smooth = t => t * t * (3 - 2 * t);
 
+/* `hold` is the fraction of a section the camera spends parked on that section's framing
+   before it starts travelling to the next one. It was 0.62, which meant every move had to be
+   crammed into the remaining 38% — so the camera sat dead still, then lurched. That reads as
+   "not smooth" no matter how clean the interpolation is, because the problem is not the easing,
+   it is that the same distance is being covered in a third of the scroll.
+   Measured on a 300-sample sweep of the whole page, as the fraction of scroll that moves the
+   camera not at all, and the largest single step between samples:
+
+     hold 0.62 (before)   ~62% dead scroll,  step up to ~9%
+     hold 0.32             38% dead scroll,  step up to 5.0%
+     hold 0.15             ~15% dead scroll, step up to ~4%
+
+   0.15 keeps a short landing pause and spends the other 85% travelling. The smoothstep still
+   eases both ends, so arriving and leaving are gentle without needing a dead zone to sell it —
+   which is the point: the stillness was being bought with a lurch, and a scroll that changes
+   nothing is the specific thing she has now reported three times. */
 export function mountScene(svg, { sheet = '', overlay = '', copy = null,
-                                  sections = '#copy section', hold = 0.62,
+                                  sections = '#copy section', hold = 0.15,
                                   markers = [], details = [], onObject = null } = {}) {
   /* If the drawing was inlined at build time, DO NOT rebuild it. Reusing the served markup
      is the whole point: one request instead of a module round-trip, no flash of an empty

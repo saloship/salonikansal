@@ -103,9 +103,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 #copy .card::before{content:"";position:absolute;inset:5px;
                     border:1px solid var(--rule-2);pointer-events:none}
 #copy .card > *{position:relative}
-/* All panels sit left, always. They used to alternate sides, which looked lively but
-   meant the camera had no single clear zone to bias away from — so the drawing was
-   always colliding with the copy on one side or the other. */
+/* PANELS ALTERNATE, driven by the shot's own `side`. Pinning them all to one side did fix
+   the collisions, but it cost the thing the collisions were in service of: with the reading
+   position never moving, eight shots read as a list of boxes down the left margin however
+   much the drawing travelled. The camera's horizontal bias now mirrors this, so each side
+   has its own clear zone instead of one side having all of them. */
+#copy section[data-side="r"]{justify-content:flex-end}
+#copy section[data-side="c"]{justify-content:center}
+#copy section[data-side="c"] .card{text-align:center}
+#copy section[data-side="c"] .tag,#copy section[data-side="c"] .links{justify-content:center}
 .tag{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
      padding-bottom:9px;margin-bottom:15px;border-bottom:1px solid var(--rule-2)}
 .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;
@@ -936,6 +942,11 @@ function twAt(raw) {
   if (!c) return;
 
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* 0.62 is NOT the camera's hold, even though it used to be the same number. This is the
+     typewriter's own window — the fraction of a section over which the letters land — and it is
+     set by how much scroll should produce visible typing, not by camera timing. It is also
+     phone-only, and on a phone the camera does not move at all. The two just happened to share
+     a value until the hold came down to 0.32; keeping them independent is correct. */
   const frac = reduce ? 1 : clamp01(t / 0.62);
 
   /* The body is typed as PLAIN text and swapped for its markup once complete, exactly as the
