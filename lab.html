@@ -269,8 +269,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
    the only visual difference between "jump here" and "there is more here". */
 .art .mark-r{fill:none;stroke:var(--bp-ink);stroke-width:1.3;opacity:.34}
 .art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.5;opacity:.5}
-.art .mark-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:34px;
-             letter-spacing:.1em;opacity:.34}
+.art .mark-r{stroke-width:3}
+.art .mark-p{stroke-width:4}
+.art .mark-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:62px;
+             letter-spacing:.1em;opacity:.42}
 .obj.tappable:hover .mark-t{opacity:.85}
 .obj.lit.has-detail .mark-t{opacity:1;fill:var(--sun)}
 .obj.tappable{cursor:pointer}
@@ -315,6 +317,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 #det-body .dnote{margin-top:16px;padding-top:13px;border-top:1px solid var(--rule-2);
                  font-size:13.5px}
 #det-body .dnote a{color:var(--card-ink)}
+/* contact rows: real targets, not a list of links */
+#det-body .contact{display:grid;gap:9px;margin-top:4px}
+#det-body .crow{display:block;text-decoration:none;font-family:var(--mono);font-size:12.5px;
+                letter-spacing:.05em;color:var(--card-ink);border:1px solid var(--rule-2);
+                padding:15px 16px;transition:background 160ms,border-color 160ms}
+#det-body .crow:hover{background:var(--card-ink);color:var(--paper);border-color:var(--card-ink)}
 /* Satellites slide in staggered, but they are VISIBLE BY DEFAULT and animated from
    script. Gating them on a class hidden behind requestAnimationFrame meant content that
    only appeared if an animation frame landed — and a frame that never lands is content
@@ -544,24 +552,23 @@ const DETAIL_OF = Object.fromEntries(
 const cam = mountScene(document.getElementById('stage'), {
   sheet: sheetFurniture(2400, 1500, { words: KEYWORDS }),
   copy: { monitor: SECTIONS.method.deep },
-  markers: Object.keys(OBJECT_SECTION),
+  markers: OBJECT_SECTION,
   details: Object.keys(DETAIL_OF),
   onObject: onObjectTap
 });
 
-/* Tapping any object jumps to the section it stands for. If you are already in that
-   section and the object owns detail, the same tap opens the detail instead — so one
-   gesture means "take me there", and once you are there it means "tell me more". */
+/* Tapping ANY object in a group takes you to that group's section. Once you are already
+   there, tapping any object in it opens the section's detail — it does not have to be the
+   one prop that happens to own the detail view. Having to find that single right prop was
+   the confusing, hard-to-hit part. */
 let currentShot = 0;
 function onObjectTap(objId) {
   const secId = OBJECT_SECTION[objId];
   if (!secId) return;
-  if (DETAIL_OF[objId] && SHOTS[currentShot] && SHOTS[currentShot].id === secId) {
-    openDetail(objId);
-    return;
-  }
-  const n = SHOTS.findIndex(s => s.id === secId) + 1;
-  if (n > 0) cam.goTo(n);
+  const idx = SHOTS.findIndex(s => s.id === secId);
+  const owner = SECTIONS[secId] && SECTIONS[secId].deep && SECTIONS[secId].deep.on;
+  if (owner && currentShot === idx) { openDetail(owner); return; }
+  if (idx >= 0) cam.goTo(idx + 1);
 }
 window.__cam = cam;   // so the camera can be driven and inspected from the console
 
@@ -593,8 +600,27 @@ rail.addEventListener('click', e => {
 /* in-panel buttons that fly the camera to another shot */
 document.getElementById('copy').addEventListener('click', e => {
   const b = e.target.closest('[data-goto]');
-  if (b) cam.goTo(+b.dataset.goto);
+  if (!b) return;
+  /* the hero's own "Say hello" should also say hello rather than scroll somewhere */
+  if (b.textContent.trim().toLowerCase() === 'say hello') openContact(b);
+  else cam.goTo(+b.dataset.goto);
 });
+
+/* CONTACT. "Say hello" used to scroll to the connect section and stop there, which is not
+   saying hello — it is being shown where hello would live. It now opens the actual ways to
+   reach her, reusing the detail panel so the morph, the push-back and every close route
+   (cross, Escape, backdrop, scroll) come for free. */
+function openContact(from) {
+  const links = (SECTIONS.connect.panel.links || []);
+  detEls.e.textContent = SECTIONS.connect.panel.eyebrow;
+  detEls.r.textContent = 'SK-01 · CONTACT';
+  detEls.t.textContent = 'Say hello';
+  detEls.b.innerHTML = `<div class="contact">` + links.map((l, i) =>
+    `<a class="row crow" href="${l.href}"${l.download ? ' download' : ''}` +
+    `${external(l.href) ? ' target="_blank" rel="noopener"' : ''}>${l.label}</a>`).join('')
+    + `</div>`;
+  openPanelFrom(from);
+}
 
 /* mobile bar and jump sheet */
 const msheet = document.getElementById('msheet');
@@ -602,6 +628,7 @@ document.getElementById('mobar').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.id === 'mjump') msheet.classList.toggle('open');
+  else if (b.classList.contains('mb-s')) openContact(b);
   else cam.goTo(+b.dataset.n);
 });
 msheet.addEventListener('click', e => {
@@ -663,15 +690,22 @@ function openDetail(objId) {
   detEls.t.textContent = sec.deep.title || sec.deep.label;
   detEls.b.innerHTML = detailRows(sec.deep);
 
-  const hit = document.querySelector(`#p-${objId} .hit`);
-  const from = hit && hit.getBoundingClientRect();
+  openPanelFrom(document.querySelector(`#p-${objId} .hit`), objId);
+}
+
+/* Shared open sequence for anything that uses the detail panel — the object detail views
+   and the contact sheet. `from` is the element the panel should appear to grow out of. */
+function openPanelFrom(fromEl, objId) {
+  const from = fromEl && fromEl.getBoundingClientRect();
 
   det.hidden = false;
   document.body.classList.add('det-open');
   const sw = document.getElementById('stage-wrap');
   sw.style.transform = 'scale(.93)';
   sw.style.opacity = '.4';
-  detOpen = objId;
+  /* a truthy sentinel when there is no object — the contact sheet has no prop to morph back
+     into, and leaving this falsy would make closeDetail() bail and trap the panel open */
+  detOpen = objId || '__contact';
   detScrollAt = window.scrollY;
 
   if (from && from.width && !matchMedia('(prefers-reduced-motion:reduce)').matches) {

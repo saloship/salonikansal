@@ -100,29 +100,45 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     return { el, id: el.id.replace(/^p-/, ''), box, shown: true, lit: false };
   });
 
-  /* Objects that own detail get a drafting-style callout marker and become tappable.
-     Without a marker nothing tells you the drawing is interactive, and an interaction
-     nobody can see is the same as not having one. */
+  /* ONE MARKER PER SECTION, not one per object.
+     Twenty-five markers at 17 units is about four pixels each on a phone — invisible,
+     untappable, and competing with each other. Each section now gets a single marker, big
+     enough for a finger, sitting over its anchor object: the one that owns the detail view,
+     or the largest in the group if none does.
+
+     Every object in the group stays tappable through its own padded hit rect, so tapping
+     ANY travel object still takes you to travel. The marker says where the group is; the
+     whole group is the target. */
   const detailSet = new Set(details);
-  const markSet = new Set(markers.length ? markers : details);
+  const groups = new Map();
   for (const o of objs) {
-    if (!markSet.has(o.id) || !o.box) continue;
+    const sec = markers[o.id];
+    if (!sec || !o.box) continue;
     o.el.classList.add('tappable');
-    if (detailSet.has(o.id)) o.el.classList.add('has-detail');
-    const [x0, y0, x1] = o.box;
+    if (!groups.has(sec)) groups.set(sec, []);
+    groups.get(sec).push(o);
+  }
+
+  const area = b => Math.max(1, b[2] - b[0]) * Math.max(1, b[3] - b[1]);
+  for (const [, members] of groups) {
+    const owner = members.find(m => detailSet.has(m.id));
+    const anchor = owner || members.reduce((a, b) => (area(a.box) >= area(b.box) ? a : b));
+    if (owner) anchor.el.classList.add('has-detail');
+    for (const m of members) m.el.classList.add('in-' + (owner ? 'detail' : 'plain'));
+
+    const [x0, y0, x1] = anchor.box;
+    const mx = x1 - 30, my = y0 - 26;
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'mark');
-    const mx = x1 - 16, my = y0 + 16;
     g.innerHTML =
-      `<circle class="mark-r" cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="17"/>` +
-      `<path class="mark-p" d="M${(mx - 9).toFixed(1)} ${my.toFixed(1)}h18` +
-      `M${mx.toFixed(1)} ${(my - 9).toFixed(1)}v18"/>` +
-      /* A word, not just a glyph. A plus alone says "something happens"; the label says
-         what — MORE where there is a detail view behind it, GO where the tap only travels
-         to that object's section. */
-      `<text class="mark-t" x="${(mx - 24).toFixed(1)}" y="${(my + 8).toFixed(1)}" ` +
-      `text-anchor="end">${detailSet.has(o.id) ? 'MORE' : 'GO'}</text>`;
-    o.el.appendChild(g);
+      `<circle class="mark-r" cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="62"/>` +
+      `<path class="mark-p" d="M${(mx - 30).toFixed(1)} ${my.toFixed(1)}h60` +
+      `M${mx.toFixed(1)} ${(my - 30).toFixed(1)}v60"/>` +
+      /* A word as well as a glyph: a plus alone says something happens, the label says
+         what. MORE where a detail view sits behind the group, GO where the tap travels. */
+      `<text class="mark-t" x="${(mx - 78).toFixed(1)}" y="${(my + 24).toFixed(1)}" ` +
+      `text-anchor="end">${owner ? 'MORE' : 'GO'}</text>`;
+    anchor.el.appendChild(g);
   }
 
   if (onObject) {
