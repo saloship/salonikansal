@@ -47,7 +47,7 @@ const smooth = t => t * t * (3 - 2 * t);
 
 export function mountScene(svg, { sheet = '', overlay = '', copy = null,
                                   sections = '#copy section', hold = 0.62,
-                                  details = [], onDetail = null } = {}) {
+                                  markers = [], details = [], onObject = null } = {}) {
   svg.innerHTML = `${GRID_DEFS}
     <rect class="gridbg" x="-800" y="-800" width="4400" height="4000" fill="url(#bp50)"/>
     <g id="camg"><g class="art" id="scene">${buildScene({ copy })}</g>${overlay}</g>
@@ -95,9 +95,11 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
      Without a marker nothing tells you the drawing is interactive, and an interaction
      nobody can see is the same as not having one. */
   const detailSet = new Set(details);
+  const markSet = new Set(markers.length ? markers : details);
   for (const o of objs) {
-    if (!detailSet.has(o.id) || !o.box) continue;
-    o.el.classList.add('has-detail');
+    if (!markSet.has(o.id) || !o.box) continue;
+    o.el.classList.add('tappable');
+    if (detailSet.has(o.id)) o.el.classList.add('has-detail');
     const [x0, y0, x1] = o.box;
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'mark');
@@ -108,10 +110,10 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     o.el.appendChild(g);
   }
 
-  if (onDetail) {
+  if (onObject) {
     svg.addEventListener('click', e => {
-      const g = e.target.closest && e.target.closest('.obj.has-detail');
-      if (g) onDetail(g.id.replace(/^p-/, ''));
+      const g = e.target.closest && e.target.closest('.obj.tappable');
+      if (g) onObject(g.id.replace(/^p-/, ''));
     });
   }
 
@@ -232,6 +234,11 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
      round — it used to drift continuously, which is restless and makes long text
      unreadable. */
   let raf = 0, target = 0, onShot = null, marks = [];
+  /* Raw position within the current section, BEFORE the camera's hold is applied. The
+     camera deliberately sits still for the first `hold` of a section, so its progress is
+     zero for most of the scroll — useful for the camera, useless for anything that should
+     respond as you move. Anything scroll-coupled wants this instead. */
+  let rawI = 0, rawT = 0;
 
   function measure() {
     const y = window.scrollY;
@@ -247,9 +254,10 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     const probe = scrollTop + window.innerHeight * 0.34;
     let i = 0;
     while (i < last && marks[i + 1] <= probe) i++;
-    if (i >= last) return last;
+    if (i >= last) { rawI = last; rawT = 0; return last; }
     const span = Math.max(1, marks[i + 1] - marks[i]);
-    const local = (probe - marks[i]) / span;
+    const local = clamp01((probe - marks[i]) / span);
+    rawI = i; rawT = local;
     const t = local <= hold ? 0 : (local - hold) / (1 - hold);
     return i + clamp01(t);
   }
@@ -259,7 +267,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     let p = progressAt(target);
     if (reduceMo) p = Math.round(p);        // snap between shots, no scrubbing
     const near = render(p);
-    if (onShot) onShot(near, p, marks.length);
+    if (onShot) onShot(near, p, { i: rawI, t: rawT });
   }
 
   function schedule() {

@@ -1042,11 +1042,11 @@ export const FOREGROUND = () => {
   const CZ = z - 40;
   const back = (u, v) => {
     const s = u * 2 - 1;
-    /* 400mm across, topping out at +170 — narrower than her 450mm shoulders and
-       lower than their 256, so she reads as sitting in the chair rather than
-       being hidden by it */
+    /* 400mm across, topping out at +150. The bottom edge starts at -250 so it MEETS the
+       seat: it used to stop at -170, leaving the seat pan floating below it as a separate
+       flat paddle instead of a chair. */
     const hw = 202 + 12 * Math.sin(Math.PI * v) - 24 * Math.pow(v, 4);
-    return [cx + s * hw, -170 + 340 * v, CZ - 44 * s * s];
+    return [cx + s * hw, -250 + 400 * v, CZ - 44 * s * s];
   };
   const backSil = panelSil(back);
 
@@ -1064,14 +1064,17 @@ export const FOREGROUND = () => {
      backrest that the desktop crop happily cut off. Five arms at 72 degrees with one
      pointing at the viewer, because that is what a task chair looks like from behind
      and an even count would hide the middle one behind the column. */
-  const seat = rrectXZ(cx - 235, -300, CZ - 250, 470, 460, 40);
+  /* A solid with thickness, not a flat plate — a 40mm rect read as a paddle. Its top
+     lands at -252 so the backrest sits on it. */
+  const seat = box(cx - 230, -294, CZ - 240, 460, 42, 440, { nohidden: true });
   const column = cyl(cx, CZ - 20, 36, 250, FLOOR + 70, { nohidden: true })
                + cyl(cx, CZ - 20, 52, 74, FLOOR + 60, { nohidden: true });
 
   const star = Array.from({ length: 5 }, (_, i) => {
     const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
     const ux = Math.cos(a), uz = Math.sin(a), px = -uz, pz = ux;
-    const r0 = 54, r1 = 320, w0 = 26, w1 = 15, y = FLOOR + 34;
+    /* thicker arms — at 15mm at the tip the base read as bent wire rather than cast */
+    const r0 = 58, r1 = 320, w0 = 34, w1 = 21, y = FLOOR + 34;
     const at = (r, w) => P(cx + ux * r + px * w, y, CZ - 20 + uz * r + pz * w);
     const quad = poly([at(r0, w0), at(r1, w1), at(r1, -w1), at(r0, -w0)]);
     return `<path class="solid" d="${quad}"/><path class="ol" d="${quad}"/>` +
@@ -1109,7 +1112,7 @@ export const FOREGROUND = () => {
 
     ${star}
     ${column}
-    <path class="solid" d="${seat}"/><path class="ol" d="${seat}"/>
+    ${seat}
     ${chairArm(-1)}${chairArm(1)}
     <path class="solid" d="${backSil}"/>
     ${mesh(back, 9, 7, { clip: backSil })}

@@ -110,6 +110,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 .lessons li::before{content:"—";position:absolute;left:0;opacity:.45}
 
 /* ---- the drawing language ---------------------------------------------- */
+/* Nothing in the drawing is text to be selected, and a blue selection flash or a grey
+   tap rectangle over a blueprint reads as a bug rather than as feedback. */
+#stage,#stage *{user-select:none;-webkit-user-select:none;
+                -webkit-tap-highlight-color:transparent}
+#stage *:focus{outline:none}
+
 .art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
      shape-rendering:geometricPrecision}
 .art .ol {stroke-width:var(--w-ol)}
@@ -225,19 +231,39 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 
 /* Mobile navigation. The rail is hidden under 760px, so a phone previously had no way
    to reach any section at all — v1 had both a persistent bar and a named jump sheet. */
+/* ---- the unifying circle ------------------------------------------------
+   ONE circle rather than arcs clipped by a frame edge, sitting behind BOTH the copy panel
+   and the drawing. That overlap is what joins them into a single composition instead of
+   two stacked zones — which was the chopped feeling. Inner shadow, as in the reference. */
+#halo{display:none}
+@media (max-width:900px){
+  #halo{display:block;position:fixed;left:50%;top:47vh;width:134vw;aspect-ratio:1;
+        transform:translate(-50%,-50%);border-radius:50%;z-index:0;pointer-events:none;
+        border:1px solid rgba(227,237,248,.10);
+        box-shadow:inset 0 0 100px 34px rgba(227,237,248,.055)}
+  #halo::before,#halo::after{content:"";position:absolute;border-radius:50%;
+        border:1px solid rgba(227,237,248,.075)}
+  #halo::before{inset:12%}
+  #halo::after{inset:27%;border-color:rgba(227,237,248,.05)}
+}
+
 /* ---- objects that own detail ------------------------------------------- */
 /* A drafting callout marker. Something has to say the drawing is interactive; an
    interaction nobody can see is the same as not having one. */
-.art .mark-r{fill:none;stroke:var(--bp-ink);stroke-width:1.4;opacity:.55}
-.art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.6;opacity:.75}
-.obj.has-detail{cursor:pointer}
-.obj.lit .mark-r{opacity:1;fill:var(--sun)}
-.obj.lit .mark-p{stroke:var(--navy);opacity:1}
-@media (prefers-reduced-motion:no-preference){
-  .obj.lit .mark{animation:pulse 2.4s ease-in-out infinite}
-  @keyframes pulse{50%{transform:scale(1.16)}}
-}
+/* Every object carries a plus, so any of them is a way into its section. Quiet by
+   default; the ones that own a detail view fill in when their section is live, which is
+   the only visual difference between "jump here" and "there is more here". */
+.art .mark-r{fill:none;stroke:var(--bp-ink);stroke-width:1.3;opacity:.34}
+.art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.5;opacity:.5}
+.obj.tappable{cursor:pointer}
+.obj.tappable:hover .mark-r,.obj.tappable:hover .mark-p{opacity:.9}
+.obj.lit.has-detail .mark-r{opacity:1;fill:var(--sun);stroke:var(--sun)}
+.obj.lit.has-detail .mark-p{stroke:var(--navy);opacity:1}
 .mark{transform-box:fill-box;transform-origin:50% 50%}
+@media (prefers-reduced-motion:no-preference){
+  .obj.lit.has-detail .mark{animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.15)}}
+}
 
 /* ---- detail view ------------------------------------------------------- */
 /* Built to the motion spec: the panel morphs out of the object that was tapped, the
@@ -331,8 +357,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
      floor and the chair's castors — the thing that makes it a whole chair — sat behind
      the bar. The svg is width-constrained so this moves it up rather than shrinking it. */
   #stage-wrap{place-items:end center;z-index:3;pointer-events:none;padding-bottom:64px}
-  #stage-wrap::before{content:"";position:absolute;left:0;right:0;bottom:0;height:48vh;
-    background:linear-gradient(to bottom,transparent,var(--navy) 38%)}
+  /* The masking gradient is gone. It existed to hide the scrolling copy behind the desk
+     band, and on portrait the cards are hidden entirely — the stuck panel is separate. It
+     was also covering the lower half of the unifying circle. */
+  /* the svg arcs live inside the drawing's own frame, so they clip at its top edge —
+     which is exactly the chopped look. #halo replaces them on portrait. */
+  .art .halo{display:none}
   /* Width derived from height, so the drawing cannot eat the whole screen on a tablet.
      The frame's aspect is 1720/1960, so a width of 55vh caps the height near 62vh. On a
      phone 55vh exceeds the viewport width, so min() falls back to full width. */
@@ -368,6 +398,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 
 <div id="bar"></div>
 
+<div id="halo" aria-hidden="true"></div>
+
 <div id="scroller">
   <div id="stage-wrap"><svg id="stage" aria-label="The desk — one drawing, eight shots"></svg></div>
   <div id="copy"></div>
@@ -402,7 +434,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
 import { mountScene } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
-import { SECTIONS, KEYWORDS, NAV, FOOTER } from './assets/scene/content.js';
+import { SECTIONS, KEYWORDS, NAV, FOOTER, OBJECT_SECTION } from './assets/scene/content.js';
 
 /* sections whose deep content is rendered onto an object in the drawing */
 const ON_OBJECT = new Set(['method']);
@@ -476,9 +508,25 @@ const DETAIL_OF = Object.fromEntries(
 const cam = mountScene(document.getElementById('stage'), {
   sheet: sheetFurniture(2400, 1500, { words: KEYWORDS }),
   copy: { monitor: SECTIONS.method.deep },
+  markers: Object.keys(OBJECT_SECTION),
   details: Object.keys(DETAIL_OF),
-  onDetail: openDetail
+  onObject: onObjectTap
 });
+
+/* Tapping any object jumps to the section it stands for. If you are already in that
+   section and the object owns detail, the same tap opens the detail instead — so one
+   gesture means "take me there", and once you are there it means "tell me more". */
+let currentShot = 0;
+function onObjectTap(objId) {
+  const secId = OBJECT_SECTION[objId];
+  if (!secId) return;
+  if (DETAIL_OF[objId] && SHOTS[currentShot] && SHOTS[currentShot].id === secId) {
+    openDetail(objId);
+    return;
+  }
+  const n = SHOTS.findIndex(s => s.id === secId) + 1;
+  if (n > 0) cam.goTo(n);
+}
 window.__cam = cam;   // so the camera can be driven and inspected from the console
 
 /* rail */
@@ -667,69 +715,70 @@ const tw = {
   h: document.getElementById('tw-h'), b: document.getElementById('tw-b')
 };
 const plain = html => html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '');
-const wait = ms => new Promise(r => setTimeout(r, ms));
-let twToken = 0;
+const clamp01 = v => (v < 0 ? 0 : v > 1 ? 1 : v);
 
-async function type(el, text, ms, token) {
-  el.classList.add('caret');
-  for (let i = 1; i <= text.length; i++) {
-    if (token !== twToken) return false;
-    el.textContent = text.slice(0, i);
-    /* pause a beat on sentence ends — an even cadence reads as a machine, and the
-       whole point of a typewriter is that something is being said */
-    await wait(/[.,—:]/.test(text[i - 1]) ? ms * 6 : ms);
-  }
-  el.classList.remove('caret');
-  return token === twToken;
-}
+/* SCROLL-COUPLED, not time-based. The first version ran on timers, and on a page you
+   navigate by scrolling that is simply wrong: the text was doing its own thing while you
+   moved, so scrolling produced no immediate change, you kept going to see if anything
+   would happen, and by then you had passed two sections.
+   Now the character count is a FUNCTION of scroll position. Move a little and letters
+   appear; stop and it stops; scroll back and it un-types. Nothing to wait for and
+   nothing to miss.
 
-async function untype(el, ms, token) {
-  const t = el.textContent;
-  if (!t) return token === twToken;     // nothing to erase; do not burn two beats
-  el.classList.add('caret');
-  for (let i = t.length; i >= 0; i -= 2) {
-    if (token !== twToken) return false;
-    el.textContent = t.slice(0, i);
-    await wait(ms);
-  }
-  return token === twToken;
-}
+     first 20% of a section   type in
+     middle                   hold, fully typed
+     last 12%                 type out, so it is empty exactly at the boundary
 
-let twFirst = true;
+   It runs on the RAW section position, not the camera's. The camera deliberately holds
+   still for the first 62% of a section, so its progress is zero for most of the scroll —
+   typing against that meant nothing moved until the section was nearly over, which is
+   exactly the "I scrolled and saw no change" problem. */
+let twLast = '';
 
-async function twShow(id, n) {
+function twAt(raw) {
+  const i = Math.max(0, Math.min(raw.i, SHOTS.length - 1));
+  const t = raw.t;
+  const id = SHOTS[i].id;
   const c = SECTIONS[id] && SECTIONS[id].panel;
   if (!c) return;
-  const token = ++twToken;
-  const ref = `SK-01 · ${pad(n)}/${pad(SHOTS.length)}`;
 
-  /* The first section lands instantly. Typing it in means the panel is blank for a
-     second or two on arrival, which reads as a page that has not loaded rather than as
-     an effect — the typewriter is for the CHANGE between sections. */
-  if (twFirst || matchMedia('(prefers-reduced-motion:reduce)').matches) {
-    twFirst = false;
-    tw.e.textContent = c.eyebrow; tw.r.textContent = ref;
-    tw.h.innerHTML = c.head; tw.b.textContent = c.body;
-    return;
-  }
+  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const frac = reduce ? 1
+    : t > 0.88 ? clamp01(1 - (t - 0.88) / 0.12)
+    : clamp01(t / 0.20);
 
-  if (!(await untype(tw.b, 6, token))) return;
-  if (!(await untype(tw.h, 7, token))) return;
+  const H = plain(c.head), B = c.body;
+  const shown = Math.round(frac * (H.length + B.length));
+
+  const key = id + '|' + shown;
+  if (key === twLast) return;            // one write per changed character, not per frame
+  twLast = key;
+
   tw.e.textContent = c.eyebrow;
-  tw.r.textContent = ref;
-  if (!(await type(tw.h, plain(c.head), 26, token))) return;
-  tw.h.innerHTML = c.head;                 // the marker inks in behind the words
-  await type(tw.b, c.body, 9, token);
+  tw.r.textContent = `SK-01 · ${pad(i + 1)}/${pad(SHOTS.length)}`;
+  if (shown >= H.length) {
+    /* swap to the real markup once the words have landed, so the marker inks in */
+    if (tw.h.innerHTML !== c.head) tw.h.innerHTML = c.head;
+    tw.b.textContent = B.slice(0, shown - H.length);
+    tw.h.classList.remove('caret');
+    tw.b.classList.toggle('caret', shown < H.length + B.length);
+  } else {
+    tw.h.textContent = H.slice(0, shown);
+    tw.b.textContent = '';
+    tw.h.classList.add('caret');
+    tw.b.classList.remove('caret');
+  }
 }
 
-let lastShot = -1;
-cam.onShot((near, p) => {
+cam.onShot((near, p, raw) => {
   btns.forEach(b => b.setAttribute('aria-current', +b.dataset.n === near + 1));
-  bar.style.width = (p / (SHOTS.length - 1) * 100).toFixed(2) + '%';
+  /* the progress bar follows the RAW position too, so it moves the moment you do */
+  bar.style.width = ((raw.i + raw.t) / (SHOTS.length - 1) * 100).toFixed(2) + '%';
+  currentShot = near;
   const s = cam.stats();
   hud.textContent = `SHOT ${near + 1}/${SHOTS.length} · ${SHOTS[near].title.toUpperCase()} · `
     + `${s.drawn}/${s.objects} OBJECTS DRAWN · ${s.paths} PATHS`;
-  if (near !== lastShot) { lastShot = near; twShow(SHOTS[near].id, near + 1); }
+  twAt(raw);
 });
 </script>
 </body>

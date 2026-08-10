@@ -203,5 +203,18 @@ export const NAV = {
   beyond: 'Life & stories', connect: 'Say hello'
 };
 
+/* Which section each object stands for. Every object carries a marker, so a reader can
+   jump straight to the part of the story it belongs to instead of scrolling to find it. */
+export const OBJECT_SECTION = {
+  sketchpad: 'me', ipad: 'me',
+  notebooks: 'journey', tickets: 'journey',
+  monitor: 'method', papers: 'method', 'stickies-bezel': 'method',
+  'stickies-wall': 'method', keyboard: 'method', whiteboard: 'method', mouse: 'method',
+  laptop: 'work', riser: 'work', phone: 'work',
+  map: 'beyond', binoculars: 'beyond', palette: 'beyond', photo: 'beyond', plant: 'beyond',
+  lamp: 'connect', mug: 'connect', bottle: 'connect', speaker: 'connect',
+  headphones: 'connect', pens: 'connect'
+};
+
 /* The hero opens on "control and chaos" and v1's last line landed on it again. */
 export const FOOTER = 'Made by Saloni Kansal · with ♥, somewhere between control and chaos';
