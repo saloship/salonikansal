@@ -176,10 +176,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    straight across the drawing. Masking the element fades the blur itself out, so the effect
    arrives gradually and there is no edge to see. */
 #copy section[data-side="b"]::before{content:"";position:absolute;left:0;right:0;bottom:0;
-    height:66%;pointer-events:none;z-index:0;backdrop-filter:blur(3px);
-    background:linear-gradient(to top,rgba(236,230,216,.9),rgba(236,230,216,.6) 52%,transparent);
-    -webkit-mask-image:linear-gradient(to top,#000 38%,transparent);
-    mask-image:linear-gradient(to top,#000 38%,transparent)}
+    /* 38%, down from 66%. Two thirds of the screen washed out is not a light source, it is a
+       fog bank — it dimmed the whole lower desk when all it needs to do is give the words a
+       ground to sit on. This reaches just above the block of text and stops. */
+    height:38%;pointer-events:none;z-index:0;backdrop-filter:blur(3px);
+    background:linear-gradient(to top,rgba(236,230,216,.94),rgba(236,230,216,.8) 58%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 64%,transparent);
+    mask-image:linear-gradient(to top,#000 64%,transparent)}
 #copy section[data-side="b"] .card{position:relative;z-index:1;width:min(62ch,88vw);
     background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}
 #copy section[data-side="b"] .card::before{display:none}
@@ -385,15 +388,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    alone leaves the linework legible enough to compete with the type. */
 #closing{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-end;
          justify-content:center;text-align:center;
-         padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px);
-         backdrop-filter:blur(3.5px);background:rgba(236,230,216,.52);
-         /* same reason as the connect wash: fade the blur in from the top rather than
-            starting it on a hard line across the drawing */
-         -webkit-mask-image:linear-gradient(to top,#000 55%,transparent);
-         mask-image:linear-gradient(to top,#000 55%,transparent)}
+         padding:0 clamp(20px,7vw,90px) clamp(52px,10vh,104px)}
+/* The wash is a band at the bottom, not a filter on the whole 100vh block — same reasoning and
+   same measurements as the connect section above, so the two closing beats read as one idea. */
+#closing::before{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;
+    pointer-events:none;z-index:0;backdrop-filter:blur(3px);
+    background:linear-gradient(to top,rgba(236,230,216,.94),rgba(236,230,216,.8) 58%,transparent);
+    -webkit-mask-image:linear-gradient(to top,#000 64%,transparent);
+    mask-image:linear-gradient(to top,#000 64%,transparent)}
 /* 34ch broke the sign-off into five stubby lines. At 48ch it lands in two or three, which is
-   what a spoken line should look like. */
-.cl-in{max-width:min(48ch,88vw)}
+   what a spoken line should look like. relative/z-index keeps it above the wash band. */
+.cl-in{max-width:min(48ch,88vw);position:relative;z-index:1}
 .cl-lead{font-family:'Fraunces',Georgia,serif;font-weight:600;
          font-size:clamp(25px,3.7vw,45px);line-height:1.16;letter-spacing:-.02em;
          color:var(--card-ink);margin:0 auto}
@@ -1479,7 +1484,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       <div class="links"><button class="lnk" data-goto="4">See how I work</button><button class="lnk" data-goto="8">Say hello</button><a class="lnk" href="assets/Saloni-Kansal-CV.pdf" download>Download CV</a></div>
       
     </div>
-  </section><section data-shot="2" data-side="l">
+  </section><section data-shot="2" data-side="r">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">A little about me</span>
@@ -1511,7 +1516,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
   <p class="dnote"><a href="ideas.html">The sketchbook — 7 concepts →</a></p>
 </div>
     </div>
-  </section><section data-shot="3" data-side="r">
+  </section><section data-shot="3" data-side="l">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">How I got here</span>
@@ -1638,7 +1643,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       
       
     </div>
-  </section><section data-shot="7" data-side="r">
+  </section><section data-shot="7" data-side="l">
     <div class="card">
       <div class="tag">
         <span class="eyebrow">The person behind the work</span>

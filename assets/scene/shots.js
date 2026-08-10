@@ -61,19 +61,24 @@ export const SHOTS = [
     beat: 'Everything present, dense, nothing lit. The tagline has to carry it.'
   },
   {
-    /* Barely a camera move at all, and that is the point: this shot's event is six objects
-       lighting up across the desk, not a change of viewpoint. A gentle 2400 to 2100 push-in
-       with the centre drifting left, so it sets up the leftward move into shot 3 instead of
-       reversing it.
+    /* No zoom at all — the frame stays the hero's 2400 and only slides. That is the point: this
+       shot's event is six objects lighting up across the desk, not a change of viewpoint.
 
-       Panel LEFT, and the bias is 0.682 rather than anything mirrored, because this is the one
-       shot where the choice is measurable rather than aesthetic. Its beat is three clusters —
-       risk, design, travel — spread right across the desk. With the panel on the right, four of
-       the six lit objects (the whole travel cluster plus the iPad) sat behind it: the shot lit
-       things nobody could see. 0.682 pushes the entire lit span into the clear right-hand 55%
-       of the frame, so all six read and only the sketchpad's left edge is clipped. */
-    n: 2, id: 'me', title: 'Three hats', side: 'l',
-    r: frameAt(2280, [1060, 210, 340], 0.682, 0.55),
+       Panel RIGHT, at her instruction, and the framing is what makes that survivable. This shot
+       lights three clusters — risk, design, travel — spread right across the desk, and the
+       travel cluster lives on the desk's right, which is precisely where a right-hand panel
+       sits. Framed naively it buried four of the six.
+       The bias here was TUNED AGAINST MEASUREMENTS, not derived, and the reason matters: the
+       layers carry their own parallax translate, so where an object actually lands on screen is
+       not the camera rectangle alone. Two analytic attempts put the iPad clear and it measured
+       92% then 100% buried. 0.145 comes from reading the real rectangles and shifting until the
+       whole lit span sits left of the card.
+       The cost is a big rightward drift here (frame centre ~1741 against the hero's 1200) which
+       the camera then has to travel back across into shot 3. A left-hand panel here made the
+       camera calmer; the right-hand one she asked for buys that at the price of one more
+       direction change. */
+    n: 2, id: 'me', title: 'Three hats', side: 'r',
+    r: frameAt(2400, [1060, 210, 340], 0.145, 0.55),
     lit: ['papers', 'sketchpad', 'ipad', 'map', 'binoculars', 'palette'],
     beat: 'Three clusters light in turn: risk, design, travel.'
   },
@@ -83,9 +88,12 @@ export const SHOTS = [
        the screen and sat right over against the far edge, so the panel and the subject were
        separated by a void. At 900 it fills a third and lands about 100px from the panel — near
        enough to read as one composition, not so near that they touch.
-       Panel right, so the desk's left end reads left-to-right into the words. */
-    n: 3, id: 'journey', title: 'Journey', side: 'r',
-    r: frameAt(900, [210, 40, 140], 0.32, BY),
+       Panel LEFT at her instruction, so the bias flips to put the stack on the RIGHT of the
+       frame. 0.76 rather than the usual 0.68, tuned by measuring the gap: 0.68 left the
+       notebooks 30px off the card and 0.72 only reached 40px, which still reads as touching.
+       0.76 opens it to a clear but adjacent ~60px. */
+    n: 3, id: 'journey', title: 'Journey', side: 'l',
+    r: frameAt(900, [210, 40, 140], 0.76, BY),
     lit: ['notebooks'],
     beat: 'The notebook stack and the dated tickets read as a timeline.'
   },
@@ -122,8 +130,14 @@ export const SHOTS = [
     beat: 'Hard pull back. Systems are predictable. Humans are not.'
   },
   {
-    n: 7, id: 'beyond', title: 'Beyond', side: 'r',
-    r: frameAt(1180, [1700, 40, 220], 0.32, BY),
+    /* Panel LEFT at her instruction. Bias 0.66: at 0.68 the cluster sat 190px off the card with
+       a hole between them, and 0.62 pulled it so close the binoculars went behind the card edge.
+       Note the cost, since it is not obvious: shot 5's subject and this one are almost the same
+       point on the desk, so flipping the panel between them makes the camera jog left even
+       though the objects have not moved. Unavoidable when two adjacent shots share a location
+       and take opposite sides. */
+    n: 7, id: 'beyond', title: 'Beyond', side: 'l',
+    r: frameAt(1180, [1700, 40, 220], 0.66, BY),
     lit: ['map', 'binoculars', 'tickets', 'whiteboard', 'palette', 'photo'],
     beat: 'Second hero morph: the map contours become a ridgeline.'
   },
