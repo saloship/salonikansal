@@ -823,8 +823,12 @@ function twAt(raw) {
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
   const frac = reduce ? 1 : clamp01(t / 0.62);
 
-  const H = plain(c.head), B = c.body;
-  const shown = Math.round(frac * (H.length + B.length));
+  /* The body is typed as PLAIN text and swapped for its markup once complete, exactly as the
+     heading is. Typing it with textContent while desktop renders it with innerHTML meant any
+     <em> in a body would look right on a laptop and print as literal tag text on a phone —
+     a trap waiting for whoever writes the copy, since <em> is already used in every heading. */
+  const H = plain(c.head), Bp = plain(c.body);
+  const shown = Math.round(frac * (H.length + Bp.length));
 
   const key = id + '|' + shown;
   if (key === twLast) return;            // one write per changed character, not per frame
@@ -835,9 +839,11 @@ function twAt(raw) {
   if (shown >= H.length) {
     /* swap to the real markup once the words have landed, so the marker inks in */
     if (tw.h.innerHTML !== c.head) tw.h.innerHTML = c.head;
-    tw.b.textContent = B.slice(0, shown - H.length);
+    const complete = shown >= H.length + Bp.length;
+    if (complete) { if (tw.b.innerHTML !== c.body) tw.b.innerHTML = c.body; }
+    else tw.b.textContent = Bp.slice(0, shown - H.length);
     tw.h.classList.remove('caret');
-    tw.b.classList.toggle('caret', shown < H.length + B.length);
+    tw.b.classList.toggle('caret', !complete);
   } else {
     tw.h.textContent = H.slice(0, shown);
     tw.b.textContent = '';

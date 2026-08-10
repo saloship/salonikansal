@@ -162,7 +162,9 @@ export function notes(x, y) {
    sheet furniture is the one layer outside the camera group, so it is legible at
    every zoom, which is the job the marquee was doing. A schedule is also what a
    drawing calls a list of what something is made of, so it earns its place. */
-export function schedule(x, y, words, w = 620) {
+/* w = 780, not 620: the six keywords joined with the separator run 74 characters, which at
+   this type size needs about 710 units. The rule was shorter than the text sitting on it. */
+export function schedule(x, y, words, w = 780) {
   const rule = `<path class="sh-line" d="${L(x, y + 8, x + w, y + 8)}"/>`;
   return `<g class="sheetblk">
     <text class="sh-k" x="${f(x)}" y="${f(y)}">SCHEDULE</text>
