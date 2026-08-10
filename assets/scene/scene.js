@@ -269,7 +269,10 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     const probe = scrollTop + window.innerHeight * 0.34;
     let i = 0;
     while (i < last && marks[i + 1] <= probe) i++;
-    if (i >= last) { rawI = last; rawT = 0; return last; }
+    /* Past the final section, raw progress is 1 — not 0. Reporting 0 meant anything
+       scroll-coupled read "nothing has happened yet" at the very end, so the closing text
+       typed itself back down to nothing exactly when the reader arrived at it. */
+    if (i >= last) { rawI = last; rawT = 1; return last; }
     const span = Math.max(1, marks[i + 1] - marks[i]);
     const local = clamp01((probe - marks[i]) / span);
     rawI = i; rawT = local;

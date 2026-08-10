@@ -33,9 +33,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-/* overflow-x hidden because #halo is deliberately wider than the viewport — without this
-   the page could be panned sideways, and on a phone that fights the vertical scroll */
-html,body{overflow-x:hidden;max-width:100%}
+/* NO overflow-x:hidden here. Setting overflow on html or body makes it the scroll container,
+   which breaks position:sticky on every descendant — it is what un-pinned the desk. The
+   circle is drawn as gradients inside a viewport-sized element instead, so nothing is
+   oversized and there is no horizontal overflow to suppress in the first place. */
 body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--bp-ink);
      line-height:1.6;-webkit-font-smoothing:antialiased}
 
@@ -249,14 +250,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(-
     background-attachment:fixed}
   .gridbg{display:none}
 
-  #halo{display:block;position:fixed;left:50%;top:47vh;width:134vw;aspect-ratio:1;
-        transform:translate(-50%,-50%);border-radius:50%;z-index:0;pointer-events:none;
-        border:1px solid rgba(227,237,248,.10);
-        box-shadow:inset 0 0 100px 34px rgba(227,237,248,.055)}
-  #halo::before,#halo::after{content:"";position:absolute;border-radius:50%;
-        border:1px solid rgba(227,237,248,.075)}
-  #halo::before{inset:12%}
-  #halo::after{inset:27%;border-color:rgba(227,237,248,.05)}
+  /* Rings as radial gradients in a viewport-sized fixed layer. An oversized rounded div
+     was the tidier idea but it overflowed the document sideways, and suppressing that
+     overflow is what broke the sticky stage. Gradients cannot overflow anything. */
+  #halo{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 46%, transparent 0 40.6%, rgba(227,237,248,.13) 40.6% 41%, transparent 41%),
+      radial-gradient(circle at 50% 46%, transparent 0 52.6%, rgba(227,237,248,.09) 52.6% 53%, transparent 53%),
+      radial-gradient(circle at 50% 46%, transparent 0 64.6%, rgba(227,237,248,.06) 64.6% 65%, transparent 65%),
+      radial-gradient(circle at 50% 46%, rgba(227,237,248,.055) 0%, transparent 58%)}
 }
 
 /* ---- objects that own detail ------------------------------------------- */
