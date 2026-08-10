@@ -30,7 +30,11 @@ export const SECTIONS = {
     panel: {
       eyebrow: 'A little about me',
       head: 'I’ve never been just <em>one thing</em>.',
-      body: 'Tech risk is the day job, and I actually enjoy it. Design and building is where I tinker after hours. The mountains are where I switch off. Different hats — but it’s the same me under each one, happiest when I’m untangling something.'
+      /* Cut from 233 characters to 121. On mobile the panel types character by character
+         against scroll position, so length IS scroll distance — this was the longest body in
+         the file by more than 2x and the heaviest attention cost in it. The clause that went
+         ("the same me under each one") is carried better by the deep title and note below. */
+      body: 'Tech risk is the day job, and I actually enjoy it. Design is where I tinker after hours, the mountains where I switch off.'
     },
     deep: {
       on: 'sketchpad', label: 'Three hats',
@@ -42,7 +46,10 @@ export const SECTIONS = {
         { d: 'Can’t sit still', k: 'Design & product', v: 'Half my notebooks are wireframes for apps that don’t exist yet — and seven of them are written up. One is built.' },
         { d: 'Rather be outside', k: 'Mountains & travel', v: 'A free weekend, and I’m on a trail in the Himalayas.' }
       ],
-      note: 'Comfortable moving between an audit workpaper, a wireframe, and a build.',
+      /* Her CV's own summary line, which is sharper than anything either site had. The tools
+         follow it because there was no tools list anywhere on the web — a hiring manager
+         scanning for a stack found nothing at all. */
+      note: 'Comfortable moving between an audit workpaper, a wireframe, and a build. Figma, JavaScript, HTML/CSS, Tailwind, Three.js.',
       link: { label: 'The sketchbook — 7 concepts', href: 'ideas.html' }
     }
   },
@@ -70,11 +77,15 @@ export const SECTIONS = {
           learned: 'Real systems are messier than any framework expects.' },
         { d: '2022 — 2024', k: 'UI / UX & Graphic Design',
           r: 'Digital Paani · Zobyt Technologies · Stych (Founder’s Office)',
-          v: 'Interfaces and user flows from scratch, research, and brands built from nothing. Front-end implementation in HTML/CSS/JS alongside design and product. Still how I think.',
+          /* "20+ technical graphics and animations" is from her CV and was on neither site —
+             a quantified output where everything else in this chapter was a category. */
+          v: 'Interfaces, user flows and 20+ technical graphics and animations from scratch. Research, and brands built from nothing. Front-end in HTML/CSS/JS alongside design and product. Still how I think.',
           learned: 'You design for the person stuck inside the system, not the system.' },
         { d: '2020 — 2024', k: 'B.Tech, Information Technology',
           r: 'Chairperson, ACM Chapter · Smart India Hackathon 2024 Finalist',
-          v: 'BVCOE, New Delhi (GGSIPU). Led the ACM student chapter — a 40+ member body, 10+ events a year, sponsors and logistics, and the annual coding symposium.',
+          /* 85.57% is on the CV and appeared on neither site. For an early-career profile the
+             institution and the mark are trust content, not vanity. */
+          v: 'BVCOE, New Delhi (GGSIPU), 85.57% aggregate. Led the ACM student chapter — a 40+ member body, 10+ events a year, sponsors and logistics, and the annual coding symposium.',
           learned: 'Leading people is nothing like leading a process.' }
       ]
     }
@@ -103,7 +114,10 @@ export const SECTIONS = {
       /* The outcome sits on the SAME screen as the steps, one rule below. Six steps
          are verbs anyone could write; this is the only line proving they produced
          anything, and v1 had it. Detached from the method it would read as a boast. */
-      note: 'Step six matters most. An ISO 27001 policy build became a reusable control-to-policy-to-evidence mapping; a set of testing templates and a gap tracker ended up shared around the team.'
+      /* Rewritten shorter, not extended: the screen has 3 wrapped lines for this and was
+         using all 3. Adding the CV's reason the mapping mattered — that it made later
+         reviews quicker — had to be paid for by cutting elsewhere. 172 chars from 181. */
+      note: 'Step six matters most. An ISO 27001 build became a control-to-policy-to-evidence mapping that made later reviews quicker; testing templates and a gap tracker the team reused.'
     }
   },
 

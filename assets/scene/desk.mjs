@@ -366,6 +366,31 @@ export function wrapText(s, max) {
   return out;
 }
 
+/** Height a block list consumes, in mm. The SAME arithmetic screenText lays out with, so a
+ *  capacity check cannot drift from the renderer by being a second implementation of it. */
+export const screenTextHeight = blocks =>
+  blocks.reduce((h, b) => h + (b.size ?? 11) * 1.3 + (b.gap || 0), 0);
+
+/** Monospace is 0.6em wide per character, so this is how many fit across a given width. */
+export const screenTextFits = (chars, size, w) => chars * size * 0.6 <= w;
+
+/* The monitor's usable display area, and the block list its document renders as. Both are
+   exported so tools/check-screens.mjs measures the real thing rather than a guess at it. */
+export const MONITOR_SCREEN = { w: 508, h: 256, indent: 24 };
+
+export function monitorBlocks(doc) {
+  return [
+    { t: doc.title.toUpperCase(), size: 14, cls: 'scr-h', gap: 3 },
+    ...doc.items.flatMap(i => [
+      { t: i.k, size: 11, cls: 'scr-k', gap: 5 },
+      { t: i.v, size: 9.5, cls: 'scr-v', indent: MONITOR_SCREEN.indent }
+    ]),
+    ...(doc.note ? wrapText(doc.note, 78).map((t, i) => ({
+      t, size: 9, cls: 'scr-n', gap: i === 0 ? 9 : 0
+    })) : [])
+  ];
+}
+
 export function screenText(x, y, z, w, h, blocks) {
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   let cy = y + h;
@@ -587,17 +612,10 @@ export const PROPS = [
       const doc = ctx.copy && ctx.copy.monitor;
       const body = `<g class="scr-dash">${dashboard(X + 26, Y + 50, Z, W - 52, H - 84)}</g>`
         + (doc ? `<g class="scr-doc">${screenText(X + 26, Y + 50, Z, W - 52, H - 84, [
-            { t: doc.title.toUpperCase(), size: 14, cls: 'scr-h', gap: 3 },
-            ...doc.items.flatMap(i => [
-              { t: i.k, size: 11, cls: 'scr-k', gap: 5 },
-              { t: i.v, size: 9.5, cls: 'scr-v', indent: 24 }
-            ]),
-            /* The outcome, one rule below the steps. Six steps are verbs anyone could
-               write; this is the line that proves they produced something. Sizes above
-               were tightened to make room for it rather than dropping it. */
-            ...(doc.note ? wrapText(doc.note, 78).map((t, i) => ({
-              t, size: 9, cls: 'scr-n', gap: i === 0 ? 9 : 0
-            })) : [])
+            /* Blocks come from monitorBlocks() so the capacity check in
+               tools/check-screens.mjs measures the real layout rather than a second
+               implementation of it. The screen is very nearly full. */
+            ...monitorBlocks(doc)
           ])}</g>` : '');
       return `
       ${centre(880, 560, -40, 640)}
