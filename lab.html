@@ -3,6 +3,17 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<!-- FAVICON: her bunny mark on a brass disc. Chosen over the saloship circle because a favicon is
+     16px in practice — the saloship mark is a thin single stroke that disappears at that size, and
+     its bright blue fights the cream/navy/brass palette. A solid silhouette survives, and brass
+     echoes the yellow badge she already uses. The source artwork is black on OPAQUE white, so the
+     alpha had to be derived from luminance rather than assumed; see tools/ for how these are made.
+     RELATIVE paths, deliberately: these have to keep working when the site moves from /site-v2/
+     to the domain root. -->
+<link rel="icon" href="favicon.ico" sizes="32x32"/>
+<link rel="icon" href="assets/icon-32.png" type="image/png" sizes="32x32"/>
+<link rel="apple-touch-icon" href="assets/icon-180.png"/>
+<meta name="theme-color" content="#ece6d8"/>
 <meta name="robots" content="noindex,nofollow"/>
 <title>M3 · The Desk — scroll-driven camera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,7 +75,7 @@
   --halo:rgba(30,58,95,.13); --halo-2:rgba(30,58,95,.085); --halo-3:rgba(30,58,95,.055);
   /* Footer grid pitch. The script measures the real one from the stage; this is the fallback so
      the texture is still there with no JavaScript. */
-  --gp:23.4px;
+  --gp:23.4px; --gp-line:rgba(30,58,95,.038); --gp-line-b:rgba(30,58,95,.062);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* ANCHOR, THEN JUMP. Each panel is a snap point, so a scroll that ends near one settles ON it
@@ -162,11 +173,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
     border-left:0;border-right:0;border-bottom:0;border-top:1px solid var(--bp-ink);
     box-shadow:none;backdrop-filter:none;
     background-color:var(--bp-ground);
+    /* Toned down from the drawing's own grid values. Same tokens looked stronger here than up in
+       the drawing, and they were not lying — in the drawing the grid sits under the room fills and
+       a thousand paths of linework, all of which mute it. On bare paper with only text over it,
+       nothing is competing, so it has to be pitched softer to read as the same texture. Roughly
+       half strength, and the bold every-fifth line down more than that. */
     background-image:
-      repeating-linear-gradient(to right,var(--bp-grid) 0 1px,transparent 1px var(--gp)),
-      repeating-linear-gradient(to bottom,var(--bp-grid) 0 1px,transparent 1px var(--gp)),
-      repeating-linear-gradient(to right,var(--bp-grid-b) 0 1.6px,transparent 1.6px calc(var(--gp) * 5)),
-      repeating-linear-gradient(to bottom,var(--bp-grid-b) 0 1.6px,transparent 1.6px calc(var(--gp) * 5))}
+      repeating-linear-gradient(to right,var(--gp-line) 0 1px,transparent 1px var(--gp)),
+      repeating-linear-gradient(to bottom,var(--gp-line) 0 1px,transparent 1px var(--gp)),
+      repeating-linear-gradient(to right,var(--gp-line-b) 0 1.2px,transparent 1.2px calc(var(--gp) * 5)),
+      repeating-linear-gradient(to bottom,var(--gp-line-b) 0 1.2px,transparent 1.2px calc(var(--gp) * 5))}
 /* the inner rule a title block carries, top edge only — the sheet continues below */
 #copy section[data-side="b"] .card::before{left:0;right:0;top:6px;bottom:auto;height:0;
     border-left:0;border-right:0;border-bottom:0;border-top:1px solid var(--bp-ink);opacity:.34}
@@ -251,6 +267,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 .art .halo{fill:none;opacity:1;stroke-width:1.6}
 .art *{vector-effect:non-scaling-stroke}
 .art .colstroke{stroke:var(--bp-con)}
+
+/* ---- the cursor over the drawing ---------------------------------------
+   A drafting crosshair, and only over the drawing — the pointer stays a pointer on text, links
+   and buttons, where people rely on it to tell them what is clickable. Restricting it to the
+   stage is what keeps it a nice touch rather than a usability tax: over the sheet you are reading
+   coordinates, over the interface you are pressing things.
+   Navy at .55 with a white outer stroke so it survives both the cream ground and a dark object
+   underneath it. 22px box, hotspot dead centre at 11,11. */
+#stage{cursor:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">\
+<g fill="none" stroke="%23fff" stroke-opacity=".85" stroke-width="3">\
+<path d="M11 1v6M11 15v6M1 11h6M15 11h6"/><circle cx="11" cy="11" r="3.4"/></g>\
+<g fill="none" stroke="%231e3a5f" stroke-opacity=".9" stroke-width="1.3">\
+<path d="M11 1v6M11 15v6M1 11h6M15 11h6"/><circle cx="11" cy="11" r="3.4"/></g>\
+</svg>') 11 11, crosshair}
+/* Tappable objects keep the pointer — the crosshair must not hide the one signal that matters. */
+.obj.tappable,.bomrow{cursor:pointer}
 /* NO LEVEL-OF-DETAIL HIDING. This used to drop the mesh isolines, hidden lines and centre
    lines while the camera moved, which cut slow frames from 52 to 21 over a full traverse —
    a real measurement and a real gain. It is gone anyway, because she watched the page and
@@ -263,6 +296,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
    rest the display has no fill and the navy ground shows through it. */
 .art .scr{font-family:var(--mono);fill:var(--bp-ink);opacity:.42;stroke:none;
           transition:fill 600ms ease,opacity 600ms ease}
+/* App tiles on the phone: her socials, so they are content and always present — dimmed until the
+   object is in shot, exactly like the screen text above. A `col` fill would have hidden them
+   entirely, since the phone sits in no shot's lit list. */
+.art .apptile{fill:var(--c);stroke:none;opacity:.5;transition:opacity 600ms ease}
+.obj.lit .apptile{opacity:1}
+.obj.tappable:hover .apptile{opacity:.85}
 .art .scr-h{letter-spacing:.13em}
 .art .scr-k{font-weight:500}
 .art .scr-n{font-style:italic}
@@ -708,6 +747,20 @@ function onObjectTap(objId) {
   const secId = OBJECT_SECTION[objId];
   if (!secId) return;
   const idx = SHOTS.findIndex(s => s.id === secId);
+  /* The phone opens the contact list IMMEDIATELY, breaking the travel-first rule every other
+     object follows. Two reasons, and the second one is decisive:
+       · its meaning is an action, not a place — tapping a phone should hand over the links,
+         not scroll somewhere and leave the reader to find them;
+       · at its own section the full-width footer card covers the bottom band of the frame, and
+         the phone lies at the front edge of the desk — so it is BEHIND that card exactly where
+         the travel-first rule would send you. The second tap would have been unreachable. */
+  if (objId === 'phone') {
+    /* Pass the ELEMENT. openPanelFrom calls getBoundingClientRect() on what it is given, so
+       handing it a rect throws — and because openContact fills the dialog body before calling it,
+       the failure looked like a dialog that was populated but simply would not open. */
+    openContact(document.getElementById('p-phone'));
+    return;
+  }
   const owner = SECTIONS[secId] && SECTIONS[secId].deep && SECTIONS[secId].deep.on;
   if (owner && currentShot === idx) { openDetail(owner); return; }
   if (idx >= 0) cam.goTo(idx + 1);

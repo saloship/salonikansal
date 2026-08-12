@@ -1174,8 +1174,16 @@ export const PROPS = [
      right, v from the nose to the tail, so ONE function gives both the cross-section
      arc and the length profile, and the mesh follows the contour instead of describing
      a circle. */
+  /* MOVED FORWARD AND LEFT, from (1320, 206) to (1131, 40), because it was invisible — and not
+     for the reason it looked like. The geometry was fine; it sat at screen x 1194-1283 in the shot
+     it belongs to, and the PARTS LIST covers everything past 1078. That table is sheet furniture
+     fixed to the screen rather than part of the drawing, so it blanks the right quarter of every
+     shot, and the mouse was parked in it. The same trap swallowed the certificates.
+     Anything that must be seen has to fit x + 0.35z < ~1228 in world terms. To the right of the
+     keyboard at the keyboard's own depth, that window is 42mm wide and a mouse is 62 — so it
+     moves forward instead, sitting front-right of the keyboard where there is room. */
   { id: 'mouse', cl: 'general', z: 170, art: () => {
-      const cx = 1320, z0 = 206, L = 112;
+      const cx = 1131, z0 = 40, L = 112;
 
       /* Half-width and height at six stations, interpolated. A table is easier to adjust
          by eye than a formula that happens to fit a hand, and it puts the peak at 68% of
@@ -1241,11 +1249,43 @@ export const PROPS = [
       const shell = rrectXZ(x, t, z, w, dp, 13);
       const screen = rrectXZ(x + 3.5, t + 0.3, z + 4, w - 7, dp - 8, 10);
 
-      /* Interface, at the size a phone screen really is: 68mm across, so nothing here can
-         be text — it is the RHYTHM of an interface. A tall card, then rows. Anything more
-         detailed would be a smudge at every zoom the camera actually reaches. */
-      const rows = [0.30, 0.40, 0.50, 0.60, 0.70, 0.80].map(k =>
-        `<path class="con" d="${line2(P(x + 11, t + 0.4, z + dp * k), P(x + w - 11, t + 0.4, z + dp * k))}"/>`).join('');
+      /* THE SCREEN IS HER SOCIALS — this is the object that carries "get in touch", and tapping it
+         opens the contact list. So the interface is a grid of app tiles and a dock, not the rows of
+         generic text it had before.
+         Deliberately no lettering. The screen is 68mm across, which puts a tile at 17mm and any
+         label inside it at two or three — a smudge at every zoom the camera reaches. What reads at
+         that size is the SHAPE of a home screen plus each tile's colour, and the tiles carry the
+         actual brand colours, so the grid is recognisable as social apps without pretending to be
+         legible. The real links live in the contact sheet the tap opens. */
+      const TILES = [
+        '#0a66c2', '#24292f', '#ea4c89',   // LinkedIn, GitHub, Dribbble
+        '#c13584', '#b23121', '#5b6b7c'    // Instagram, mail, the rest
+      ];
+      /* `apptile`, not `col`. A `col` path only takes its colour when the object is LIT, and the
+         phone is in no shot's lit list — so the whole grid rendered as empty outlines and the one
+         thing that makes it read as a social home screen was invisible at every zoom.
+         The screen is CONTENT, like the six audit steps on the monitor, and the monitor's text is
+         handled the same way: always present, dimmed until the object is in shot. */
+      const tile = (col, row, c) => {
+        const tw = 16, gap = 5.4;
+        const tx = x + 10 + col * (tw + gap), tz = z + dp - 46 - row * (tw + gap);
+        return `<path class="apptile" style="--c:${c}" d="${rrectXZ(tx, t + 0.5, tz, tw, tw, 4)}"/>`;
+      };
+      const grid = TILES.map((c, i) => tile(i % 3, Math.floor(i / 3), c)).join('');
+      /* A widget fills the band between the grid and the dock. Without it the middle of the screen
+         was a blank third, which is the one thing a real home screen never is. */
+      const widget = `<path class="apptile" style="--c:#cfd9e3" d="${rrectXZ(x + 10, t + 0.45, z + 48, w - 20, 32, 6)}"/>
+        <g class="con">${[0.34, 0.54, 0.72].map(k =>
+          `<path d="${line2(P(x + 16, t + 0.6, z + 48 + 32 * k), P(x + w - 16 - (k > 0.7 ? 16 : 0), t + 0.6, z + 48 + 32 * k))}"/>`).join('')}</g>`;
+      /* the dock: four smaller tiles on a rounded tray, which is the other half of what makes a
+         rectangle read as a phone home screen */
+      const dock = `<path class="con" d="${rrectXZ(x + 8, t + 0.4, z + 14, w - 16, 22, 7)}"/>
+        ${[0, 1, 2, 3].map(i =>
+          `<path class="con" d="${rrectXZ(x + 13 + i * 13.5, t + 0.5, z + 19, 11, 11, 3)}"/>`).join('')}`;
+      /* status bar: the signal/battery rhythm, as marks rather than glyphs */
+      const status = `<g class="con">${[0, 1, 2].map(i =>
+        `<path d="${line2(P(x + 12 + i * 3.4, t + 0.4, z + dp - 12), P(x + 12 + i * 3.4, t + 0.4, z + dp - 8))}"/>`).join('')}
+        <path d="${rrectXZ(x + w - 24, t + 0.4, z + dp - 13, 12, 6, 1.6)}"/></g>`;
 
       /* The near edge, drawn as a face rather than a line, is what gives it thickness —
          and the two tabs are the buttons: power on the right, volume pair on the left. */
@@ -1257,13 +1297,13 @@ export const PROPS = [
       <path class="solid" d="${shell}"/>
       <path class="ol" d="${shell}"/>
       <path class="vis" d="${poly(edge, false)}"/>
-      <path class="col vis" style="--c:#9db0c6" d="${screen}"/>
+      <path class="apptile" style="--c:#e8eef5" d="${screen}"/>
+      <path class="vis" d="${screen}"/>
       <!-- island at the FAR edge and the home indicator at the near one, because that is
            how a phone gets put down: top away from you. Built the other way first and it
            read as lying upside-down. -->
       <path class="con" d="${rrectXZ(x + 26, t + 0.4, z + dp - 17, 24, 8, 4)}"/>
-      <path class="con" d="${rrectXZ(x + 9, t + 0.4, z + dp - 66, w - 18, 38, 5)}"/>
-      ${rows}
+      ${status}${grid}${widget}${dock}
       ${tab(x + w, z + dp - 68, 24)}${tab(x, z + dp - 56, 16)}${tab(x, z + dp - 78, 16)}
       <path class="con" d="${line2(P(x + w / 2 - 14, t + 0.4, z + 7), P(x + w / 2 + 14, t + 0.4, z + 7))}"/>`;
     } },

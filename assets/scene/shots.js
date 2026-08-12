@@ -110,8 +110,13 @@ export const SHOTS = [
        bias pushes it, and the whole point of this shot is that those six steps can be read.
        So it repeats the previous shot's side, and that is a deliberate exception rather than
        an oversight: content that must stay legible outranks the rhythm. */
+    /* Bias 0.73, not 0.68. At 0.68 the panel clipped the first ~54px of SIXTEEN OF THE SEVENTEEN
+       lines of screen text — the six audit steps, which are the entire point of this shot — and my
+       overlap check passed it, because it measured overlap by AREA and 54px of a 500px-wide monitor
+       is 11%, under the threshold. Area cannot see whether text is readable. Verified now by
+       measuring the leftmost text rectangle against the card edge instead. */
     n: 4, id: 'method', title: 'Method', side: 'l',
-    r: frameAt(1180, [905, 210, 560], 0.68, 0.54),
+    r: frameAt(1180, [905, 210, 560], 0.73, 0.54),
     lit: ['monitor', 'papers', 'stickies-bezel'],
     beat: 'Hero morph: the loose workpapers square up and resolve into the control table on screen.'
   },
@@ -154,7 +159,7 @@ export const SHOTS = [
     n: 8, id: 'connect', title: 'Connect', r: WHOLE, side: 'b',
     lit: ['monitor', 'sketchpad', 'ipad', 'map', 'notebooks', 'laptop', 'photo',
           'palette', 'plant', 'mug', 'lamp', 'papers', 'tickets', 'binoculars',
-          'whiteboard'],
+          'whiteboard', 'phone'],
     beat: 'The desk you started with, resolved. Lamp on, everything in its place.'
   }
 ];

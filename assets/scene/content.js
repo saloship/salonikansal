@@ -236,8 +236,18 @@ export const OBJECT_SECTION = {
   sketchpad: 'me', ipad: 'me',
   notebooks: 'journey', tickets: 'journey',
   monitor: 'method', papers: 'method', 'stickies-bezel': 'method',
-  'stickies-wall': 'method', keyboard: 'method', whiteboard: 'method', mouse: 'method',
-  laptop: 'work', riser: 'work', phone: 'work',
+  'stickies-wall': 'method', keyboard: 'method', whiteboard: 'method',
+  /* The mouse belongs to WORK, not method, for a visibility reason rather than a semantic one.
+     The parts list is fixed to the screen and blanks the right quarter of every shot; widening the
+     method framing to stop the panel clipping the monitor's six audit steps pushed the mouse back
+     under that table, so at its own section it could not be seen or tapped. At the work shot it
+     sits clear on the left. Mouse beside the laptop is a fair grouping either way. */
+  mouse: 'work',
+  laptop: 'work', riser: 'work',
+  /* The phone belongs to CONNECT, not to the work section. It is the object that means "reach me",
+     its screen carries her socials, and tapping it opens the contact list rather than travelling
+     to a section — see onObjectTap. */
+  phone: 'connect',
   map: 'beyond', binoculars: 'beyond', palette: 'beyond', photo: 'beyond', plant: 'beyond',
   lamp: 'connect', mug: 'connect', bottle: 'connect', speaker: 'connect',
   headphones: 'connect', pens: 'connect'
