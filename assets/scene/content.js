@@ -181,12 +181,17 @@ export const SECTIONS = {
   work: {
     panel: {
       eyebrow: 'The work',
-      /* Still meta-commentary, one layer down: "in the language of the field" tells the reader
-         "the next four items are keyword-speak, lower your expectations" — immediately above
-         the four items that most need believing. It also spent the one heading in the section
-         where the nouns belong. Boring and concrete is the right register here; the items
-         carry the interest. */
-      head: 'Four engagements at <em>EY</em>.',
+      /* NDA. This said "Four engagements at EY", which put a count of client engagements under
+         her employer's name in a display heading — and she cannot discuss the work publicly.
+         The rows below already keep client names out; a heading that attributes and counts them
+         undoes that carefulness in the largest type on the section.
+         So the heading names her OUTPUTS instead, which are hers to describe: controls, policy
+         sets, templates. It also happens to be the better heading — it echoes step six of the
+         method, "leave a template", so the two sections point at each other. The earlier version
+         of this line ("What I do, in the language of the field") had its own problem: it was
+         meta-commentary telling the reader to lower their expectations, immediately above the
+         items that most need believing. */
+      head: 'Controls, policies, and the <em>templates</em> left behind.',
       /* Was "the headline and the keywords a recruiter is scanning for" — which is me
          explaining the page's own strategy to the reader. Nobody talks like that about their
          own work, and naming the tactic out loud undercuts it. This says the same thing as
@@ -302,18 +307,19 @@ export const SECTIONS = {
       /* "Let's build something meaningful" is the most-used line on the internet's portfolios
          and it was the last eyebrow anyone read. This one says who the section is for. */
       eyebrow: 'Hiring, or just curious',
-      /* "Bringing clarity in chaos" had to go for two reasons. It is a consultancy tagline —
-         dozens of firms use it verbatim — and it inverted the hero's own motif: "living between
-         control and chaos" admits she is in the mess, which is interesting, while "bringing
-         clarity in chaos" repositions her as the person who fixes yours, which is a service
-         pitch. It was also the third of four uses of the word.
-         What replaces it is the ask the page never made. Every line here says "moving into
-         product" and the contact section, the one place a direct request belongs, hedged into
-         "a good conversation". */
-      head: 'I’d like the next problem to be a <em>product</em> one.',
+      /* RESTORED at Saloni's request — she likes this line, and it is hers to keep. My argument
+         against it stands on the record and she has heard it: dozens of consultancies use the
+         phrase verbatim, and it points the other way from the hero, which admits she is IN the
+         mess rather than selling a cure for yours. Her call, and a line the author actually
+         likes is worth more than one that merely survives an edit.
+         The direct ask that briefly stood here moves into the body instead of being lost —
+         the review's point was right that the contact section, the one place a request belongs,
+         never actually made one. It reads better there anyway: headline states the disposition,
+         body states the want. */
+      head: 'Bringing clarity <em>in chaos</em>.',
       /* "a team that needs a few hats worn at once" — passive, and the hats end up wearing
-         themselves. Otherwise intact: the openness after the ask is the point. */
-      body: 'Up for a good conversation — risk, product, design, travel, or a team that needs someone to wear a few hats at once. If that’s you, say hi.',
+         themselves. Otherwise the openness is the point, so it stays. */
+      body: 'I’d like the next problem to be a product one — though I’m up for a good conversation either way: risk, product, design, travel, or a team that needs someone to wear a few hats at once.',
       /* The warm close, folded INTO this card rather than living in a section of its own below
          it. This card is now the footer, so the page ends here — and the line is what makes it an
          ending rather than a stop: it returns to the hero's "control and chaos", so the last
