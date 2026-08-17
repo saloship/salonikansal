@@ -1,5 +1,6 @@
 # Published site. https://saloship.github.io/salonikansal/
 User-agent: *
 Allow: /
+Disallow: /tools/
 
 Sitemap: https://saloship.github.io/salonikansal/sitemap.xml

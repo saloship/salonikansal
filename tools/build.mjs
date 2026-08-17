@@ -213,10 +213,15 @@ await writeFile(join(ROOT, 'index.html'), out, 'utf8');
 const PAGES = ['', 'ideas.html', 'diaries/'];
 
 if (PUBLISH) {
+  /* tools/ is the workshop — the OG card generator, the phone harness, the device sheet. None
+     of it is linked from the site, but "not linked" is not "not crawlable", and a published
+     robots.txt that allows everything is an invitation. Disallowed by name so the site's own
+     pages stay indexable. */
   await writeFile(join(ROOT, 'robots.txt'),
     `# Published site. ${SITE}\n` +
     `User-agent: *\n` +
-    `Allow: /\n\n` +
+    `Allow: /\n` +
+    `Disallow: /tools/\n\n` +
     `Sitemap: ${SITE}sitemap.xml\n`, 'utf8');
 
   await writeFile(join(ROOT, 'sitemap.xml'),

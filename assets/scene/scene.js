@@ -41,6 +41,16 @@ const SHEET_H = SHEET_W / ASPECT;
 const PARALLAX = 0.055;
 const reduceMo = matchMedia('(prefers-reduced-motion:reduce)').matches;
 
+/* THE READING LINE, as a fraction of the viewport from the top. A section counts as being read
+   once its copy has risen to about a third down the screen, not when it first peeks in.
+   Exported because it is now load-bearing in two places and they must agree: scroll snapping
+   rests the page at a section's START, so at rest the reading line sits exactly PROBE into that
+   section — and anything scroll-coupled has to be finished by then, or the reader lands on a
+   scene that is still assembling itself and has to nudge the page to complete it. The phone's
+   typewriter is the case in point; see twAt(). Two copies of this number in two files is how
+   that guarantee quietly breaks. */
+export const PROBE = 0.34;
+
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = t => (t < 0 ? 0 : t > 1 ? 1 : t);
 const smooth = t => t * t * (3 - 2 * t);
@@ -366,7 +376,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     const last = Math.min(marks.length, list.length) - 1;
     /* the reading line sits a third down the viewport — a section counts as being
        read once its copy has risen to about there, not when it first peeks in */
-    const probe = scrollTop + window.innerHeight * 0.34;
+    const probe = scrollTop + window.innerHeight * PROBE;
     let i = 0;
     while (i < last && marks[i + 1] <= probe) i++;
     /* Past the final section, raw progress is 1 — not 0. Reporting 0 meant anything

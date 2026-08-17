@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Phone check — typewriter vs snap</title>
+<!-- ===========================================================================
+     phone-test.html — a 390 x 844 viewport, for checking the portrait path
+     ---------------------------------------------------------------------------
+     The portrait layout is behind a `max-width: 900px` media query, and media
+     queries inside an iframe answer to the IFRAME's viewport, not the window's.
+     So an iframe is a real phone viewport without needing to resize the browser
+     — which matters here because a maximised window refuses to be resized.
+
+     What this exists to check: the phone's copy types out as a function of scroll
+     position within a section, and scroll snapping decides which positions the
+     page can rest at. If the typing window is wider than the reading line, the
+     text can only ever be part-typed at every resting position and there is no
+     scroll left to finish it. The two numbers have to agree — see PROBE in
+     scene.js and twAt() in lab.html.
+     =========================================================================== -->
+<style>
+  body{margin:0;background:#2b2b2b;color:#eee;font:13px/1.6 system-ui,sans-serif;
+       display:flex;gap:20px;padding:20px;align-items:flex-start}
+  iframe{width:390px;height:844px;border:0;background:#ece6d8;flex:0 0 auto}
+  #out{white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,monospace;max-width:640px}
+  .ok{color:#7ddc86} .bad{color:#ff8a80}
+</style>
+</head>
+<body>
+<iframe id="f" src="../index.html"></iframe>
+<div id="out">running…</div>
+<script>
+const f = document.getElementById('f'), out = document.getElementById('out');
+const log = (s, cls) => out.innerHTML += `\n${cls ? `<span class="${cls}">${s}</span>` : s}`;
+
+f.addEventListener('load', async () => {
+  const w = f.contentWindow, d = f.contentDocument;
+  out.textContent = '';
+  log(`viewport ${w.innerWidth} x ${w.innerHeight}`);
+  log(`portrait media query: ${w.matchMedia('(max-width:900px)').matches}`);
+
+  const secs = [...d.querySelectorAll('#copy section')];
+  const tw = d.getElementById('tw');
+  log(`sections ${secs.length}, #tw display ${w.getComputedStyle(tw).display}`);
+
+  /* every portrait section should be exactly one viewport, which is what makes the
+     reading line land at a fixed fraction of it at every snap position */
+  const hs = secs.map(s => Math.round(s.getBoundingClientRect().height));
+  log(`section heights: ${hs.join(', ')}`);
+  log(hs.every(h => Math.abs(h - w.innerHeight) < 2)
+    ? '  ✓ every section is exactly one viewport'
+    : '  ✗ a section is not one viewport — the reading line will drift',
+    hs.every(h => Math.abs(h - w.innerHeight) < 2) ? 'ok' : 'bad');
+
+  /* Rest at each section start — what snapping actually does — and read how much of
+     the copy has been typed. Anything short of the full string means the reader lands
+     on an unfinished scene. */
+  const tops = secs.map(s => Math.round(s.getBoundingClientRect().top + w.scrollY));
+  let bad = 0;
+  for (const [i, y] of tops.entries()) {
+    w.scrollTo({ top: y, behavior: 'instant' });
+    /* nudge, because the camera runs off requestAnimationFrame and rAF is suspended
+       until something paints; two frames is enough once the frame is on screen */
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise(r => setTimeout(r, 350));
+    const shown = (d.getElementById('tw-h').textContent + d.getElementById('tw-b').textContent)
+      .replace(/\s+/g, ' ').trim();
+    const done = shown.length > 0 && !shown.endsWith('…');
+    if (!done) bad++;
+    log(`  ${String(i + 1).padStart(2)} y=${String(y).padStart(5)}  chars=${String(shown.length).padStart(4)}  ${shown.slice(0, 58)}`);
+  }
+  log(bad ? `\n✗ ${bad} section(s) rest with no copy typed` : `\n✓ every resting position shows typed copy`,
+      bad ? 'bad' : 'ok');
+});
+</script>
+</body>
+</html>

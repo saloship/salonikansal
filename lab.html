@@ -92,11 +92,30 @@
    so the pause comes from the SCROLL and the flow from the CAMERA — rather than the camera
    having to sit dead still to manufacture a pause, which is what made it lurch before.
 
-   `proximity`, not `mandatory`: sections with deep content are taller than the viewport, and
-   mandatory snapping fights a reader trying to rest halfway down one. Easy to make stronger
-   if the pull turns out too gentle. */
-html{scroll-behavior:smooth;scroll-snap-type:y proximity}
-#copy section{scroll-snap-align:start}
+   `mandatory`, not `proximity`. It was proximity, and the reason given was that sections with
+   deep content are taller than the viewport and mandatory snapping would fight a reader resting
+   halfway down one. That reason is wrong, and it is worth writing down why, because it is the
+   obvious thing to assume: the spec handles it. When a snap area is LARGER than the snapport,
+   every position where the area still covers the snapport is itself a valid snap position — so
+   a tall section is free-scrolling on the inside and only its edges pull. Mandatory costs
+   nothing there and buys the thing proximity cannot: proximity only snaps if you happened to
+   stop near a snap point, which leaves the reader deciding where to stop. That decision is not
+   theirs to make on a page built as eight framed scenes.
+
+   `scroll-snap-stop: always` is the other half. Without it one hard fling crosses several
+   sections and the camera flies through scenes nobody saw. With it, every gesture advances
+   exactly one scene — and the rail is still there for anyone who wants to jump.
+
+   THE CONSTANT THAT MAKES THIS SAFE: snapping rests the page at a section's start, which puts
+   the reading line PROBE (0.34) into the section. Anything scroll-coupled must therefore be
+   finished by 0.34, or the reader lands on a scene that is still assembling. The phone's
+   typewriter was written to a 0.62 window and would have been stuck at 55% of its text with no
+   scroll position left to finish in. It now shares scene.js's exported PROBE. */
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+#copy section{scroll-snap-align:start;scroll-snap-stop:always}
+/* The credit line lives below the last section. Without a snap position of its own it is not a
+   place the page can come to rest, so the last thing anyone reads would be unreachable. */
+#foot{scroll-snap-align:end}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 /* NO overflow-x:hidden here. Setting overflow on html or body makes it the scroll container,
    which breaks position:sticky on every descendant — it is what un-pinned the desk. The
@@ -769,7 +788,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 <div id="hud"></div>
 
 <script type="module">
-import { mountScene } from './assets/scene/scene.js';
+/* PROBE is the reading line — a third of a viewport down. Imported, not re-declared: snapping
+   rests the page at that offset into a section, and the typewriter has to finish by then. */
+import { mountScene, PROBE } from './assets/scene/scene.js';
 import { sheetFurniture, BOM } from './assets/scene/sheet.mjs';
 import { SHOTS } from './assets/scene/shots.js';
 import { SECTIONS, KEYWORDS, NAV, FOOTER, OBJECT_SECTION } from './assets/scene/content.js';
@@ -1142,12 +1163,15 @@ function twAt(raw) {
   if (!c) return;
 
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-  /* 0.62 is NOT the camera's hold, even though it used to be the same number. This is the
-     typewriter's own window — the fraction of a section over which the letters land — and it is
-     set by how much scroll should produce visible typing, not by camera timing. It is also
-     phone-only, and on a phone the camera does not move at all. The two just happened to share
-     a value until the hold came down to 0.32; keeping them independent is correct. */
-  const frac = reduce ? 1 : clamp01(t / 0.62);
+  /* The window is PROBE, and it has to be. This is the fraction of a section over which the
+     letters land, and it was 0.62 — chosen freely, back when the page could rest anywhere. It
+     cannot now: snapping is mandatory, so the page rests at a section's start, which puts the
+     reading line exactly PROBE into that section. A 0.62 window meant the text was 55% typed at
+     every resting position and the remaining 45% needed scroll the snap would not allow — the
+     copy could not be finished at all. At PROBE the letters land across the approach and the
+     last one arrives as the scene settles, which is the behaviour worth having anyway.
+     Imported rather than repeated: two copies of this number is how the guarantee breaks. */
+  const frac = reduce ? 1 : clamp01(t / PROBE);
 
   /* The body is typed as PLAIN text and swapped for its markup once complete, exactly as the
      heading is. Typing it with textContent while desktop renders it with innerHTML meant any
