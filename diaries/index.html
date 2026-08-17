@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Travel Diaries — Saloni Kansal</title>
 <meta name="description" content="A traveller's journal by Saloni Kansal — trekking and wandering across the Himalayas and south India. Macleodganj, Kasol, Jibhi, Chopta, Jaipur, Kerala."/>
-<link rel="canonical" href="https://saloship.github.io/diaries/"/>
+<link rel="canonical" href="https://saloship.github.io/salonikansal/diaries/"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
@@ -131,8 +131,11 @@ h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.05;l
 <body>
 
 <div class="bar">
-  <a href="/" class="logo"><span class="d"></span>Saloni</a>
-  <a href="/#beyond" class="back">← Back to the site</a>
+  <!-- RELATIVE, not root-absolute. The site lives at /salonikansal/ now, so "/" is no longer
+       her home page — it is the old site at the domain root, and these two links would have
+       walked a reader straight out of the new site into the previous one. -->
+  <a href="../" class="logo"><span class="d"></span>Saloni</a>
+  <a href="../#beyond" class="back">← Back to the site</a>
 </div>
 
 <nav class="dots" id="dots">
@@ -293,7 +296,7 @@ h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.05;l
     <div class="kick">To be continued</div>
     <h2>More trails <span class="i">still to come.</span></h2>
     <p>The notebook is still filling up.</p>
-    <a class="btn" href="/">Back to Saloni's site</a>
+    <a class="btn" href="../">Back to Saloni's site</a>
     <div class="foot">Travel Diaries · Saloni Kansal · somewhere between control and chaos</div>
   </section>
 

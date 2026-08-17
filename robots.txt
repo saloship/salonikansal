@@ -1,3 +1,5 @@
-# Preview build. Not for indexing — the real site is https://saloship.github.io/
+# Published site. https://saloship.github.io/salonikansal/
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://saloship.github.io/salonikansal/sitemap.xml

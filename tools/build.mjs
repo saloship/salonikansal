@@ -35,22 +35,21 @@ import { panelsHTML } from '../assets/scene/panels.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/* PREVIEW BY DEFAULT, and deliberately so. Stripping noindex from a build that lives at
-   /site-v2/ would let a copy of her portfolio into the index competing with her real site
-   for her own name — which is the whole reason the guard exists. A preview build keeps
-   noindex and points canonical at the preview; only --publish emits the live head.
-   robots.txt disallows as well, so the preview is protected twice over. */
+/* ONE HOME, under her own name. This used to be two URLs — a LIVE root and a /site-v2/
+   PREVIEW — because the drawing was a candidate to replace a site that already existed at
+   the root, so a build of it had to be publishable without competing with the incumbent for
+   her name. That is settled: this is the site, it is published at /salonikansal/, and the
+   preview URL and the live URL are therefore the same URL.
+   Which makes the canonical self-referential, and correctly so. It pointed at the root while
+   the root was the real site; leaving it there now would tell Google the authority for this
+   page is the OLD site, which is the exact opposite of the intent. */
 const PUBLISH = process.argv.includes('--publish');
-const LIVE = 'https://saloship.github.io/';
-const PREVIEW = 'https://saloship.github.io/site-v2/';
-const SITE = PUBLISH ? LIVE : PREVIEW;
+const SITE = 'https://saloship.github.io/salonikansal/';
+const CANON = SITE;
 
-/* CANONICAL POINTS AT THE LIVE SITE EVEN IN PREVIEW — carried over from the head this build
-   replaced, which had it right. A self-referential canonical on a preview says "this URL is
-   the authoritative one"; pointing it at the root says "the real site is over there", so if
-   the preview ever does get crawled, its signal consolidates onto her actual site instead of
-   competing with it. noindex is the lock; this is the belt. */
-const CANON = LIVE;
+/* The only difference --publish makes now is whether crawlers are allowed in. It still has to
+   be a deliberate flag rather than the default, because `node tools/build.mjs` gets run a
+   dozen times while working on the drawing and none of those runs should decide indexing. */
 
 /* Keep this in step with mountScene()'s own markup — the runtime path builds exactly this,
    and scene.js skips rebuilding when it finds .obj already present. */
@@ -80,20 +79,51 @@ const head = () => `<title>${TITLE}</title>
 <meta property="og:image:height" content="630"/>
 <meta property="og:image:alt" content="Saloni Kansal — tech risk &amp; audit, heading into product"/>
 <meta property="og:site_name" content="Saloni Kansal"/>
+<meta property="og:locale" content="en_IN"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="${TITLE}"/>
 <meta name="twitter:description" content="${SOCIAL}"/>
 <meta name="twitter:image" content="${SITE}assets/og-cover.png"/>
+<meta name="twitter:image:alt" content="Saloni Kansal — tech risk &amp; audit, heading into product"/>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Person",
   "name": "Saloni Kansal",
   "url": "${CANON}",
+  "image": "${SITE}assets/og-cover.png",
+  "email": "mailto:salonikansal.in@gmail.com",
   "jobTitle": "Tech Risk & IT Audit Consultant",
-  "worksFor": { "@type": "Organization", "name": "EY" },
+  "worksFor": {
+    "@type": "Organization",
+    "name": "EY",
+    "legalName": "Ernst & Young",
+    "sameAs": "https://www.ey.com/"
+  },
+  "hasOccupation": {
+    "@type": "Occupation",
+    "name": "Tech Risk & IT Audit Consultant",
+    "occupationLocation": { "@type": "City", "name": "Gurugram" },
+    "skills": "ITGC and ITAC testing, ISO 27001 policy development, cybersecurity and compliance review"
+  },
+  "alumniOf": {
+    "@type": "CollegeOrUniversity",
+    "name": "Bharati Vidyapeeth's College of Engineering (BVCOE), New Delhi",
+    "parentOrganization": {
+      "@type": "CollegeOrUniversity",
+      "name": "Guru Gobind Singh Indraprastha University"
+    }
+  },
   "address": { "@type": "PostalAddress", "addressLocality": "Gurugram", "addressCountry": "IN" },
+  "nationality": { "@type": "Country", "name": "India" },
   "description": "Tech risk and IT audit consultant moving into product and design.",
+  "knowsAbout": [
+    "IT Audit", "IT General Controls (ITGC)", "IT Application Controls (ITAC)",
+    "ISO/IEC 27001", "Technology Risk", "Governance, Risk and Compliance (GRC)",
+    "Cybersecurity Compliance", "Robotic Process Automation controls",
+    "Software Asset Management", "UI/UX Design", "Product Design",
+    "Front-end Development"
+  ],
   "sameAs": [
     "https://www.linkedin.com/in/saloni-kansal/",
     "https://github.com/saloship",
@@ -159,6 +189,38 @@ out = out.replace('</body>', `<noscript>
 
 await writeFile(join(ROOT, 'index.html'), out, 'utf8');
 
+/* --- 5. robots.txt and sitemap.xml, written BY the build --------------------
+   The noindex meta was one of two locks and the only automatic one: robots.txt had its own
+   `Disallow: /` and the build merely PRINTED a reminder to go and clear it by hand. A manual
+   step in a launch checklist is a step that gets missed, and the failure here is silent — the
+   site goes live, ranks for nothing, and nothing anywhere says why. Both locks now turn with
+   the same flag.
+
+   The sitemap is generated for the same reason: four URLs is a file anyone could hand-write
+   once and then forget to update, and a stale sitemap is worse than none. */
+const PAGES = ['', 'ideas.html', 'diaries/'];
+
+if (PUBLISH) {
+  await writeFile(join(ROOT, 'robots.txt'),
+    `# Published site. ${SITE}\n` +
+    `User-agent: *\n` +
+    `Allow: /\n\n` +
+    `Sitemap: ${SITE}sitemap.xml\n`, 'utf8');
+
+  await writeFile(join(ROOT, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    PAGES.map(p => `  <url><loc>${SITE}${p}</loc></url>\n`).join('') +
+    `</urlset>\n`, 'utf8');
+} else {
+  /* A preview build puts the locks BACK, rather than leaving whatever the last publish wrote.
+     Otherwise one --publish silently makes every later plain build indexable too. */
+  await writeFile(join(ROOT, 'robots.txt'),
+    `# Preview build. Not for indexing — the published site is ${SITE}\n` +
+    `User-agent: *\n` +
+    `Disallow: /\n`, 'utf8');
+}
+
 const kb = n => (n / 1024).toFixed(0) + 'kB';
 const paths = (svg.match(/<path/g) || []).length;
 const words = panels.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
@@ -167,10 +229,13 @@ console.log(`    drawing inlined   ${paths} paths, ${kb(svg.length)}`);
 console.log(`    copy inlined      ${SHOTS.length} sections, ${words} words readable with no JS`);
 console.log(`    page total        ${kb(out.length)}`);
 console.log(`    head              real title, description, OG, Twitter, Person JSON-LD`);
-console.log(`    canonical         ${CANON}${PUBLISH ? '' : '  (live site, not this preview)'}`);
+console.log(`    canonical         ${CANON}  (self-referential)`);
 console.log(`    og:url / assets   ${SITE}`);
-console.log(`    robots            ${PUBLISH ? 'indexable — PUBLISH build' : 'noindex kept — preview build'}`);
+console.log(`    robots meta       ${PUBLISH ? 'removed — indexable' : 'noindex kept — preview build'}`);
+console.log(`    robots.txt        ${PUBLISH ? 'Allow: / + Sitemap:' : 'Disallow: /'}`);
+if (PUBLISH) console.log(`    sitemap.xml       ${PAGES.length} URLs`);
 console.log(`    removed           dev read-out`);
 console.log(`    added             noscript notice`);
-if (!PUBLISH) console.log(`\n    run with --publish for the live head (indexable, canonical at the root)\n`);
-else console.log(`\n    PUBLISH BUILD — also clear the Disallow in robots.txt before shipping\n`);
+if (!PUBLISH) console.log(`\n    run with --publish to make it indexable — that rewrites robots.txt`
+  + ` and writes sitemap.xml too, so there is no manual step left\n`);
+else console.log(`\n    PUBLISH BUILD — robots.txt and sitemap.xml written; nothing left to do by hand\n`);

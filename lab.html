@@ -14,6 +14,10 @@
 <link rel="icon" href="assets/icon-32.png" type="image/png" sizes="32x32"/>
 <link rel="apple-touch-icon" href="assets/icon-180.png"/>
 <meta name="theme-color" content="#ece6d8"/>
+<!-- The page commits to one warm-paper look and defines no dark tokens. Some mobile browsers
+     force-invert pages that declare no scheme, which would turn navy line on cream into cream
+     line on navy and take the whole drawing with it. Declaring light prevents that. -->
+<meta name="color-scheme" content="light"/>
 <meta name="robots" content="noindex,nofollow"/>
 <title>M3 · The Desk — scroll-driven camera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,7 +208,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
          color:var(--card-ink);opacity:.72}
 .ref{font-family:var(--mono);font-size:10px;letter-spacing:.12em;white-space:nowrap;
      color:var(--card-ink);opacity:.42}
-.card h2{font-family:'Fraunces',Georgia,serif;font-size:clamp(23px,2.9vw,35px);line-height:1.12;
+/* h1 and h2 are styled identically on purpose. The hero is the h1 and the other seven are
+   h2s — a structural fact, not a visual one — and the panels are a set: one of them growing
+   a browser default heading size would break the series for no reason a reader could name. */
+.card h1,.card h2{font-family:'Fraunces',Georgia,serif;font-size:clamp(23px,2.9vw,35px);
+         line-height:1.12;
          letter-spacing:-.015em;font-weight:600;margin:0 0 10px;color:var(--card-ink)}
 .card p{font-size:15px;color:var(--card-ink-2)}
 .card .beat{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--card-ink);
@@ -388,23 +396,36 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 @media (prefers-reduced-motion:reduce){.bomlit,.bomrow .sh-v{transition:none}}
 
 /* ---- fixed chrome: progress rail and a live read-out ------------------- */
+/* right-anchored, so a widening label never drags the column of numbers sideways */
 #rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:5;
-      display:flex;flex-direction:column;gap:9px}
+      display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+/* column flow, or the label lands in a second grid ROW under the number and the active
+   chip stands twice as tall as its neighbours */
 #rail button{width:26px;height:26px;border-radius:3px;border:1px solid var(--chip-br);
              background:var(--chip);font-family:var(--mono);font-size:10px;
-             color:var(--bp-ink);cursor:pointer;display:grid;place-items:center;padding:0}
+             color:var(--bp-ink);cursor:pointer;display:grid;grid-auto-flow:column;
+             place-items:center;padding:0}
 #rail button:hover{border-color:var(--bp-ink)}
 #rail button[aria-current="true"]{background:var(--bp-ink);color:var(--paper);border-color:var(--bp-ink)}
+/* Off-screen until focused, then it lands as a mono chip in the top-left margin — same
+   language as the rail and the links, so it looks like part of the sheet rather than a
+   browser artefact. Not clipped to 1px: a skip link has to be readable once it is focused. */
+.skip{position:fixed;left:12px;top:-60px;z-index:20;font-family:var(--mono);font-size:11px;
+      letter-spacing:.08em;text-decoration:none;color:var(--bp-ink);background:var(--paper);
+      border:1px solid var(--bp-ink);padding:9px 13px;transition:top 140ms ease}
+.skip:focus{top:12px}
 #hud{position:fixed;left:18px;bottom:16px;z-index:5;font-family:var(--mono);font-size:10.5px;
      letter-spacing:.05em;color:var(--bp-ink);opacity:.5}
 #bar{position:fixed;left:0;top:0;height:3px;background:var(--brass);z-index:6;width:0}
 #rail button{gap:0}
+/* fixed cell, so the digit sits at the same x whether the chip is square or open */
+.rn{width:24px;height:24px;display:grid;place-items:center}
 .rl{display:none}
-#rail button:hover .rl,#rail button[aria-current="true"] .rl{display:inline;
-    font-family:var(--mono);font-size:10px;letter-spacing:.08em;white-space:nowrap;padding:0 8px}
-#rail button:hover,#rail button[aria-current="true"]{width:auto;min-width:26px;
-    padding:0 2px 0 0;justify-content:flex-start}
-#rail button:hover .rn,#rail button[aria-current="true"] .rn{padding-left:8px}
+/* label before the number: the pill unfolds leftward into the page, not off the edge */
+#rail button:hover .rl,#rail button[aria-current="true"] .rl{display:block;order:-1;
+    font-family:var(--mono);font-size:10px;letter-spacing:.08em;white-space:nowrap;
+    padding:0 2px 0 10px}
+#rail button:hover,#rail button[aria-current="true"]{width:auto;min-width:26px}
 
 /* ---- the warm close, inside the last card -------------------------------
    It had a full-height section of its own below the drawing, which read as the page stopping and
@@ -464,10 +485,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 .art .mark-p{fill:none;stroke:var(--bp-ink);stroke-width:1.5;opacity:.5}
 /* Cue strokes come down with everything else — 3 and 4 were sized to survive being a
    light line on navy, and on paper they read as a heavy sticker on a fine drawing. */
-.art .mark-r{stroke-width:2.1}
-.art .mark-p{stroke-width:2.6}
-.art .mark-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:62px;
-             letter-spacing:.1em;opacity:.42}
+/* Down again with the disc: these are non-scaling strokes, so they are screen pixels and
+   did not shrink when MARK_PX did. 2.1 around a 36px ring is a drawn-on circle. */
+.art .mark-r{stroke-width:1.5}
+.art .mark-p{stroke-width:2}
+/* 38 units, which the counter-scale lands at 11px on screen — the size of the eyebrows,
+   the rail chips and the sheet's own labels. It was 62, i.e. 23px, set when the cue had to
+   carry a light line on navy; on warm paper at that size the word shouted, and shouting is
+   what made a technical annotation read as a toy. Small and letterspaced is how the rest
+   of the drawing writes, so the cue should write that way too. */
+.art .mark-t{fill:var(--bp-ink);stroke:none;font-family:var(--mono);font-size:38px;
+             letter-spacing:.14em;opacity:.46}
 .obj.tappable:hover .mark-t{opacity:.85}
 .obj.lit.has-detail .mark-t{opacity:1;fill:var(--brass)}
 .obj.tappable{cursor:pointer}
@@ -476,8 +504,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 .obj.lit.has-detail .mark-p{stroke:var(--paper);opacity:1}
 .mark{transform-box:fill-box;transform-origin:50% 50%}
 @media (prefers-reduced-motion:no-preference){
-  .obj.lit.has-detail .mark{animation:pulse 2.4s ease-in-out infinite}
-  @keyframes pulse{50%{transform:scale(1.15)}}
+  .obj.lit.has-detail .mark{animation:pulse 3.2s ease-in-out infinite}
+  /* 1.08 over 3.2s, from 1.15 over 2.4s. A 15% throb on a brass disc is the other half of
+     the toy problem — it reads as a game prompt. Slower and shallower still catches the
+     eye at the edge of vision, which is all the cue has to do. */
+  @keyframes pulse{50%{transform:scale(1.08)}}
 }
 
 /* ---- detail view ------------------------------------------------------- */
@@ -568,16 +599,34 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 @media (prefers-reduced-motion:reduce){#tw .caret .on::after{animation:none}}
 
 #mobar,#msheet{display:none}
-/* the object carries this content on desktop; the panel must not repeat it */
-@media (min-width:901px){ .deep.on-object{display:none} }
+/* The object carries this content on desktop; the panel must not repeat it VISUALLY. It was
+   display:none, and once the drawing became role="img" that made the six Cold-Start steps
+   unreachable for a screen reader — they exist on desktop only as text inside the drawing,
+   and role="img" collapses the drawing to a single named image. Clipped instead: the monitor
+   still shows them, the panel keeps them in the accessibility tree, and nothing is drawn
+   twice. No focusable content in this block, so no `inert` needed. */
+@media (min-width:901px){
+  .deep.on-object{position:absolute;width:1px;height:1px;overflow:hidden;
+                  clip-path:inset(50%);white-space:nowrap}
+}
 
 @media (max-width:900px){
   #rail{display:none}
-  /* Portrait hides the scrolling cards entirely — the stuck panel carries the copy and
+  /* Portrait hides the scrolling cards visually — the stuck panel carries the copy and
      the detail lives on the objects. The sections stay in the document as plain scroll
      spacers, one viewport each, which is what drives section progress and gives the
      type-out an even rhythm. */
-  #copy .card{display:none}
+  /* CLIPPED, NOT `display:none`. This was display:none, and that quietly threw away the
+     one thing build.mjs works hardest to guarantee. The panel that replaces these cards
+     (#tw) is EMPTY in the HTML and types itself out as a function of scroll position — at
+     scroll 0 it renders nothing. Google crawls mobile-first, at a phone viewport, and does
+     not scroll: so the indexed copy of this page had the nav, the footer, and ~280 words of
+     drafting-sheet labels ("ALL DIMENSIONS IN MM", "THIRD ANGLE") where the writing should
+     be. display:none and visibility:hidden both remove text from the rendered DOM; clipping
+     does not. The words stay in the document and in the accessibility tree, the phone still
+     sees only the typewriter panel. */
+  #copy .card{position:absolute;width:1px;height:1px;overflow:hidden;
+              clip-path:inset(50%);white-space:nowrap}
   #copy section{min-height:100vh;padding:0}
   /* PORTRAIT LAYOUT: copy in the top two thirds, desk in the bottom third.
      Both were centred, so the card sat directly over the drawing and the desk was
@@ -620,7 +669,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
   #stage{width:min(100%,55vh);position:relative}
   #copy section{align-items:flex-start;padding:7vh 16px 46vh}
   #copy .card{width:100%;padding:20px 18px 18px}
-  .card h2{font-size:clamp(21px,6.4vw,28px)}
+  .card h1,.card h2{font-size:clamp(21px,6.4vw,28px)}
   .card p,.deep dd,.lessons li{font-size:14px}
   .tag{gap:10px}
   .ref{font-size:9px}
@@ -647,6 +696,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
 </head>
 <body>
 
+<!-- The drawing comes before <main> in source order, so the first thing a keyboard user meets
+     is the desk. <main> already lets a screen-reader user jump the landmark; this is the same
+     escape for someone with a keyboard and no screen reader, and it is the pair of the comment
+     below. Visible only on focus, styled as one of the sheet's own instrument boxes. -->
+<a href="#copy" class="skip">Skip to the writing</a>
+
 <div id="bar"></div>
 
 <div id="halo" aria-hidden="true"></div>
@@ -657,7 +712,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bp-ground);color:
       native size and crop — which is exactly the case the build's inlined drawing exists to
       cover. applyViewport() overwrites it on load (portrait swaps to its own frame), so this
       costs nothing and makes both first paint and the no-JS page correct. -->
- <div id="stage-wrap"><svg id="stage" viewBox="0 0 2400 1500"
+ <!-- role="img" is what makes the aria-label mean anything. An <svg> with no explicit role is
+      exposed inconsistently: several screen-reader and browser pairings drop the label and then
+      walk the children instead — and the children here are 1352 paths and 115 text nodes, which
+      is how a reader ends up being read "ALL DIMENSIONS IN MM UNLESS NOTED", "THIRD ANGLE",
+      "SCALE 1:5", "MATERIAL MIXED". The role collapses the subtree to one image with one name.
+      It cannot be a blanket aria-hidden, because some of that text is real content: the six
+      Cold-Start steps live on the monitor as SVG text. -->
+ <div id="stage-wrap"><svg id="stage" viewBox="0 0 2400 1500" role="img"
       aria-label="The desk — one drawing, eight shots"></svg></div>
   <!-- <main>, not a div: the page had no main landmark, so a screen-reader user had no way to
        skip the drawing and the drafting furniture and get to the writing. All CSS and script
@@ -863,6 +925,19 @@ msheet.addEventListener('click', e => {
   if (b.dataset.n) cam.goTo(+b.dataset.n);
 });
 addEventListener('scroll', () => msheet.classList.remove('open'), { passive: true });
+
+/* The portrait cards are CLIPPED rather than display:none, so their words survive into the
+   mobile render a crawler sees — but a clipped card is still a real card, and every link
+   inside it is still a tab stop. Left alone that is thirty invisible focus stops between
+   the top of the page and the nav bar. `inert` is the one switch that takes a subtree out
+   of the tab order and the accessibility tree while leaving the text in the document, which
+   is exactly the split wanted here: read by machines, skipped by hands. The mobile panel
+   carries the same words for anyone using a screen reader. */
+const portrait = matchMedia('(max-width:900px)');
+const cards = [...document.querySelectorAll('#copy .card')];
+const syncInert = () => cards.forEach(c => { c.inert = portrait.matches; });
+portrait.addEventListener('change', syncInert);
+syncInert();
 
 const bar = document.getElementById('bar');
 const hud = document.getElementById('hud');

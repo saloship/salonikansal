@@ -74,7 +74,16 @@ export function panelsHTML(SHOTS, SECTIONS) {
         <span class="eyebrow">${c.eyebrow}</span>
         <span class="ref">SK-01 · ${pad(s.n)}/${pad(SHOTS.length)}</span>
       </div>
-      <h2>${c.head}</h2>
+      ${s.n === 1
+        /* The hero's line is the page's h1 and every other section is an h2. It was h2 for
+           all eight, which left the document with nine level-2 headings and NO level-1 —
+           an outline with no root. The cost is in two places at once: the page's strongest
+           heading signal simply does not exist for a crawler, and a screen-reader user
+           asking for the first heading is told there isn't one. One conditional fixes both,
+           and it belongs here rather than in the content, because which section is the top
+           of the document is a fact about the page's structure, not about its writing. */
+        ? `<h1>${c.head}</h1>`
+        : `<h2>${c.head}</h2>`}
       <p>${c.body}</p>
       ${c.links ? `<div class="links">${c.links.map(linkHTML).join('')}</div>` : ''}
       ${c.close ? `<p class="cl">${c.close}</p>` : ''}

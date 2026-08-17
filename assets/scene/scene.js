@@ -138,7 +138,13 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
      interface, not drawing, so they get counter-scaled every frame to a fixed pixel size
      (see MARK_PX): the cue stays the same size to the hand whatever the zoom is doing. */
   const cues = [];                    // not `marks` — that name already holds section offsets
-  const MARK_PX = 23;                 // on-screen radius of the plus disc
+  /* 18, down from 23. At 23 the disc was 46px across with a 23px word beside it — the
+     counter-scale below normalises the authored 62-unit radius to MARK_PX, so the label
+     inherited the disc's size and landed at UI-headline scale on top of a drawing whose
+     finest lines are 1px. Big type on a technical drawing reads as a sticker, and next to
+     small objects the pair crowded the thing it was pointing at. 18 makes it a 36px disc
+     with an 11px label — the same size as every other mono annotation on the sheet. */
+  const MARK_PX = 18;                 // on-screen radius of the plus disc
   const groups = new Map();
   for (const o of objs) {
     const sec = markers[o.id];
@@ -173,7 +179,9 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
       `M${mx.toFixed(1)} ${(my - 30).toFixed(1)}v60"/>` +
       /* A word as well as a glyph: a plus alone says something happens, the label says
          what. MORE where a detail view sits behind the group, GO where the tap travels. */
-      `<text class="mark-t" x="${(mx - 78).toFixed(1)}" y="${(my + 24).toFixed(1)}" ` +
+      /* 84 not 78: the label is smaller now, and the old offset put it 4px off the disc.
+         Set in units, like everything else here, so the gap survives the counter-scale. */
+      `<text class="mark-t" x="${(mx - 84).toFixed(1)}" y="${(my + 15).toFixed(1)}" ` +
       `text-anchor="end">${owner ? 'MORE' : 'GO'}</text>`;
     g.appendChild(fit);
     anchor.el.appendChild(g);
