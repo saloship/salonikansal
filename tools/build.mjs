@@ -59,8 +59,14 @@ const scene = () => `${GRID_DEFS}
     <g class="sheet" id="furniture">${sheetFurniture(2400, 1500, { words: KEYWORDS })}</g>`;
 
 const TITLE = 'Saloni Kansal — Tech Risk &amp; Audit, moving into Product';
-const DESC = 'Saloni Kansal — tech risk &amp; IT audit consultant moving into product and '
-  + 'design. A method I actually use, the work behind it, and the mountains in between.';
+/* The second half used to be a table of contents for the page — "a method I actually use, the
+   work behind it, and the mountains in between". On the page that line is intriguing because
+   the next sentence explains it; in a search result it is a riddle, and a riddle is not what
+   makes someone click. EY, Gurugram and the two specifics she can actually be searched for go
+   there instead. "The mountains in between" survives, because it is the half that sounds like
+   a person rather than a directory entry. 156 characters. */
+const DESC = 'Saloni Kansal — tech risk &amp; IT audit consultant at EY in Gurugram, moving '
+  + 'into product and design. ITGC/ITAC, ISO 27001, and the mountains in between.';
 const SOCIAL = 'Tech risk &amp; IT audit, heading into product and design. I find where '
   + 'systems break — then design the replacement.';
 
@@ -74,9 +80,15 @@ const head = () => `<title>${TITLE}</title>
 <meta property="og:url" content="${SITE}"/>
 <meta property="og:title" content="${TITLE}"/>
 <meta property="og:description" content="${SOCIAL}"/>
+<!-- These MUST match the file on disk. They said 1200 x 630 and the file is 1552 x 784 — the
+     card is authored at 1200 x 630 and captured through the browser, which renders at device
+     pixel ratio, so the asset comes out larger than its design size. Bigger is better here
+     (it survives a retina timeline), but a declared size that disagrees with the real one is
+     how a scraper ends up laying out a space the image does not fill. Re-render with
+     tools/og-card.html and put the captured numbers here. -->
 <meta property="og:image" content="${SITE}assets/og-cover.png"/>
-<meta property="og:image:width" content="1200"/>
-<meta property="og:image:height" content="630"/>
+<meta property="og:image:width" content="1552"/>
+<meta property="og:image:height" content="784"/>
 <meta property="og:image:alt" content="Saloni Kansal — tech risk &amp; audit, heading into product"/>
 <meta property="og:site_name" content="Saloni Kansal"/>
 <meta property="og:locale" content="en_IN"/>

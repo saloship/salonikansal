@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>OG card — 1200 × 630</title>
+<!-- ===========================================================================
+     og-card.html — the share card, built FROM the drawing
+     ---------------------------------------------------------------------------
+     The card that shipped before this was made outside the site and then the site
+     changed underneath it: acid yellow sun, near-black slab serif, geometric
+     mountains — the palette the stylesheet explicitly rejected — and, printed
+     along the bottom, `saloship.github.io`, which is no longer where this lives.
+     A share card is the first thing anyone sees and the only thing most people
+     see, so it was promising an editorial mountains site and delivering a navy
+     technical drawing at a URL that has moved.
+
+     This one imports desk.mjs, so it cannot drift again: it is the same 1352
+     paths, the same grid, the same navy on the same warm paper. Change the
+     drawing and the card changes with it.
+
+     TO RE-RENDER: open this file over http (the module imports need it), then
+     screenshot the 1200 × 630 card. There is no rasteriser in this repo — no
+     sharp, no puppeteer, no ImageMagick — so the capture is done through the
+     browser. Declare whatever pixel size comes back in og:image:width/height;
+     the ratio is what scrapers care about and this card is locked to 1.905:1.
+     =========================================================================== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf7f0; --brass:#a97e2f;
+  --bp-ground:#ece6d8; --bp-ink:#28486e; --bp-con:#28486e;
+  --bp-fill:#ece6d8; --bp-wall:#eae3d3; --bp-case:#e6dfce;
+  --bp-grid:rgba(30,58,95,.075); --bp-grid-b:rgba(30,58,95,.14);
+  --card-ink:#17293f; --card-ink-2:#55606d; --rule-2:#ded4c0;
+  --mark-hl:rgba(169,126,47,.30);
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  /* The drawing's own line weights. Left at the site's values so the card is the
+     same drawing rather than a heavier tracing of it. */
+  --w-ol:1.5; --w-vis:1.15; --w-hid:0.95; --w-con:0.85;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#3a3a3a;display:grid;place-items:start center;padding:20px}
+
+/* EXACTLY 1200 × 630. Nothing about the card is responsive — it has one job at one
+   size, and a card that reflows is a card that renders differently every capture. */
+#card{position:relative;width:1200px;height:630px;overflow:hidden;
+      background:var(--bp-ground);font-family:var(--mono);
+      /* the sheet's grid, at the drawing's own 40-units-in-2400 pitch: at this crop
+         one unit is 0.5px, so the pitch is 20px */
+      background-image:
+        repeating-linear-gradient(to right,var(--bp-grid) 0 1px,transparent 1px 20px),
+        repeating-linear-gradient(to bottom,var(--bp-grid) 0 1px,transparent 1px 20px),
+        repeating-linear-gradient(to right,var(--bp-grid-b) 0 1px,transparent 1px 100px),
+        repeating-linear-gradient(to bottom,var(--bp-grid-b) 0 1px,transparent 1px 100px)}
+
+/* The drawing sits low and right, so the type has the top-left third clear. The crop is
+   the desk itself — keyboard, monitor, laptop, the plant — not the whole sheet, because
+   at 1200px wide the whole sheet is a grey smudge and a crop is legible. */
+/* Inside the frame, not under it. Running to the card's edge put 22px of linework outside the
+   sheet border, which reads as a printing error rather than a bleed. */
+#draw{position:absolute;right:23px;bottom:23px;width:757px;height:607px;overflow:hidden}
+#draw svg{display:block;width:100%;height:100%}
+/* THE ROOM COMES OFF. On the site the ground plane and the two side walls give the desk a
+   depth to sit in, and they work because the eye has a whole viewport and a camera move to
+   read them. In a 630px crop they are two enormous diagonals running out of the frame, and
+   they read as a mistake. Without them the desk sits on the sheet's grid as a drawn object,
+   which is what a technical share card should be. The chair and figure go for the same
+   reason: cropped at this size they are a shape nobody can name. */
+.art #wall,.art .casewall,.art #fg{display:none}
+
+.art{fill:none;stroke:var(--bp-ink);stroke-linejoin:miter;stroke-linecap:butt;
+     shape-rendering:geometricPrecision}
+.art .ol{stroke-width:var(--w-ol)}
+.art .vis{stroke-width:var(--w-vis)}
+.art .hid{stroke-width:var(--w-hid);stroke-dasharray:9 6;opacity:.44}
+.art .con{stroke-width:var(--w-con);stroke:var(--bp-con);opacity:.40}
+.art .cen{stroke-width:var(--w-con);stroke:var(--bp-con);stroke-dasharray:30 6 4 6;opacity:.34}
+.art .solid{fill:var(--bp-fill);stroke:none}
+.art #wall{fill:var(--bp-wall);stroke:none}
+.art .case{fill:var(--bp-case);stroke:none}
+.art *{vector-effect:non-scaling-stroke}
+.art .colstroke{stroke:var(--bp-con)}
+/* No object is "lit": colour on this site arrives when a section is in shot, and a share
+   card is not in any shot. Monochrome is the resting state, which is what the hero is. */
+.art .col{fill:none}
+
+/* A soft wash so the type never sits on top of linework. Same trick the copy panels use. */
+/* Softens the overlap only. The first version ran the wash to 78% of the width and took the
+   whole drawing down with it — the linework went from a drawing to a watermark. It now clears
+   the type and stops. */
+#veil{position:absolute;inset:0;
+      background:linear-gradient(100deg,var(--bp-ground) 0 33%,rgba(236,230,216,.80) 44%,
+                                 rgba(236,230,216,0) 60%)}
+
+#type{position:absolute;left:64px;top:64px;width:660px}
+.eyebrow{font-size:13px;letter-spacing:.19em;text-transform:uppercase;
+         color:var(--brass);font-weight:500}
+h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:56px;line-height:1.06;
+   letter-spacing:-.02em;color:var(--card-ink);margin:20px 0 0}
+h1 em{font-style:normal;background:linear-gradient(transparent 62%,var(--mark-hl) 62%)}
+.sub{font-size:16px;line-height:1.5;color:var(--card-ink-2);margin-top:20px;max-width:31ch}
+
+/* Bottom-left, where a drawing carries its sheet reference. The URL is the one piece of
+   information on the card that has to be right, and the old card had it wrong. */
+#foot{position:absolute;left:64px;bottom:46px;display:flex;align-items:center;gap:14px;
+      font-size:12.5px;letter-spacing:.1em;color:var(--bp-ink)}
+#foot .rule{width:52px;height:1px;background:var(--bp-ink);opacity:.5}
+#foot .url{opacity:.78}
+
+/* The sheet frame, so the card reads as a drawing and not a slide. */
+#frame{position:absolute;inset:22px;border:1.6px solid var(--bp-ink);opacity:.55;
+       pointer-events:none}
+#frame::after{content:"";position:absolute;inset:7px;border:1px solid var(--bp-ink);
+              opacity:.34}
+.note{color:#ddd;font:12px/1.6 system-ui,sans-serif;max-width:1200px;margin-top:14px}
+.note b{color:#fff}
+
+/* ?bare — CAPTURE MODE. The card is exactly 1200 × 630, so with the page padding, the dark
+   backdrop and the instructions removed, a viewport set to 1200 × 630 contains the card and
+   nothing else, and a plain page screenshot IS the asset at exactly the right size. That is
+   the whole trick: no cropping step, nothing to line up by eye, and no rasteriser needed.
+
+     resize the page to 1200 × 630, open og-card.html?bare, screenshot to assets/og-cover.png
+*/
+/* The card is scaled to the viewport's HEIGHT and centred, and the leftover strips either side
+   are painted the card's own ground colour. Two reasons it works this way round rather than by
+   sizing the browser to the card: the window here is maximised and refuses to be resized, and
+   scrapers care about the RATIO, which stays exact because the card is scaled uniformly.
+   The strips are invisible — same colour, no content — and they are the margin a scraper's
+   centre-crop eats into instead of the sheet's frame. Declare the captured pixel size in
+   og:image:width/height and everything downstream is honest. */
+body.bare{padding:0;background:var(--bp-ground);display:grid;place-items:center;
+          height:100vh;overflow:hidden}
+body.bare .note{display:none}
+body.bare #card{transform:scale(var(--k,1));transform-origin:center}
+</style>
+</head>
+<body>
+
+<div id="card">
+  <div id="draw"></div>
+  <div id="veil"></div>
+  <div id="type">
+    <p class="eyebrow">Saloni Kansal · Gurugram, India</p>
+    <h1>Tech risk &amp; IT audit,<br>heading into <em>product</em>.</h1>
+    <p class="sub">I find where systems break — then design the replacement.</p>
+  </div>
+  <div id="foot">
+    <span class="rule"></span>
+    <span class="url">saloship.github.io/salonikansal</span>
+  </div>
+  <div id="frame"></div>
+</div>
+
+<p class="note"><b>1200 × 630.</b> Screenshot the card above and save it as
+<code>assets/og-cover.png</code>. The drawing is imported from
+<code>assets/scene/desk.mjs</code>, so this card cannot drift from the site.</p>
+
+<script type="module">
+import { buildScene, GRID_DEFS } from '../assets/scene/desk.mjs';
+
+if (location.search.includes('bare')) {
+  document.body.classList.add('bare');
+  /* Exactly the viewport height, so the capture is the card at full bleed top and bottom and
+     the only slack is the two side strips. Recomputed on resize so the capture is right
+     whatever window it is taken in. */
+  const fit = () => document.documentElement.style
+    .setProperty('--k', (innerHeight / 630).toFixed(5));
+  addEventListener('resize', fit);
+  fit();
+}
+
+/* The viewBox is the crop. The full sheet is 0 0 2400 1500; this frames the desk and
+   leaves the wall and the floor out, because the card is 630px tall and the parts of the
+   sheet that carry no object are the first things that should go. */
+document.getElementById('draw').innerHTML =
+  /* The crop is derived, not eyeballed: P() gives the projected position of any world point,
+     so the frame is set from the objects themselves. The monitor's top lands at y 528, the
+     keyboard at 1002, the plant at 567, the desk's front edge at 1150 — so a window of
+     y 400—1150 holds every object plus the edge they sit on, and x 600—1528 runs monitor to
+     plant. Tight, because half a desk at card size is legible and a whole one is a smudge.
+     The viewBox ratio matches #draw's box, so nothing is stretched or unexpectedly cropped. */
+  `<svg viewBox="600 400 928 750" preserveAspectRatio="xMidYMid slice"
+        xmlns="http://www.w3.org/2000/svg">
+     ${GRID_DEFS}
+     <g class="art">${buildScene()}</g>
+   </svg>`;
+</script>
+</body>
+</html>
