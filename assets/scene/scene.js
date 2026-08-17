@@ -359,6 +359,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
      round — it used to drift continuously, which is restless and makes long text
      unreadable. */
   let raf = 0, target = 0, onShot = null, marks = [];
+  let lastP = NaN;                // last shot position actually rendered, to skip no-op frames
   /* Raw position within the current section, BEFORE the camera's hold is applied. The
      camera deliberately sits still for the first `hold` of a section, so its progress is
      zero for most of the scroll — useful for the camera, useless for anything that should
@@ -390,17 +391,72 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     return i + clamp01(t);
   }
 
-  function tick() {
+  /* DAMPED FOLLOW. The camera used to be a pure function of window.scrollY: whatever position
+     the scroll had reached when a frame happened to be served, the camera jumped to. That is
+     fine when frames arrive every 16ms and awful when they do not — and here they do not, because
+     re-scaling the drawing costs the main thread 19-27ms a frame (measured; see the note in
+     render()). Irregular frames against a 1:1 mapping is precisely the signature of judder:
+     the camera lurches by whatever distance the scroll covered while the last frame was busy.
+
+     So the camera now eases toward the scroll position instead of being pinned to it. Each frame
+     it closes a fixed FRACTION of the remaining distance, which makes the motion monotonic and
+     continuous whatever the frame times do — a late frame produces a bigger ease, not a jump.
+     It also gives the pan a little weight, which is what a camera move through a drawing should
+     have.
+
+     `cur` is in scroll pixels rather than shot units on purpose: easing in scroll space keeps
+     everything downstream — camera, lit objects, the phone's typewriter — reading from one
+     position, so they cannot disagree about where the page is.
+
+     TAU is a time constant, not a per-frame factor, and alpha is derived from the real frame
+     delta. A per-frame factor silently changes the feel of the motion with the frame rate, which
+     on a page whose frame rate is the actual problem would be exactly the wrong thing to do. */
+  const TAU = 90;                 // ms to close ~63% of the remaining distance
+  const SETTLE = 0.5;             // sub-pixel: close enough to land exactly and stop
+  let cur = 0, lastT = 0, following = false;
+
+  function tick(now) {
     raf = 0;
-    let p = progressAt(target);
+    const dt = lastT ? Math.min(64, now - lastT) : 16;   // clamp: a tab returning from the
+    lastT = now;                                          // background must not teleport
+    const alpha = 1 - Math.exp(-dt / TAU);
+    cur += (target - cur) * alpha;
+    if (Math.abs(target - cur) < SETTLE) { cur = target; following = false; }
+    else following = true;
+
+    let p = progressAt(cur);
     if (reduceMo) p = Math.round(p);        // snap between shots, no scrubbing
-    const near = render(p);
-    if (onShot) onShot(near, p, { i: rawI, t: rawT });
+    /* Redundant frames are not free here — a frame that changes the scale costs 19-27ms whether
+       or not the change is visible. Below a thousandth of a shot nothing moves on screen, so
+       there is nothing to pay for. */
+    if (Math.abs(p - lastP) > 0.001) {
+      lastP = p;
+      const near = render(p);
+      if (onShot) onShot(near, p, { i: rawI, t: rawT });
+    }
+    if (following) raf = requestAnimationFrame(tick);
   }
 
   function schedule() {
     target = window.scrollY;
-    if (!raf) raf = requestAnimationFrame(tick);
+    if (!raf) { lastT = 0; raf = requestAnimationFrame(tick); }
+  }
+
+  /* Arrive, rather than ease in. Easing is for following a scroll the reader is driving; for a
+     page that has just loaded — or been restored at scroll 3000 by a refresh, or come back from
+     a background tab — a gentle glide from wherever the camera happened to be is not motion the
+     reader asked for, it is the page looking broken. Anything that repositions the world instead
+     of following it lands the camera exactly and renders once. */
+  function jump() {
+    target = window.scrollY;
+    cur = target;
+    lastT = 0;
+    lastP = NaN;                              // force a render even if p is unchanged
+    let p = progressAt(cur);
+    if (reduceMo) p = Math.round(p);
+    lastP = p;
+    const near = render(p);
+    if (onShot) onShot(near, p, { i: rawI, t: rawT });
   }
 
   /* A backgrounded tab stops servicing requestAnimationFrame. If a frame was in
@@ -411,7 +467,7 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     if (document.visibilityState === 'visible') {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
-      schedule();
+      jump();                     // arrive where the page is, do not glide there
     }
   });
 
@@ -421,25 +477,25 @@ export function mountScene(svg, { sheet = '', overlay = '', copy = null,
     if (next !== list) { list = next; lastLit = -1; }
     applyViewport();
     measure();
-    schedule();
+    jump();                       // the world just changed shape; do not animate to the new one
   }, { passive: true });
 
   /* Section heights depend on text reflow, which depends on fonts. Re-measure once
      they land, or every mark is computed against the fallback metrics. */
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => { measure(); schedule(); });
+    document.fonts.ready.then(() => { measure(); jump(); });
   }
-  addEventListener('load', () => { measure(); schedule(); });
+  addEventListener('load', () => { measure(); jump(); });
 
   applyViewport();
   measure();
-  schedule();
+  jump();
 
   return {
     /* Force a synchronous render from the current scroll position. Needed after a
        layout change that moves the sections, and it is the only way to drive the
        camera when requestAnimationFrame is not being serviced. */
-    update() { measure(); target = window.scrollY; tick(); },
+    update() { measure(); jump(); },
     shots: () => list,
     /* land on the section itself, wherever measurement put it */
     goTo(n) {

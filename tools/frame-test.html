@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Frame cost — camera traverse</title>
+<!-- ===========================================================================
+     frame-test.html — how expensive is one pass of the camera across the desk?
+     ---------------------------------------------------------------------------
+     The jank in this page has one documented source: changing the camera's SCALE
+     forces the browser to re-rasterise the whole drawing, and the drawing is 1352
+     paths every one of which carries vector-effect:non-scaling-stroke, so each
+     stroke has to be re-derived in device space as well. Translation is cheap —
+     #camg is a promoted layer and a 2D translate is composited. Scale is not.
+
+     So this measures the thing worth measuring: frame deltas during a scripted
+     traverse, with snapping switched off for the duration so the camera is driven
+     smoothly and nothing else is in the way. Read the >50ms count first; a couple
+     of 50ms frames in a pan is what a reader calls jittery.
+
+     Run it, note the numbers, change one thing, run it again. Frame timing on a
+     shared machine is noisy, so treat a single run as indicative and repeat runs
+     that matter.
+     =========================================================================== -->
+<style>
+  body{margin:0;background:#242424;color:#e8e8e8;font:13px/1.6 system-ui,sans-serif;
+       display:flex;gap:18px;padding:18px;align-items:flex-start}
+  iframe{width:1180px;height:740px;border:0;background:#ece6d8;flex:0 0 auto}
+  #out{white-space:pre-wrap;font:12px/1.6 ui-monospace,Menlo,monospace;min-width:330px}
+  b{color:#fff} .hot{color:#ff8a80} .cool{color:#7ddc86} .dim{color:#999}
+  button{font:inherit;padding:6px 12px;margin-bottom:10px;cursor:pointer}
+</style>
+</head>
+<body>
+<iframe id="f" src="../index.html"></iframe>
+<div>
+  <button id="go">Run traverse</button>
+  <div id="out" class="dim">load the frame, then run…</div>
+</div>
+<script>
+const f = document.getElementById('f'), out = document.getElementById('out');
+
+document.getElementById('go').addEventListener('click', async () => {
+  const w = f.contentWindow, d = f.contentDocument;
+  out.textContent = 'running…';
+
+  /* Snapping off for the measurement. It exists to decide where the page RESTS, and this
+     test is about what happens while it moves — leaving it on would have the compositor
+     fighting the script for the scroll position and measure that instead. */
+  const prevSnap = d.documentElement.style.scrollSnapType;
+  d.documentElement.style.scrollSnapType = 'none';
+  d.documentElement.style.scrollBehavior = 'auto';
+
+  const max = d.documentElement.scrollHeight - w.innerHeight;
+  const DURATION = 4200;
+  const deltas = [];
+
+  await new Promise(resolve => {
+    let t0 = 0, last = 0;
+    const step = now => {
+      if (!t0) { t0 = now; last = now; w.requestAnimationFrame(step); return; }
+      deltas.push(now - last);
+      last = now;
+      const t = (now - t0) / DURATION;
+      w.scrollTo({ top: Math.round(max * Math.min(1, t)), behavior: 'instant' });
+      if (t < 1) w.requestAnimationFrame(step); else resolve();
+    };
+    w.requestAnimationFrame(step);
+  });
+
+  d.documentElement.style.scrollSnapType = prevSnap;
+  d.documentElement.style.scrollBehavior = '';
+
+  /* first frame is the scheduling artefact of starting, not a rendered frame */
+  const ds = deltas.slice(1).sort((a, b) => a - b);
+  const q = p => ds[Math.min(ds.length - 1, Math.floor(ds.length * p))];
+  const over = n => ds.filter(x => x > n).length;
+  const mean = ds.reduce((a, b) => a + b, 0) / ds.length;
+
+  const paths = d.querySelectorAll('#scene path').length;
+  const nss = [...d.querySelectorAll('#scene path')]
+    .filter(p => getComputedStyle(p).vectorEffect === 'non-scaling-stroke').length;
+
+  out.innerHTML =
+    `<b>traverse ${DURATION}ms · ${ds.length} frames</b>\n` +
+    `drawing: ${paths} paths, ${nss} non-scaling-stroke\n\n` +
+    `mean      ${mean.toFixed(1)} ms\n` +
+    `p50       ${q(0.50).toFixed(1)} ms\n` +
+    `p90       ${q(0.90).toFixed(1)} ms\n` +
+    `p99       ${q(0.99).toFixed(1)} ms\n` +
+    `max       ${ds[ds.length - 1].toFixed(1)} ms\n\n` +
+    `<span class="${over(33) ? 'hot' : 'cool'}">frames > 33ms  ${over(33)}</span>   (below 30fps)\n` +
+    `<span class="${over(50) ? 'hot' : 'cool'}">frames > 50ms  ${over(50)}</span>   (visible stutter)\n` +
+    `<span class="${over(100) ? 'hot' : 'cool'}">frames > 100ms ${over(100)}</span>   (a lurch)\n\n` +
+    `<span class="dim">effective ${(1000 / mean).toFixed(0)} fps</span>`;
+});
+</script>
+</body>
+</html>
