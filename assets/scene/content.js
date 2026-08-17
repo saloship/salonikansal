@@ -254,23 +254,26 @@ export const SECTIONS = {
     deep: {
       on: 'map', label: 'From the trail',
       title: 'Collecting stories',
-      /* The four dated climbs stay at the top, because a date and an altitude are the only
-         lines here a stranger can check — they are what make the rest read as a record
-         rather than a wish list.
-         ONE circuit is named, and only the one that was actually a circuit. The Himachal
-         places below it were separate trips, so they are listed as places in a state and
-         not as a route: writing them as a single journey is a small invention, and this is
-         the section whose entire job is to be believed. Rows are grouped rather than run
-         one-place-each because a fifteen-row checklist of names is the least interesting
-         way to say any of this. */
+      /* NEWEST FIRST, and every row carries a year. Both of those are the point. A date is the
+         only line here a stranger can check, which is what makes this a record rather than a
+         wish list — and with the newest trip at the top, a reader can tell at a glance that
+         this is still happening. It read as abandoned before: every entry said 2024 while the
+         drawing's own title block says 2026.
+         ONE circuit is named, and only the one that was actually a circuit. Everything else was
+         a separate trip, so those rows are places in a district with a year on them, never a
+         route — writing them as a single journey is a small invention, and this is the section
+         whose entire job is to be believed. Sethan sits on its own line rather than with the
+         other Himachal places because it was a different year, which is exactly the kind of
+         detail that gets flattened when rows are grouped for tidiness. */
       items: [
+        { k: 'Kinnaur & Kullu', v: '2026 · Kalpa · Chitkul · Bijli Mahadev · Raghupur Fort' },
+        { k: 'Sethan', v: '2025 · above Manali' },
+        { k: 'The Uttarakhand circuit',
+          v: '2025 · Dhanaulti · Mukteshwar · Nainital · Tehri Lake · Rishikesh · Dehradun' },
         { k: 'Macleodganj — Triund', v: 'Jul 2024 · 2850m' },
         { k: 'Chopta & Tungnath', v: 'May 2024 · 3680m' },
         { k: 'Jibhi', v: 'Mar 2024' },
-        { k: 'Kheerganga trek', v: 'Kasol' },
-        { k: 'The Uttarakhand circuit',
-          v: 'Dhanaulti · Mukteshwar · Nainital · Tehri Lake · Rishikesh · Dehradun' },
-        { k: 'Also in Himachal', v: 'Kalpa · Chitkul · Sethan · Bijli Mahadev · Raghupur Fort' }
+        { k: 'Kheerganga trek', v: 'Kasol' }
       ],
       /* v1 had these on the ridge illustration, and they are the only lines that turn
          trekking into transferable judgement — without them the section is a hobby. */
@@ -286,7 +289,10 @@ export const SECTIONS = {
       /* The trips that were not climbs live in the note rather than in the table. The table
          is the trekking record and the rows carry dates and altitudes; a city with neither
          sitting among them dilutes both. Named here, so nothing is left off the map. */
-      note: 'Also on the map: Gokarna on the Karnataka coast, Pune and Mumbai, Jaipur’s palaces, Kerala’s tea country in Munnar, and every emerald lake I could hike to.',
+      /* The year attaches to Gokarna, Pune and Mumbai only. Jaipur and Munnar came over from v1
+         with no date attached, and dating them by proximity is how a record quietly stops being
+         one. */
+      note: 'Also on the map: Gokarna, Pune and Mumbai in 2026 — plus Jaipur’s palaces, Kerala’s tea country in Munnar, and every emerald lake I could hike to.',
       link: { label: 'Read the full diaries', href: 'diaries/' }
     }
   },
